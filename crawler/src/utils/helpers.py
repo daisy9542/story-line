@@ -4,6 +4,7 @@ from typing import Union
 import yaml
 import os
 import glob
+import re
 
 from twscrape import TextLink, Place, SummaryCard, PollCard, BroadcastCard, AudiospaceCard
 
@@ -38,12 +39,23 @@ def get_config(path: str = "config/settings.yaml") -> dict:
 
 
 def get_latest_file(path: str, prefix: str = "", suffix: str = ".jsonl") -> str:
-    """ 获取某目录下最新的文件，根据文件修改时间判断 """
+    """ 获取某目录下最新的文件，根据文件名中的时间戳判断 """
     pattern = os.path.join(path, f"{prefix}*{suffix}")
     files = glob.glob(pattern)
+
     if not files:
         raise FileNotFoundError(f"⚠️ 未找到任何匹配文件：{pattern}")
-    return max(files, key=os.path.getmtime)
+
+    def extract_datetime_from_filename(filename: str) -> datetime:
+        # 匹配类似 [prefix]_20240413_153025.jsonl
+        match = re.search(r'(\d{8})_(\d{6})', filename)
+        if not match:
+            raise ValueError(f"⚠️ 文件名中未找到有效时间戳: {filename}")
+        date_part, time_part = match.groups()
+        return datetime.strptime(f"{date_part}{time_part}", "%Y%m%d%H%M%S")
+
+    latest_file = max(files, key=lambda f: extract_datetime_from_filename(os.path.basename(f)))
+    return latest_file
 
 
 def serialize_links(links: list[TextLink]):

@@ -1,0 +1,4 @@
+twscrape
+PyYAML
+openai
+aiofiles

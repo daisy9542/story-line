@@ -1,0 +1,41 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="17">
+            <item index="0" class="java.lang.String" itemvalue="timm" />
+            <item index="1" class="java.lang.String" itemvalue="pytorch_lightning" />
+            <item index="2" class="java.lang.String" itemvalue="gradio_client" />
+            <item index="3" class="java.lang.String" itemvalue="wandb" />
+            <item index="4" class="java.lang.String" itemvalue="accelerate" />
+            <item index="5" class="java.lang.String" itemvalue="torch" />
+            <item index="6" class="java.lang.String" itemvalue="datasets" />
+            <item index="7" class="java.lang.String" itemvalue="onnxruntime-gpu" />
+            <item index="8" class="java.lang.String" itemvalue="scipy" />
+            <item index="9" class="java.lang.String" itemvalue="gradio" />
+            <item index="10" class="java.lang.String" itemvalue="opencv-python" />
+            <item index="11" class="java.lang.String" itemvalue="huggingface-hub" />
+            <item index="12" class="java.lang.String" itemvalue="safetensors" />
+            <item index="13" class="java.lang.String" itemvalue="torchvision" />
+            <item index="14" class="java.lang.String" itemvalue="psutil" />
+            <item index="15" class="java.lang.String" itemvalue="iopath" />
+            <item index="16" class="java.lang.String" itemvalue="numpy" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8NamingInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="N806" />
+          <option value="N803" />
+          <option value="N812" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyShadowingNamesInspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+  </profile>
+</component>

@@ -1,0 +1,48 @@
+{
+  "name": "crypto-bubble-graph",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.2",
+    "@tailwindcss/vite": "^4.1.3",
+    "d3": "^7.9.0",
+    "papaparse": "^5.5.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "@tailwindcss/postcss": "^4.1.3",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^22.14.1",
+    "@types/papaparse": "^5.3.15",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.21.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^15.15.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.3",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.24.1",
+    "vite": "^6.2.0"
+  },
+  "description": "src/ ├── assets/                  # 图片、图标、字体 ├── components/              # 可复用组件（如滑条、用户卡片、气泡等） │   ├── BubbleNode.tsx │   ├── Sidebar/ │   │   ├── FilterSlider.tsx │   │   ├── UserDetailPanel.tsx │   │   └── SearchBar.tsx │   └── GraphCanvas/ │       ├── ForceGraph.tsx │       └── useForceGraph.ts # 自定义hook封装D3逻辑 ├── pages/                   # 页面视图 │   └── GraphView.tsx        # 主要图谱可视化页面 ├── services/                # 网络请求、数据处理逻辑 │   ├── api.ts │   └── mockData.ts          # 模拟数据或mock接口 ├── store/                   # 全局状态管理 │   └── graphStore.ts ├── types/                   # 全局类型定义 │   └── graph.ts ├── utils/                   # 工具函数、辅助逻辑 │   ├── d3Helpers.ts │   └── emotionUtils.ts ├── App.tsx └── main.tsx",
+  "main": "eslint.config.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

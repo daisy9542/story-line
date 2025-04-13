@@ -1,0 +1,51 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environments
+venv/
+.env/
+.env.bak/
+*.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VSCode settings
+.vscode/
+
+# macOS/Linux system files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Data
+data/raw/
+data/processed/
+
+# Config files
+config/settings.yaml
+
+# Output / models / temp
+*.sqlite3
+*.db
+*.bak
+*.tmp
+*.swp
+
+# Notebooks output
+notebooks/*.nbconvert.ipynb
+
+# OS-specific
+ehthumbs.db
+Icon?
+
+accounts/
+data/
+accounts.db

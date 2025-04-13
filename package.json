@@ -1,0 +1,29 @@
+{
+  "name": "cryptobubble",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:frontend": "npm --workspace frontend run dev",
+    "dev:backend": "npm --workspace backend run dev",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daisy9542/CryptoBubble.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daisy9542/CryptoBubble/issues"
+  },
+  "homepage": "https://github.com/daisy9542/CryptoBubble#readme",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "crawler"
+  ]
+}

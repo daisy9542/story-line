@@ -1,24 +1,26 @@
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
+"use client";
 
-export default async function IndexPage() {
+import { useState } from "react";
+
+import FilterSidebar from "@/components/layouts/filter-sidebar";
+import Header from "@/components/layouts/header";
+import GraphView from "@/app/graph-view";
+
+export default function IndexPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
-    <>
-      <header className="flex h-24 items-center justify-center">
-        <div className="flex w-full max-w-5xl items-center justify-between">
-          <div>
-            <h1 className="text-xl">Next.js</h1>
-          </div>
-          <ThemeToggle />
+    <div className="flex h-screen flex-col">
+      <Header />
+
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          <GraphView />
         </div>
-      </header>
-      <main className="flex flex-col items-center justify-between p-24">
-        <div className="z-10 flex w-full max-w-5xl flex-col items-center justify-between font-mono text-sm">
-          <h1>Hello, Next js & Shadcn UI & Next Auth</h1>
-          <br />
-          <Button>Start</Button>
-        </div>
-      </main>
-    </>
+        <FilterSidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+        />
+      </div>
+    </div>
   );
 }

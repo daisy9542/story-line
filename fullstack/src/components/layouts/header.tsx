@@ -3,7 +3,7 @@ import TokenSelector from "@/components/token-selector";
 
 const Header = () => {
   return (
-    <header className="z-51 relative hidden h-full items-center px-4 py-2 shadow-md md:flex md:h-20 md:flex-row">
+    <header className="relative flex h-16 items-center justify-between px-4 py-2">
       <TokenSelector />
       <ThemeToggle />
     </header>

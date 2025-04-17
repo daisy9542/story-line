@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import * as d3 from "d3";
-import type { Node, Link } from "@/types/graph";
+import type { ForceNode, ForceLink } from "@/types/graph";
 
 interface Props {
-  nodes: Node[];
-  links: Link[];
+  nodes: ForceNode[];
+  links: ForceLink[];
 }
 
 const nodeColorPalette = [
@@ -56,11 +56,11 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
     );
 
     const simulation = d3
-      .forceSimulation<Node, Link>(nodes)
+      .forceSimulation<ForceNode, ForceLink>(nodes)
       .force(
         "link",
         d3
-          .forceLink<Node, Link>(filteredLinks)
+          .forceLink<ForceNode, ForceLink>(filteredLinks)
           .id((d) => d.id)
           .distance(160) // 边距离较短时，节点会更紧密地聚集在一起，形成“聚团”效果
           .strength(0.7) // 值越大，节点越倾向于保持目标距离
@@ -70,7 +70,7 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
       .force(
         "radial",
         d3
-          .forceRadial<Node>(
+          .forceRadial<ForceNode>(
             (d) => {
               const followers = d.followers ?? 0;
               const logScale = Math.log10(followers + 10);
@@ -85,7 +85,7 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
       .force(
         "collision",
         d3
-          .forceCollide<Node>()
+          .forceCollide<ForceNode>()
           .radius((d) => {
             const radius = Math.log10(d.followers + 10) * 2;
             return radius;
@@ -146,7 +146,7 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .call(
         d3
-          .drag<SVGGElement, Node>()
+          .drag<SVGGElement, ForceNode>()
           .on("start", (event) => {
             if (!event.active) simulation.alphaTarget(0.1).restart();
             event.subject.fx = event.subject.x;
@@ -199,10 +199,10 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
     simulation.on("tick", () => {
       nodeGroups.attr("transform", (d) => `translate(${d.x},${d.y})`);
       linkElements
-        .attr("x1", (d) => (d.source as Node).x!)
-        .attr("y1", (d) => (d.source as Node).y!)
-        .attr("x2", (d) => (d.target as Node).x!)
-        .attr("y2", (d) => (d.target as Node).y!);
+        .attr("x1", (d) => (d.source as ForceNode).x!)
+        .attr("y1", (d) => (d.source as ForceNode).y!)
+        .attr("x2", (d) => (d.target as ForceNode).x!)
+        .attr("y2", (d) => (d.target as ForceNode).y!);
     });
   }, [nodes, links, filteredLinks]);
 

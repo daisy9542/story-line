@@ -97,7 +97,7 @@ export default function IndexPage() {
 
       <div className="relative flex flex-1 overflow-hidden">
         <div className="transparent z-100 fixed bottom-16 left-0 top-16 flex h-[clac(100vh-64px)] w-[360px] flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
-          <FilterCard />
+          <FilterCard kols={sortedUsers} />
           <UserListCard kols={sortedUsers} />
         </div>
         {graphData && (

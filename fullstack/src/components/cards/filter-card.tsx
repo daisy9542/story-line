@@ -7,13 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import KolSearch from "@/components/filter/kol-search";
 import TimeSlider from "@/components/filter/time-slider";
+import { SimpleKOL } from "@/types/kol";
 
 type SidebarProps = {
-  isOpen?: boolean;
-  onToggle?: () => void;
+  // isOpen?: boolean;
+  // onToggle?: () => void;
+  kols: SimpleKOL[];
 };
 
-const FilterCard = ({ isOpen = true, onToggle = () => {} }: SidebarProps) => {
+const FilterCard = ({ kols }: SidebarProps) => {
   return (
     <div className="relative">
       {/* 折叠按钮 */}
@@ -36,7 +38,7 @@ const FilterCard = ({ isOpen = true, onToggle = () => {} }: SidebarProps) => {
       <Card>
         <CardContent>
           <div className="flex w-full flex-col gap-4 py-4">
-            <KolSearch />
+            <KolSearch kols={kols} />
 
             <div className="space-y-2">
               <p className="text-sm font-medium">Followers</p>

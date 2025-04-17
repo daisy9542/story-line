@@ -12,16 +12,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { SimpleKOL } from "@/types/kol";
 
-const items = [
-  { label: "Vitalik" },
-  { label: "Elon Musk" },
-  { label: "SBF" },
-  { label: "CZ Binance" },
-  { label: "Andre Cronje" },
-];
+export interface KolSearchProps {
+  kols: SimpleKOL[];
+}
 
-export default function KolSearch() {
+export default function KolSearch({kols}: KolSearchProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [selected, setSelected] = useState("");
 
@@ -43,19 +40,19 @@ export default function KolSearch() {
           >
             <CommandEmpty>No result found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-              {items.map((item) => (
+              {kols.map((kol) => (
                 <CommandItem
-                  key={item.label}
-                  value={item.label}
+                  key={kol.id}
+                  value={kol.username}
                   onSelect={(value) => setSelected(value)}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selected === item.label ? "opacity-100" : "opacity-0",
+                      selected === kol.username ? "opacity-100" : "opacity-0",
                     )}
                   />
-                  {item.label}
+                  {kol.username}
                 </CommandItem>
               ))}
             </CommandGroup>

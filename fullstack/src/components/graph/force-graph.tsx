@@ -241,7 +241,7 @@ const ForceGraph: React.FC<Props> = ({ nodes, links }) => {
   }, [nodes, links, filteredLinks]);
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <div ref={containerRef} className="z-1 absolute left-0 top-0 h-full w-full">
       {/* <svg
         ref={svgRef}
         className="h-full w-full"

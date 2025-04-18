@@ -95,14 +95,14 @@ export default function IndexPage() {
     <div className="flex h-screen flex-col">
       <Header />
 
-      <div className="relative flex flex-1 overflow-hidden">
-        <div className="transparent z-100 fixed bottom-16 left-0 top-16 flex h-[clac(100vh-64px)] w-[360px] flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
-          <FilterCard kols={sortedUsers} />
-          <UserListCard kols={sortedUsers} />
-        </div>
+      <div className="relative flex-1">
         {graphData && (
           <ForceGraph nodes={graphData.nodes} links={graphData.links} />
         )}
+        <div className="transparent z-100 fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] w-96 flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
+          <FilterCard kols={sortedUsers} />
+          <UserListCard kols={sortedUsers} />
+        </div>
       </div>
     </div>
   );

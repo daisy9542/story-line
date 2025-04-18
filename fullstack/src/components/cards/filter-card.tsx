@@ -2,12 +2,12 @@
 
 import { List } from "lucide-react";
 
+import { SimpleKOL } from "@/types/kol";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import KolSearch from "@/components/filter/kol-search";
 import TimeSlider from "@/components/filter/time-slider";
-import { SimpleKOL } from "@/types/kol";
 
 type SidebarProps = {
   // isOpen?: boolean;

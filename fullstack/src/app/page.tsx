@@ -14,6 +14,7 @@ export default function IndexPage() {
   // const [sidebarOpen, setSidebarOpen] = useState(true);
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
+
   useEffect(() => {
     fetch("/sample.csv")
       .then((response) => response.text())

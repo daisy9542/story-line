@@ -1,15 +1,11 @@
-// src/types/graph.ts
-
-import { SimulationLinkDatum, SimulationNodeDatum } from "d3";
-
-export interface ForceNode extends SimulationNodeDatum {
+export interface ForceNode {
   id: string;
   name: string;
   followers: number;
   degree?: number;
 }
 
-export interface ForceLink extends SimulationLinkDatum<ForceNode> {
+export interface ForceLink {
   source: string | ForceNode;
   target: string | ForceNode;
   score: number;

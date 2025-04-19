@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import clsx from "clsx";
+import { ChevronRight } from "lucide-react";
 import { parse } from "papaparse";
 
 import type { ForceLink, ForceNode, GraphData } from "@/types/graph";
 import type { KOL, SimpleKOL } from "@/types/kol";
+import { Button } from "@/components/ui/button";
 import FilterCard from "@/components/cards/filter-card";
 import KolInfo from "@/components/cards/kol-info";
 import UserListCard from "@/components/cards/kol-list-card";
@@ -12,7 +15,7 @@ import ForceGraph from "@/components/graph/force-graph";
 import Header from "@/components/layouts/header";
 
 export default function IndexPage() {
-  // const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [leftCardsOpen, setLeftCardsOpen] = useState(true);
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
 
@@ -101,10 +104,35 @@ export default function IndexPage() {
         {graphData && (
           <ForceGraph nodes={graphData.nodes} links={graphData.links} />
         )}
-        <div className="transparent z-100 fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] w-96 flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
-          <FilterCard kols={sortedUsers} />
-          <UserListCard kols={sortedUsers} />
+        <div className="relative z-50">
+          {/* 控制按钮：永远固定在侧边 */}
+          <Button
+            variant={"outline"}
+            onClick={() => setLeftCardsOpen(!leftCardsOpen)}
+            className={clsx(
+              "absolute left-2 top-6 z-50 h-10 w-10 transition-transform duration-300",
+              leftCardsOpen ? "translate-x-[24rem]" : "translate-x-0",
+            )}
+          >
+            <ChevronRight />
+          </Button>
+
+          {/* 侧边栏 */}
+          <div
+            className={clsx(
+              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto p-4 pr-2 shadow transition-all duration-300",
+              leftCardsOpen ? "w-96" : "w-0",
+            )}
+          >
+            {leftCardsOpen && (
+              <>
+                <FilterCard kols={sortedUsers} />
+                <UserListCard kols={sortedUsers} />
+              </>
+            )}
+          </div>
         </div>
+
         <div className="transparent z-100 fixed bottom-16 right-0 top-16 flex h-[calc(100vh-64px)] w-96 flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
           <KolInfo />
         </div>

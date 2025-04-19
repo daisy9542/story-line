@@ -23,8 +23,8 @@ export default function KolSearch({ kols }: KolSearchProps) {
   const [isFocused, setIsFocused] = useState(false);
   const { selectedKolId, setSelectedKolId } = useKolStore();
 
-  const handleKolChange = (kolId: number | null) => {
-    setSelectedKolId(kolId);
+  const handleKolChange = (kolId: string | null) => {
+    kolId !== null && setSelectedKolId(kolId);
   };
 
   return (

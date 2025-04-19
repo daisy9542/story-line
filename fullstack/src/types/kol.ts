@@ -1,5 +1,5 @@
 export interface KOL {
-  id: number; // 用户的唯一 ID
+  id: string; // 用户的唯一 ID
   username: string; // 用户名
   name: string; // 显示名称
   verified: boolean; // 是否是旧版认证账号
@@ -21,7 +21,7 @@ export interface KOL {
 }
 
 export interface SimpleKOL {
-  id: number; // 用户的唯一 ID
+  id: string; // 用户的唯一 ID
   username: string; // 用户名
   followers: number; // 粉丝数
 }

@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 interface KolState {
-  selectedKolId: number | null;
-  setSelectedKolId: (kolId: number | null) => void;
+  selectedKolId: string | null;
+  setSelectedKolId: (kolId: string | null) => void;
 }
 
 export const useKolStore = create<KolState>((set) => ({

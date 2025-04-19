@@ -122,8 +122,8 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           ctx.beginPath();
           ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
           ctx.strokeStyle =
-            node.id === String(selectedKolId) ? "#ffffff" : stroke;
-          ctx.lineWidth = node.id === String(selectedKolId) ? 4 : 2;
+            node.id === selectedKolId ? "#ffffff" : stroke;
+          ctx.lineWidth = node.id === selectedKolId ? 4 : 2;
           ctx.stroke();
 
           // 文本（缩小时隐藏）
@@ -167,8 +167,7 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           node.fy = node.y;
         }}
         onNodeClick={(node) => {
-          console.log("node clicked", node.id, Number(node.id));
-          setSelectedKolId(Number(node.id));
+          setSelectedKolId(node.id);
         }}
       />
     </div>

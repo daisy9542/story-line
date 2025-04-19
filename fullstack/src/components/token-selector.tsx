@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useKolStore } from "@/stores/kol-store";
 
+import { TokenSymbol } from "@/types/token-symbol";
 import {
   Select,
   SelectContent,
@@ -11,18 +12,24 @@ import {
 } from "@/components/ui/select";
 
 const TokenSelector = () => {
-  const [token, setToken] = useState("ALL");
+  const {
+    selectedTokenSymbol: selectedToken,
+    setSelectedTokenSymbol: setSelectedToken,
+  } = useKolStore();
+
+  const tokenOptions: TokenSymbol[] = ["BTC", "ETH", "SOL"];
 
   return (
-    <Select value={token} onValueChange={setToken}>
+    <Select value={selectedToken} onValueChange={setSelectedToken}>
       <SelectTrigger className="w-20">
         <SelectValue placeholder="ALL" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="ALL">ALL</SelectItem>
-        <SelectItem value="SOL">SOL</SelectItem>
-        <SelectItem value="BTC">BTC</SelectItem>
-        <SelectItem value="ETH">ETH</SelectItem>
+        {tokenOptions.map((token) => (
+          <SelectItem key={token} value={token}>
+            {token}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );

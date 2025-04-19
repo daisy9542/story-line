@@ -1,4 +1,4 @@
-import type { InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
+import type { AxiosResponse, AxiosError } from 'axios'
 import axios from 'axios'
 import { HttpsProxyAgent } from 'https-proxy-agent'
 
@@ -28,7 +28,7 @@ const handleError = (error: AxiosError): Promise<AxiosError> => {
   return Promise.reject(error.response?.data)
 }
 
-// Respose interceptors configuration
+// Response interceptors configuration
 service.interceptors.response.use((response: AxiosResponse) => {
   const data = response.data
   if (data.code === 0 || data.code === '0') { // okx的code是string类型

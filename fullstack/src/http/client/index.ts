@@ -21,7 +21,7 @@ service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   return config
 }, handleError)
 
-// Respose interceptors configuration
+// Response interceptors configuration
 service.interceptors.response.use((response: AxiosResponse) => {
   const data = response.data
   if (data.code === 0) {

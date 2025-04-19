@@ -1,19 +1,13 @@
-import { useKolStore } from "@/stores/kol-store";
-
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function KolInfo() {
-  const { selectedKolId } = useKolStore();
-
+export default function KolInfo({ kolId }: { kolId: string }) {
   return (
     <>
-      {selectedKolId ? (
-        <Card>
-          <CardContent>
-            <div>{selectedKolId}</div>
-          </CardContent>
-        </Card>
-      ) : null}
+      <Card className="h-full">
+        <CardContent>
+          <div>{kolId}</div>
+        </CardContent>
+      </Card>
     </>
   );
 }

@@ -29,7 +29,24 @@ const getNodeColor = (id: string) => {
   return nodeColorPalette[index];
 };
 
+/**
+ * 计算节点的半径，根据粉丝数的对数进行缩放
+ * @param followers 粉丝数
+ * @returns 半径
+ */
 const getRadius = (followers: number) => 10 + 3 * Math.log(followers + 1);
+
+/**
+ * 计算边的宽度，根据权重进行缩放
+ * @param weight 权重
+ * @returns 宽度
+ */
+const getLineWidth = (score: number) => {
+  const minWidth = 1;
+  const maxWidth = 5;
+  const normalized = Math.min(Math.abs(score) / 100, 1);
+  return minWidth + (maxWidth - minWidth) * normalized;
+};
 
 export default function ForceGraph({ nodes, links }: ForceGraphProps) {
   const { selectedKolId, setSelectedKolId } = useKolStore();
@@ -121,13 +138,12 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           // 边框
           ctx.beginPath();
           ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-          ctx.strokeStyle =
-            node.id === selectedKolId ? "#ffffff" : stroke;
+          ctx.strokeStyle = node.id === selectedKolId ? "#ffffff" : stroke;
           ctx.lineWidth = node.id === selectedKolId ? 4 : 2;
           ctx.stroke();
 
           // 文本（缩小时隐藏）
-          if (scale > 0.35) {
+          if (radius > 12 && scale > 0.35) {
             const nameLength = label.length;
             const fontSize = Math.min(
               24,
@@ -141,6 +157,98 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
             ctx.fillText(label, node.x!, node.y!);
           }
         }}
+        linkCanvasObject={(link, ctx) => {
+          const source = link.source as ForceNode;
+          const target = link.target as ForceNode;
+          if (
+            !source ||
+            !target ||
+            !source.x ||
+            !source.y ||
+            !target.x ||
+            !target.y
+          )
+            return;
+
+          // 计算基本信息
+          const dx = target.x - source.x;
+          const dy = target.y - source.y;
+          const angle = Math.atan2(dy, dx);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          // 计算线宽和颜色
+          const score = link.score;
+          const normalized = Math.min(Math.abs(score) / 100, 1);
+          const lineWidth = getLineWidth(score);
+
+          let strokeStyle: string | CanvasGradient = "#999";
+
+          // 查找是否有对应的“反向链接”
+          const reverse = links.find(
+            (l) => l.source === link.target && l.target === link.source,
+          );
+
+          if (reverse && reverse.score !== link.score) {
+            // 双向 + 情绪不同 → 渐变
+            const gradient = ctx.createLinearGradient(
+              source.x,
+              source.y,
+              target.x,
+              target.y,
+            );
+            gradient.addColorStop(
+              0,
+              score > 0
+                ? d3.interpolateGreens(normalized)
+                : d3.interpolateReds(normalized),
+            );
+            gradient.addColorStop(
+              1,
+              reverse.score > 0
+                ? d3.interpolateGreens(normalized)
+                : d3.interpolateReds(normalized),
+            );
+            strokeStyle = gradient;
+          } else {
+            // 单向或同色
+            strokeStyle =
+              score > 0
+                ? d3.interpolateGreens(normalized)
+                : d3.interpolateReds(normalized);
+          }
+          // 箭头设置
+          const arrowLength = 3 * lineWidth;
+          const radius = getRadius(target.followers);
+          const tx = target.x - Math.cos(angle) * (radius + arrowLength * 0.5);
+          const ty = target.y - Math.sin(angle) * (radius + arrowLength * 0.5);
+
+          // 绘制主线
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = lineWidth;
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.lineTo(tx, ty);
+          ctx.stroke();
+
+          // 箭头终点位置（缩短线段避免覆盖节点）
+          const ex = target.x - Math.cos(angle) * radius;
+          const ey = target.y - Math.sin(angle) * radius;
+
+          // 箭头路径
+          ctx.beginPath();
+          ctx.moveTo(ex, ey);
+          ctx.lineTo(
+            ex - Math.cos(angle - Math.PI / 8) * arrowLength,
+            ey - Math.sin(angle - Math.PI / 8) * arrowLength,
+          );
+          ctx.lineTo(
+            ex - Math.cos(angle + Math.PI / 8) * arrowLength,
+            ey - Math.sin(angle + Math.PI / 8) * arrowLength,
+          );
+          ctx.closePath();
+          ctx.fillStyle = strokeStyle;
+          ctx.fill();
+        }}
         nodePointerAreaPaint={(node, color, ctx) => {
           if (!node.x || !node.y) return;
           const radius = getRadius(node.followers) + 2;
@@ -148,13 +256,6 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           ctx.beginPath();
           ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
           ctx.fill();
-        }}
-        linkWidth={(link) => {
-          const score = link.score ?? 0;
-          const minWidth = 1;
-          const maxWidth = 6;
-          const normalized = Math.min(Math.abs(score) / 100, 1);
-          return minWidth + (maxWidth - minWidth) * normalized;
         }}
         linkColor={(link) =>
           link.score > 0

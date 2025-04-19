@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { useKolStore } from "@/stores/kol-store";
 import * as d3 from "d3";
-import type { SimulationNodeDatum } from "d3";
 import ForceGraph2D, {
   type ForceGraphMethods,
   type LinkObject,
@@ -24,29 +23,17 @@ const nodeColorPalette = [
   { fill: "#be185d", stroke: "#f9a8d4" }, // 深粉 + 粉红
 ];
 
-function getNodeColor(id: string) {
+const getNodeColor = (id: string) => {
   const hash = [...id].reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const index = hash % nodeColorPalette.length;
   return nodeColorPalette[index];
-}
+};
 
-const computeRadius = (num: number) => Math.max(10, Math.log(num + 10) * 2);
+const getRadius = (followers: number) => 10 + 3 * Math.log(followers + 1);
 
 export default function ForceGraph({ nodes, links }: ForceGraphProps) {
   const { selectedKolId, setSelectedKolId } = useKolStore();
-  let filteredLinks;
-  // const topNodes = nodes
-  //   .slice()
-  //   .sort((a, b) => (b.followers ?? 0) - (a.followers ?? 0))
-  //   .slice(0, 200);
-  // const topNodeIds = new Set(topNodes.map((n) => n.id));
-  // filteredLinks = links.filter(
-  //   (link) =>
-  //     topNodeIds.has((link.source as any).id ?? link.source) &&
-  //     topNodeIds.has((link.target as any).id ?? link.target)
-  // );
-
-  filteredLinks = links.filter((link) => link.score !== 0);
+  const filteredLinks = links.filter((link) => link.score !== 0);
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef =
     useRef<
@@ -121,7 +108,7 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
         backgroundColor="#101827"
         nodeCanvasObject={(node, ctx, scale) => {
           if (!node.x || !node.y) return;
-          const radius = computeRadius(node.followers);
+          const radius = getRadius(node.followers);
           const { fill, stroke } = getNodeColor(node.id);
           const label = node.name ?? node.id;
 
@@ -154,6 +141,14 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
             ctx.fillText(label, node.x!, node.y!);
           }
         }}
+        nodePointerAreaPaint={(node, color, ctx) => {
+          if (!node.x || !node.y) return;
+          const radius = getRadius(node.followers) + 2;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
+          ctx.fill();
+        }}
         linkWidth={(link) => {
           const score = link.score ?? 0;
           const minWidth = 1;
@@ -170,6 +165,10 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
         onNodeDragEnd={(node) => {
           node.fx = node.x;
           node.fy = node.y;
+        }}
+        onNodeClick={(node) => {
+          console.log("node clicked", node.id, Number(node.id));
+          setSelectedKolId(Number(node.id));
         }}
       />
     </div>

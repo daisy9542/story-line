@@ -6,7 +6,8 @@ import { parse } from "papaparse";
 import type { ForceLink, ForceNode, GraphData } from "@/types/graph";
 import type { KOL, SimpleKOL } from "@/types/kol";
 import FilterCard from "@/components/cards/filter-card";
-import UserListCard from "@/components/cards/user-list-card";
+import KolInfo from "@/components/cards/kol-info";
+import UserListCard from "@/components/cards/kol-list-card";
 import ForceGraph from "@/components/graph/force-graph";
 import Header from "@/components/layouts/header";
 
@@ -103,6 +104,9 @@ export default function IndexPage() {
         <div className="transparent z-100 fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] w-96 flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
           <FilterCard kols={sortedUsers} />
           <UserListCard kols={sortedUsers} />
+        </div>
+        <div className="transparent z-100 fixed bottom-16 right-0 top-16 flex h-[calc(100vh-64px)] w-96 flex-col space-y-4 overflow-hidden overflow-y-auto p-4">
+          <KolInfo />
         </div>
       </div>
     </div>

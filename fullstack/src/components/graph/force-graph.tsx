@@ -63,7 +63,23 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
     // fgRef.current.d3Force("center", d3.forceCenter(width / 2, height / 2));
     const sim = fgRef.current;
     sim.d3Force("center", d3.forceCenter(0, 0));
-    sim.d3Force("link")!.distance(160).strength(0.7);
+    sim
+      .d3Force("link")!
+      .distance((link: any) => {
+        const score = link.score;
+        const absScore = Math.abs(score);
+
+        // 将分数映射到距离范围
+        const maxDistance = 250;
+        const minDistance = 120;
+
+        // 归一化分数（0~1）
+        const normalized = Math.min(absScore / 100, 1);
+
+        // 距离是 score 越小 → 越远
+        return maxDistance - (maxDistance - minDistance) * normalized;
+      })
+      .strength(0.8);
     sim.d3Force("charge")!.strength(-100);
     sim.d3Force(
       "radial",
@@ -84,7 +100,8 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
       "collision",
       d3
         .forceCollide<ForceNode>((d) => {
-          return Math.log10((d.followers ?? 0) + 10) * 2;
+          const base = Math.log10((d.followers) + 10) * 2;
+          return Math.max(base, 24);
         })
         .strength(0.8),
     );

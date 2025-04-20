@@ -10,7 +10,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import type { ForceLink, ForceNode, GraphData, UserGraphRow } from "@/types/graph";
+import type {
+  ForceLink,
+  ForceNode,
+  GraphData,
+  UserGraphRow,
+} from "@/types/graph";
 import type { KOL, SimpleKOL } from "@/types/kol";
 import { Button } from "@/components/ui/button";
 import {
@@ -124,21 +129,28 @@ export default function IndexPage() {
           />
         )}
 
-        {/* 左侧筛选与排名卡片 */}
+        {/* 左侧 KOL 信息卡片 */}
+        <div className="transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform">
+          {selectedKolId !== null ? <KolInfo kolId={selectedKolId} /> : null}
+        </div>
+
+        {/* 右侧筛选与排名卡片 */}
         <div className="relative">
           <Button
             variant="outline"
             onClick={() => setLeftCardsOpen(!leftCardsOpen)}
             className={clsx(
-              "absolute left-2 top-6 h-10 w-10 transition-transform duration-300 ease-in-out will-change-transform",
-              leftCardsOpen ? "-ml-2 translate-x-[320px]" : "translate-x-0",
+              "absolute right-2 top-6 h-10 w-10 transition-transform duration-300 ease-in-out will-change-transform",
+              leftCardsOpen
+                ? "-mr-2 translate-x-[-320px]"
+                : "mr-2 translate-x-0",
             )}
           >
             <ChevronRight />
           </Button>
           <div
             className={clsx(
-              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-none transition-all duration-300 ease-in-out will-change-transform",
+              "transparent fixed bottom-16 right-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-none transition-all duration-300 ease-in-out will-change-transform",
               leftCardsOpen ? "w-80 border-r p-4" : "w-0 p-0",
             )}
           >
@@ -149,11 +161,6 @@ export default function IndexPage() {
               </>
             )}
           </div>
-        </div>
-
-        {/* 右侧 KOL 信息卡片 */}
-        <div className="transparent fixed bottom-16 right-0 top-16 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform">
-          {selectedKolId !== null ? <KolInfo kolId={selectedKolId} /> : null}
         </div>
 
         {/* 底部 K 线图 */}

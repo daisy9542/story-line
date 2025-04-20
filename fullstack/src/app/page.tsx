@@ -1,10 +1,9 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
-import clsx from "clsx";
+import { cn } from "@/lib/utils";
 import {
   CandlestickChart as CandlestickChartIcon,
   ChevronRight,
@@ -32,7 +31,6 @@ export default function IndexPage() {
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
   const {
     selectedKolId,
-    selectedTokenSymbol,
     leftCardsOpen,
     candlestickChartOpen,
     setLeftCardsOpen,
@@ -50,7 +48,8 @@ export default function IndexPage() {
 
         rows.forEach((row: any) => {
           const sourceId = row.author_id;
-          const sourceName = row.username;
+          const sourceName = row.name;
+          const sourceUsername = row.username;
           const sourceFollowers = parseInt(row.followers || "0");
 
           const targetId = row.label;
@@ -69,7 +68,7 @@ export default function IndexPage() {
           if (row.object_type === "user" && !nodesMap.has(targetId)) {
             nodesMap.set(targetId, {
               id: targetId,
-              name: row.label_username || targetId,
+              name: row.label_name || targetId,
               followers: targetFollowers,
             });
           }
@@ -79,7 +78,8 @@ export default function IndexPage() {
             kolSet.add(sourceId);
             kols.push({
               id: sourceId,
-              username: sourceName,
+              name: sourceName,
+              username: sourceUsername,
               followers: sourceFollowers,
             });
           }
@@ -88,7 +88,8 @@ export default function IndexPage() {
             kolSet.add(targetId);
             kols.push({
               id: targetId,
-              username: row.label_username || targetId,
+              name: row.label_name,
+              username: row.label_username,
               followers: targetFollowers,
             });
           }
@@ -139,7 +140,7 @@ export default function IndexPage() {
           <Button
             variant="outline"
             onClick={() => setLeftCardsOpen(!leftCardsOpen)}
-            className={clsx(
+            className={cn(
               "absolute right-2 top-6 h-10 w-10 transition-transform duration-300 ease-in-out will-change-transform",
               leftCardsOpen
                 ? "-mr-2 translate-x-[-320px]"
@@ -149,7 +150,7 @@ export default function IndexPage() {
             <ChevronRight />
           </Button>
           <div
-            className={clsx(
+            className={cn(
               "transparent fixed bottom-16 right-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-none transition-all duration-300 ease-in-out will-change-transform",
               leftCardsOpen ? "w-80 border-r p-4" : "w-0 p-0",
             )}
@@ -168,7 +169,7 @@ export default function IndexPage() {
           <Button
             variant="outline"
             onClick={() => setCandlestickChartOpen(!candlestickChartOpen)}
-            className={clsx(
+            className={cn(
               "fixed bottom-2 left-1/2 z-50 h-10 w-16 -translate-x-1/2 transition-transform duration-300 ease-in-out will-change-transform",
               candlestickChartOpen ? "-translate-y-[380px]" : "translate-y-0",
             )}
@@ -177,7 +178,7 @@ export default function IndexPage() {
           </Button>
 
           <div
-            className={clsx(
+            className={cn(
               "transparent fixed bottom-0 left-1/2 h-96 w-[calc(100%-736px)] -translate-x-1/2 transform p-2 shadow-lg transition-transform duration-300 ease-in-out will-change-transform",
               candlestickChartOpen ? "translate-y-0" : "translate-y-full",
             )}

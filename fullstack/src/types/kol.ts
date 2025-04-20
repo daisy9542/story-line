@@ -22,6 +22,7 @@ export interface KOL {
 
 export interface SimpleKOL {
   id: string; // 用户的唯一 ID
+  name: string; // 昵称
   username: string; // 用户名
   followers: number; // 粉丝数
 }

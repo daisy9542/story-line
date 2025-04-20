@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useKolStore } from "@/stores/kol-store";
-import clsx from "clsx";
 import {
   CandlestickSeries,
   createChart,
@@ -11,8 +10,8 @@ import {
 import { useTheme } from "next-themes";
 
 import type { CandleData, RawCandleData } from "@/types/candlestick";
+import { cn } from "@/lib/utils";
 import { useCandleQuery } from "@/hooks/use-candle-query";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -98,7 +97,7 @@ export default function CandlestickChart() {
         {isLoading && <LoadingOverlay />}
         <div
           ref={chartRef}
-          className={clsx(
+          className={cn(
             "h-full w-full",
             isLoading && "pointer-events-none opacity-20",
           )}
@@ -115,7 +114,7 @@ export default function CandlestickChart() {
             <ToggleGroupItem
               key={item.value}
               value={item.value}
-              className={clsx(
+              className={cn(
                 "rounded-full px-4 py-1 text-xs text-muted-foreground transition",
                 "data-[state=on]:bg-[#1f1f1f] data-[state=on]:text-white dark:data-[state=on]:bg-[#333] dark:data-[state=on]:text-white",
               )}

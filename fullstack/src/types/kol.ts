@@ -2,8 +2,8 @@ export interface KOL {
   id: string; // 用户的唯一 ID
   username: string; // 用户名
   name: string; // 显示名称
-  verified: boolean; // 是否是旧版认证账号
-  verifiedType:
+  verified: number; // 是否是旧版认证账号，0 表示否，1 表示是
+  verified_type:
     | "none"
     | "blue"
     | "business"

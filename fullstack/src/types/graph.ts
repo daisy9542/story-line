@@ -1,5 +1,6 @@
-import { active, SimulationLinkDatum, SimulationNodeDatum } from "d3";
+import { SimulationLinkDatum, SimulationNodeDatum } from "d3";
 
+import { KOL } from "@/types/kol";
 import { Tweet } from "@/types/tweet";
 
 export type TokenSymbol = "BTC" | "ETH" | "SOL";

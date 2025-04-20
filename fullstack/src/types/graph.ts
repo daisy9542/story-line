@@ -1,8 +1,13 @@
-import { SimulationLinkDatum, SimulationNodeDatum } from "d3";
+import { active, SimulationLinkDatum, SimulationNodeDatum } from "d3";
+
+import { Tweet } from "@/types/tweet";
+
+export type TokenSymbol = "BTC" | "ETH" | "SOL";
 
 export interface ForceNode extends SimulationNodeDatum {
   id: string;
   name: string;
+  username: string;
   followers: number;
   degree?: number;
   fx?: number;
@@ -32,15 +37,15 @@ export enum ActiveType {
   Liked = "liked", // 点赞
 }
 
-export type UserGraphRow = {
+export type KolGraphRow = {
   author_id: string;
   username: string;
   name: string;
-  followers: string;
+  followers: number;
   tweet_id: string;
-  created: string; // 时间戳字符串
+  created: number; // 时间戳字符串
   label: string;
-  label_followers: string;
+  label_followers: number;
   label_username: string;
   label_user_id: string;
   label_name: string;
@@ -48,10 +53,26 @@ export type UserGraphRow = {
   object_type: TargetObjectType;
   active_type: ActiveType;
   text: string;
-  like_count: string;
-  quote_count: string;
-  retweet_count: string;
-  reply_count: string;
-  view_count: string | null;
-  bookmarked_count: string;
+  like_count: number;
+  quote_count: number;
+  retweet_count: number;
+  reply_count: number;
+  view_count: number | null;
+  bookmarked_count: number;
+};
+
+export type KolTweetRaw = Pick<
+  Tweet,
+  | "created"
+  | "text"
+  | "like_count"
+  | "quote_count"
+  | "retweet_count"
+  | "reply_count"
+  | "view_count"
+  | "bookmarked_count"
+> & {
+  tweet_id: string;
+  object_type: TargetObjectType;
+  active_type: ActiveType;
 };

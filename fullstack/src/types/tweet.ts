@@ -68,13 +68,13 @@ export interface Tweet {
   url: string; // 推文的完整链接
   author_id: string; // 推文作者的用户 ID
   text: string; // 推文的原始内容文本（包括 @mention、#话题、链接等）
-  created_at: number; // 推文的创建时间，毫秒级时间戳
+  created: number; // 推文的创建时间，毫秒级时间戳
   lang: string; // 推文的语言代码（如 `en`、`zh`、`ja` 等）
   like_count: number; // 推文被点赞的次数
   quote_count: number; // 推文被引用的次数
   retweet_count: number; // 推文被转推的次数
   reply_count: number; // 推文收到的回复数量
-  view_count: number; // 推文被查看的次数
+  view_count: number | null; // 推文被查看的次数
   bookmarked_count: number; // 推文被收藏的次数
   hashtags: string[]; // 推文中出现的 `#标签` 列表
   cashtags: string[]; // 推文中出现的 `$股票代码` 列表

@@ -21,10 +21,10 @@ export interface KolSearchProps {
 
 export default function KolSearch({ kols }: KolSearchProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const { selectedKolId, setSelectedKolId } = useKolStore();
+  const { selectedKol, setSelectedKol } = useKolStore();
 
-  const handleKolChange = (kolId: string | null) => {
-    kolId !== null && setSelectedKolId(kolId);
+  const handleKolChange = (kolId: SimpleKOL | null) => {
+    kolId !== null && setSelectedKol(kolId);
   };
 
   return (
@@ -33,7 +33,7 @@ export default function KolSearch({ kols }: KolSearchProps) {
         <CommandInput
           onFocus={() => {
             setIsFocused(true);
-            setSelectedKolId(null);
+            setSelectedKol(null);
           }}
           onBlur={() => setIsFocused(false)}
           placeholder="Search KOL..."
@@ -52,14 +52,14 @@ export default function KolSearch({ kols }: KolSearchProps) {
                 <CommandItem
                   key={kol.id}
                   value={kol.username}
-                  onSelect={() => setSelectedKolId(kol.id)}
-                  onClick={() => handleKolChange(kol.id)}
+                  onSelect={() => setSelectedKol(kol)}
+                  onClick={() => handleKolChange(kol)}
                   className="cursor-pointer p-2"
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedKolId === kol.id ? "opacity-100" : "opacity-0",
+                      selectedKol?.id === kol.id ? "opacity-100" : "opacity-0",
                     )}
                   />
                   {kol.username}

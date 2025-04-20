@@ -51,7 +51,7 @@ const getLineWidth = (score: number) => {
 };
 
 export default function ForceGraph({ nodes, links }: ForceGraphProps) {
-  const { selectedKolId, setSelectedKolId } = useKolStore();
+  const { selectedKol, setSelectedKol } = useKolStore();
   const filteredLinks = links.filter((link) => link.score !== 0);
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef =
@@ -110,15 +110,15 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
   }, [nodes, links, filteredLinks]);
 
   useEffect(() => {
-    if (!selectedKolId || !fgRef.current) return;
+    if (!selectedKol || !fgRef.current) return;
 
     // 查找选中的节点
-    const nodeToFocus = nodes.find((node) => node.id === String(selectedKolId));
+    const nodeToFocus = nodes.find((node) => node.id === String(selectedKol));
     if (nodeToFocus && fgRef.current) {
       // 使用 centerAt 聚焦到指定节点的坐标
       fgRef.current.centerAt(nodeToFocus.x, nodeToFocus.y, 1000); // 1000 是平滑过渡的时间（毫秒）
     }
-  }, [selectedKolId, nodes]);
+  }, [selectedKol, nodes]);
 
   // 点击外部区域的监听
   // useEffect(() => {
@@ -157,8 +157,8 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           // 边框
           ctx.beginPath();
           ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-          ctx.strokeStyle = node.id === selectedKolId ? "#ffffff" : stroke;
-          ctx.lineWidth = node.id === selectedKolId ? 4 : 2;
+          ctx.strokeStyle = node.id === selectedKol?.id ? "#ffffff" : stroke;
+          ctx.lineWidth = node.id === selectedKol?.id ? 4 : 2;
           ctx.stroke();
 
           // 文本（缩小时隐藏）
@@ -287,7 +287,7 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
           node.fy = node.y;
         }}
         onNodeClick={(node) => {
-          setSelectedKolId(node.id);
+          setSelectedKol(node);
         }}
       />
     </div>

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
-import { cn } from "@/lib/utils";
 import {
   CandlestickChart as CandlestickChartIcon,
   ChevronRight,
@@ -13,9 +12,10 @@ import type {
   ForceLink,
   ForceNode,
   GraphData,
-  UserGraphRow,
+  KolGraphRow,
 } from "@/types/graph";
-import type { KOL, SimpleKOL } from "@/types/kol";
+import type { SimpleKOL } from "@/types/kol";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   CandlestickChart,
@@ -30,7 +30,7 @@ export default function IndexPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
   const {
-    selectedKolId,
+    selectedKol,
     leftCardsOpen,
     candlestickChartOpen,
     setLeftCardsOpen,
@@ -39,27 +39,28 @@ export default function IndexPage() {
 
   useEffect(() => {
     http
-      .get<UserGraphRow[]>("/user-graph") // 调用你已经连通的接口
+      .get<KolGraphRow[]>("/user-graph") // 调用你已经连通的接口
       .then((rows) => {
         const nodesMap = new Map<string, ForceNode>();
         const links: ForceLink[] = [];
         const kolSet = new Set<string>();
         const kols: SimpleKOL[] = [];
 
-        rows.forEach((row: any) => {
+        rows.forEach((row: KolGraphRow) => {
           const sourceId = row.author_id;
           const sourceName = row.name;
           const sourceUsername = row.username;
-          const sourceFollowers = parseInt(row.followers || "0");
+          const sourceFollowers = row.followers;
 
-          const targetId = row.label;
-          const targetFollowers = parseInt(row.label_followers || "0");
+          const targetId = row.label_user_id;
+          const targetFollowers = row.label_followers;
 
           // 创建 source 节点
           if (!nodesMap.has(sourceId)) {
             nodesMap.set(sourceId, {
               id: sourceId,
               name: sourceName,
+              username: sourceUsername,
               followers: sourceFollowers,
             });
           }
@@ -68,7 +69,8 @@ export default function IndexPage() {
           if (row.object_type === "user" && !nodesMap.has(targetId)) {
             nodesMap.set(targetId, {
               id: targetId,
-              name: row.label_name || targetId,
+              name: row.label_name,
+              username: row.label_username,
               followers: targetFollowers,
             });
           }
@@ -98,7 +100,7 @@ export default function IndexPage() {
           links.push({
             source: sourceId,
             target: targetId,
-            score: parseFloat(row.score || "0"),
+            score: row.score,
           });
         });
 
@@ -132,7 +134,7 @@ export default function IndexPage() {
 
         {/* 左侧 KOL 信息卡片 */}
         <div className="transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform">
-          {selectedKolId !== null ? <KolInfo kolId={selectedKolId} /> : null}
+          {selectedKol !== null ? <KolInfo /> : null}
         </div>
 
         {/* 右侧筛选与排名卡片 */}

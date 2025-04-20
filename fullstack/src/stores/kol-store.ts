@@ -1,14 +1,15 @@
 import { create } from "zustand";
 
-import { TokenSymbol } from "@/types/token-symbol";
+import { TokenSymbol } from "@/types/graph";
+import { SimpleKOL } from "@/types/kol";
 
 interface KolState {
   selectedTokenSymbol: TokenSymbol;
-  selectedKolId: string | null;
+  selectedKol: SimpleKOL | null;
   leftCardsOpen: boolean;
   candlestickChartOpen: boolean;
 
-  setSelectedKolId: (kolId: string | null) => void;
+  setSelectedKol: (kol: SimpleKOL | null) => void;
   setSelectedTokenSymbol: (token: TokenSymbol) => void;
   setLeftCardsOpen: (open: boolean) => void;
   setCandlestickChartOpen: (open: boolean) => void;
@@ -16,11 +17,11 @@ interface KolState {
 
 export const useKolStore = create<KolState>()((set) => ({
   selectedTokenSymbol: "BTC",
-  selectedKolId: null,
+  selectedKol: null,
   leftCardsOpen: true,
   candlestickChartOpen: false,
 
-  setSelectedKolId: (kolId) => set({ selectedKolId: kolId }),
+  setSelectedKol: (kol) => set({ selectedKol: kol }),
   setSelectedTokenSymbol: (token) => set({ selectedTokenSymbol: token }),
   setLeftCardsOpen: (open) => set({ leftCardsOpen: open }),
   setCandlestickChartOpen: (open) => set({ candlestickChartOpen: open }),

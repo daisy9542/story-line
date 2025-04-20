@@ -33,7 +33,7 @@ PROXY = config["proxy"]
 MIN_FOLLOWERS = config["min_followers"]
 LATEST_TWEETS_COUNT = config["latest_tweets_count"]
 LIMIT_FOLLOWS_PER_USER = config["limit_follows_per_user"]
-LLM_SEMAPHORE = config.get("llm_semaphore")
+# LLM_SEMAPHORE = config.get("llm_semaphore")
 USER_CONCURRENCY = config.get("user_concurrency")
 VALUABLE_USER_BUFFER_SIZE = config.get("valuable_user_buffer_size")
 SEEN_USER_BUFFER_SIZE = config.get("seen_user_buffer_size")
@@ -56,7 +56,7 @@ queues = [asyncio.Queue() for _ in range(USER_CONCURRENCY)]
 seen_users_buffer = []
 valuable_users_buffer = []
 
-llm_semaphore = asyncio.Semaphore(LLM_SEMAPHORE)
+# llm_semaphore = asyncio.Semaphore(LLM_SEMAPHORE)
 
 seen_lock = asyncio.Lock()
 write_lock = asyncio.Lock()
@@ -151,8 +151,8 @@ async def is_valuable_user(api: API, user: User) -> bool:
 {" | ".join(tweets[:LATEST_TWEETS_COUNT])}
 """
     try:
-        async with llm_semaphore:
-            result = await call_llm(prompt)
+        # async with llm_semaphore:
+        result = await call_llm(prompt)
         logger.info(f"判断用户 {user.id}，LLM 返回结果：{result}")
         return result.strip().lower() == "true"
     except Exception as e:
@@ -252,8 +252,8 @@ async def crawl():
     global all_users_num, valuable_users_num
     api = API(ACCOUNTS_DB, proxy=PROXY)
     
-    load_valuable_users()
-    load_seen_users()
+    # load_valuable_users()
+    # load_seen_users()
     load_seed_users()
     
     for uid in seed_users:

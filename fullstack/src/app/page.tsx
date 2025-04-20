@@ -1,22 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { okxHttp } from "@/http/server";
+import { use, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
 import clsx from "clsx";
 import {
   CandlestickChart as CandlestickChartIcon,
   ChevronRight,
 } from "lucide-react";
-import { parse } from "papaparse";
 
-import type { ForceLink, ForceNode, GraphData } from "@/types/graph";
+import type { ForceLink, ForceNode, GraphData, UserGraphRow } from "@/types/graph";
 import type { KOL, SimpleKOL } from "@/types/kol";
 import { Button } from "@/components/ui/button";
-import CandlestickChart from "@/components/candlestick-chart";
-import FilterCard from "@/components/cards/filter-card";
-import KolInfo from "@/components/cards/kol-info";
-import UserListCard from "@/components/cards/kol-list-card";
+import {
+  CandlestickChart,
+  FilterCard,
+  KolInfo,
+  KolListCard,
+} from "@/components/cards/index";
 import ForceGraph from "@/components/graph/force-graph";
 import Header from "@/components/layouts/header";
 
@@ -33,22 +35,15 @@ export default function IndexPage() {
   } = useKolStore();
 
   useEffect(() => {
-    fetch("/sample.csv")
-      .then((response) => response.text())
-      .then((csvText) => {
-        const result = parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-        });
-
-        const rows = result.data as any[];
-
+    http
+      .get<UserGraphRow[]>("/user-graph") // 调用你已经连通的接口
+      .then((rows) => {
         const nodesMap = new Map<string, ForceNode>();
         const links: ForceLink[] = [];
-        const kolSet = new Set<KOL>();
+        const kolSet = new Set<string>();
         const kols: SimpleKOL[] = [];
 
-        rows.forEach((row) => {
+        rows.forEach((row: any) => {
           const sourceId = row.author_id;
           const sourceName = row.username;
           const sourceFollowers = parseInt(row.followers || "0");
@@ -56,6 +51,7 @@ export default function IndexPage() {
           const targetId = row.label;
           const targetFollowers = parseInt(row.label_followers || "0");
 
+          // 创建 source 节点
           if (!nodesMap.has(sourceId)) {
             nodesMap.set(sourceId, {
               id: sourceId,
@@ -64,6 +60,16 @@ export default function IndexPage() {
             });
           }
 
+          // 创建 target 节点
+          if (row.object_type === "user" && !nodesMap.has(targetId)) {
+            nodesMap.set(targetId, {
+              id: targetId,
+              name: row.label_username || targetId,
+              followers: targetFollowers,
+            });
+          }
+
+          // 收集 kols
           if (!kolSet.has(sourceId)) {
             kolSet.add(sourceId);
             kols.push({
@@ -72,50 +78,50 @@ export default function IndexPage() {
               followers: sourceFollowers,
             });
           }
+
           if (!kolSet.has(targetId)) {
             kolSet.add(targetId);
             kols.push({
               id: targetId,
-              username: targetId,
+              username: row.label_username || targetId,
               followers: targetFollowers,
             });
           }
 
-          if (row.object_type === "user" && !nodesMap.has(targetId)) {
-            nodesMap.set(targetId, {
-              id: targetId,
-              name: targetId,
-              followers: targetFollowers,
-            });
-          }
-
+          // 创建 link
           links.push({
             source: sourceId,
             target: targetId,
-            score: parseFloat(row.score_current_time || "0"),
+            score: parseFloat(row.score || "0"),
           });
         });
 
-        // 根据关注者数量排序节点，用于卡片展示
-        // const users = Array.from(nodesMap.values());
         const sortedByFollowers = kols.sort(
           (a, b) => b.followers - a.followers,
         );
-        setSortedUsers(sortedByFollowers);
 
+        setSortedUsers(sortedByFollowers);
         setGraphData({
           nodes: Array.from(nodesMap.values()),
           links,
         });
+      })
+      .catch((err) => {
+        console.error("获取图谱数据失败:", err);
       });
   }, []);
+
   return (
     <div className="flex h-screen flex-col">
       <Header />
 
       <div className="relative flex-1">
         {graphData && (
-          <ForceGraph nodes={graphData.nodes} links={graphData.links} />
+          <ForceGraph
+            key="graph"
+            nodes={graphData.nodes}
+            links={graphData.links}
+          />
         )}
 
         {/* 左侧筛选与排名卡片 */}
@@ -139,7 +145,7 @@ export default function IndexPage() {
             {leftCardsOpen && (
               <>
                 <FilterCard kols={sortedUsers} />
-                <UserListCard kols={sortedUsers} />
+                <KolListCard kols={sortedUsers} />
               </>
             )}
           </div>

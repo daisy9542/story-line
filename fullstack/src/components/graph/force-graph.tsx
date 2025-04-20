@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef } from "react";
 import { useKolStore } from "@/stores/kol-store";
 import * as d3 from "d3";
@@ -100,7 +102,7 @@ export default function ForceGraph({ nodes, links }: ForceGraphProps) {
       "collision",
       d3
         .forceCollide<ForceNode>((d) => {
-          const base = Math.log10((d.followers) + 10) * 2;
+          const base = Math.log10(d.followers + 10) * 2;
           return Math.max(base, 24);
         })
         .strength(0.8),

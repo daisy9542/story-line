@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { KolTweetRaw } from "@/types/graph";
+import { KolTweet, KolTweetRaw } from "@/types/graph";
 import { KOL } from "@/types/kol";
 import { formatDigital } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,23 +24,34 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function KolInfo() {
-  const [kol, setKol] = useState<KOL | null>(null);
-  const [tweets, setTweets] = useState<KolTweetRaw[]>([]);
+  const [sourceKolInfo, setSourceKolInfo] = useState<KOL | null>(null);
+  const [targetKolInfo, setTargetKolInfo] = useState<KOL | null>(null);
+  const [tweets, setTweets] = useState<KolTweet[]>([]);
   const [pageNum, setPageNum] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [totalPages, setTotalPages] = useState(-1);
-  const { selectedKol } = useKolStore();
+  const [totalPage, setTotalPage] = useState(-1);
+  const { selectedKol, targetKol, selectedTokenSymbol, filterTime } =
+    useKolStore();
   const lastSelectedKolIdRef = useRef<string | null>(null);
 
   const fetchKol = () => {
     if (!selectedKol) return;
     setLoading(true);
+    if (targetKol) {
+      http
+        .get<KOL>("/user", {
+          id: targetKol.id,
+        })
+        .then((data) => {
+          setTargetKolInfo(data);
+        });
+    }
     http
       .get<KOL>("/user", {
         id: selectedKol.id,
       })
       .then((data) => {
-        setKol(data);
+        setSourceKolInfo(data);
       })
       .finally(() => {
         setLoading(false);
@@ -51,18 +62,17 @@ export default function KolInfo() {
     if (!selectedKol) return;
     setLoading(true);
     http
-      .get<KolTweetRaw[]>("/tweet", {
-        authorId: selectedKol.id,
-        pageNum: pageNum,
-        pageSize: 10,
+      .post<KolTweetRaw>("/tweet", {
+        author_id: selectedKol.id,
+        label_id: targetKol?.id ?? null,
+        token: selectedTokenSymbol,
+        page_num: pageNum,
+        page_size: 10,
+        filter_time: filterTime,
       })
       .then((data) => {
-        if (data.length > 0) {
-          setTweets(data);
-        } else {
-          setKol(null);
-          setTweets([]);
-        }
+        setTotalPage(data.totalPage);
+        setTweets(data.tweets);
       })
       .finally(() => {
         setLoading(false);
@@ -111,40 +121,35 @@ export default function KolInfo() {
   return (
     <Card className="flex h-full flex-col">
       <CardContent className="flex min-h-0 flex-1 flex-col space-y-4 py-4">
-        {kol && (
+        {sourceKolInfo && (
           <div className="space-y-2">
             <div>
               <div className="flex items-center gap-1">
-                <span className="font-semibold">{kol.name}</span>
+                <span className="font-semibold">{sourceKolInfo.name}</span>
 
                 <div className="relative h-5 w-5">
-                  <div className="absolute inset-0 m-auto flex h-4 w-4 items-center justify-center rounded-full bg-[#1DA1F2]">
-                    <BadgeCheck
-                      className="h-3 w-3 text-white"
-                      strokeWidth={3}
-                    />
-                  </div>
+                  <VerifiedBadge type={sourceKolInfo.verified_type} />
                 </div>
               </div>
               <div className="text-sm text-muted-foreground">
-                <span>@{kol.username}</span>
+                <span>@{sourceKolInfo.username}</span>
               </div>
             </div>
-            {kol.bio && (
-              <p className="whitespace-pre-wrap text-sm text-foreground">
-                {kol.bio}
+            {sourceKolInfo.bio && (
+              <p className="whitespace-pre-wrap break-words text-sm text-foreground">
+                {sourceKolInfo.bio}
               </p>
             )}
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>
                 <span className="font-semibold text-foreground">
-                  {formatDigital(kol.friendsCount)}
+                  {formatDigital(sourceKolInfo.friendsCount)}
                 </span>{" "}
                 <span>Following</span>
               </span>
               <span>
                 <span className="font-semibold text-foreground">
-                  {formatDigital(kol.followers)}
+                  {formatDigital(sourceKolInfo.followers)}
                 </span>{" "}
                 <span>Followers</span>
               </span>
@@ -228,7 +233,7 @@ export default function KolInfo() {
             </Button>
             <Button
               variant="outline"
-              disabled={pageNum === totalPages}
+              disabled={pageNum === totalPage}
               onClick={() => setPageNum(pageNum + 1)}
               size="sm"
             >

@@ -13,14 +13,26 @@ export async function GET(req: NextRequest) {
   try {
     const data: KOL[] = await queryClickhouse(
       `
-      SELECT *
+      SELECT 
+        id,
+        username,
+        name,
+        verified,
+        verified_type,
+        followers,
+        bio,
+        created,
+        friendsCount,
+        statusesCount,
+        favouritesCount,
+        listedCount,
+        mediaCount
       FROM user_info
       WHERE id = {id:Int64}
       LIMIT 1
     `,
       { id },
     );
-    console.log(data);
     return ok(data[0]);
   } catch (error: any) {
     console.error("查询失败:", error.message);

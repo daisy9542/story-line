@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
 import {
@@ -11,12 +11,7 @@ import {
   UserRoundPlus,
 } from "lucide-react";
 
-import type {
-  ForceLink,
-  ForceNode,
-  GraphData,
-  KolGraphRow,
-} from "@/types/graph";
+import type { ForceGraphHandle, GraphData } from "@/types/graph";
 import type { SimpleKOL } from "@/types/kol";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,78 +27,48 @@ import Header from "@/components/layouts/header";
 export default function IndexPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const {
     selectedKol,
+    selectedTokenSymbol,
+    filterFollowers,
+    filterTime,
     leftCardsOpen,
     candlestickChartOpen,
     setLeftCardsOpen,
     setCandlestickChartOpen,
   } = useKolStore();
 
-  useEffect(() => {
+  const graphRef = useRef<ForceGraphHandle>(null);
+
+  const handleZoomIn = () => {
+    const currentZoom = graphRef.current?.zoom();
+    if (currentZoom) graphRef.current?.zoom(currentZoom * 1.3, 400);
+  };
+
+  const handleZoomOut = () => {
+    const currentZoom = graphRef.current?.zoom();
+    if (currentZoom) graphRef.current?.zoom(currentZoom / 1.3, 400);
+  };
+
+  const getGraphData = (cb?: () => void) => {
+    setIsLoading(true);
     http
-      .get<KolGraphRow[]>("/user-graph") // 调用你已经连通的接口
-      .then((rows) => {
-        const nodesMap = new Map<string, ForceNode>();
-        const links: ForceLink[] = [];
-        const kolSet = new Set<string>();
+      .post<GraphData>("/graph", {
+        token: selectedTokenSymbol,
+        filter_followers: filterFollowers,
+        filter_time: filterTime,
+      })
+      .then((res) => {
+        const { nodes, links } = res;
         const kols: SimpleKOL[] = [];
 
-        rows.forEach((row: KolGraphRow) => {
-          const sourceId = row.author_id;
-          const sourceName = row.name;
-          const sourceUsername = row.username;
-          const sourceFollowers = row.followers;
-
-          const targetId = row.label_user_id;
-          const targetFollowers = row.label_followers;
-
-          // 创建 source 节点
-          if (!nodesMap.has(sourceId)) {
-            nodesMap.set(sourceId, {
-              id: sourceId,
-              name: sourceName,
-              username: sourceUsername,
-              followers: sourceFollowers,
-            });
-          }
-
-          // 创建 target 节点
-          if (row.object_type === "user" && !nodesMap.has(targetId)) {
-            nodesMap.set(targetId, {
-              id: targetId,
-              name: row.label_name,
-              username: row.label_username,
-              followers: targetFollowers,
-            });
-          }
-
-          // 收集 kols
-          if (!kolSet.has(sourceId)) {
-            kolSet.add(sourceId);
-            kols.push({
-              id: sourceId,
-              name: sourceName,
-              username: sourceUsername,
-              followers: sourceFollowers,
-            });
-          }
-
-          if (!kolSet.has(targetId)) {
-            kolSet.add(targetId);
-            kols.push({
-              id: targetId,
-              name: row.label_name,
-              username: row.label_username,
-              followers: targetFollowers,
-            });
-          }
-
-          // 创建 link
-          links.push({
-            source: sourceId,
-            target: targetId,
-            score: row.score,
+        nodes.forEach((node) => {
+          kols.push({
+            id: node.id,
+            name: node.name,
+            username: node.username,
+            followers: node.followers,
           });
         });
 
@@ -113,22 +78,35 @@ export default function IndexPage() {
 
         setSortedUsers(sortedByFollowers);
         setGraphData({
-          nodes: Array.from(nodesMap.values()),
+          nodes,
           links,
         });
       })
       .catch((err) => {
         console.error("获取图谱数据失败:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+        cb && cb();
       });
+  };
+
+  useEffect(() => {
+    getGraphData();
   }, []);
+
+  useEffect(() => {
+    getGraphData();
+  }, [selectedTokenSymbol]);
 
   return (
     <div className="flex h-screen flex-col">
       <Header />
 
-      <div className="relative flex-1">
+      <div className="relative flex-1 overflow-hidden">
         {graphData && (
           <ForceGraph
+            ref={graphRef}
             key="graph"
             nodes={graphData.nodes}
             links={graphData.links}
@@ -150,10 +128,18 @@ export default function IndexPage() {
             >
               <ChevronRight />
             </Button>
-            <Button variant="outline" className="h-12 w-12">
+            <Button
+              variant="outline"
+              className="h-12 w-12"
+              onClick={() => handleZoomIn()}
+            >
               <CirclePlus />
             </Button>
-            <Button variant="outline" className="h-12 w-12">
+            <Button
+              variant="outline"
+              className="h-12 w-12"
+              onClick={() => handleZoomOut()}
+            >
               <CircleMinus />
             </Button>
             <Button variant="outline" className="h-12 w-12">
@@ -162,13 +148,17 @@ export default function IndexPage() {
           </div>
           <div
             className={cn(
-              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-none transition-all duration-300 ease-in-out will-change-transform",
+              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden border-none transition-all duration-300 ease-in-out will-change-transform",
               leftCardsOpen ? "w-80 border-r p-4" : "w-0 p-0",
             )}
           >
             {leftCardsOpen && (
               <>
-                <FilterCard kols={sortedUsers} />
+                <FilterCard
+                  kols={sortedUsers}
+                  isLoading={isLoading}
+                  onFilterChange={() => getGraphData()}
+                />
                 <KolListCard kols={sortedUsers} />
               </>
             )}
@@ -176,8 +166,13 @@ export default function IndexPage() {
         </div>
 
         {/* 右侧 KOL 信息卡片 */}
-        <div className="transparent fixed bottom-16 right-0 top-16 z-50 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform">
-          {selectedKol !== null ? <KolInfo /> : null}
+        <div
+          className={cn(
+            "transparent fixed bottom-16 right-0 top-16 z-50 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform",
+            selectedKol ? "" : "hidden",
+          )}
+        >
+          <KolInfo />
         </div>
 
         {/* 底部 K 线图 */}

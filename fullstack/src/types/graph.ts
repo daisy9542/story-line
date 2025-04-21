@@ -1,29 +1,44 @@
 import { SimulationLinkDatum, SimulationNodeDatum } from "d3";
+import {
+  ForceGraphMethods,
+  LinkObject,
+  NodeObject,
+} from "react-force-graph-2d";
 
-import { KOL } from "@/types/kol";
 import { Tweet } from "@/types/tweet";
 
 export type TokenSymbol = "BTC" | "ETH" | "SOL";
 
-export interface ForceNode extends SimulationNodeDatum {
+export interface GraphNode extends SimulationNodeDatum {
   id: string;
-  name: string;
   username: string;
+  name: string;
   followers: number;
-  degree?: number;
+  score_metrics: number;
+  opacity: number;
+  percentage: number;
+  isTop: boolean;
   fx?: number;
   fy?: number;
 }
 
-export interface ForceLink extends SimulationLinkDatum<ForceNode> {
-  source: string | ForceNode;
-  target: string | ForceNode;
-  score: number;
+export interface GraphLink extends SimulationLinkDatum<GraphNode> {
+  source: string | GraphNode;
+  target: string | GraphNode;
+  source2target_score: number;
+  target2source_score: number;
+}
+
+export interface GraphLinkRaw {
+  source_id: string;
+  target_id: string;
+  source2target_score: number;
+  target2source_score: number;
 }
 
 export interface GraphData {
-  nodes: ForceNode[];
-  links: ForceLink[];
+  nodes: GraphNode[];
+  links: GraphLink[];
 }
 
 export enum TargetObjectType {
@@ -38,31 +53,12 @@ export enum ActiveType {
   Liked = "liked", // 点赞
 }
 
-export type KolGraphRow = {
-  author_id: string;
-  username: string;
-  name: string;
-  followers: number;
-  tweet_id: string;
-  created: number; // 时间戳字符串
-  label: string;
-  label_followers: number;
-  label_username: string;
-  label_user_id: string;
-  label_name: string;
-  score: number;
-  object_type: TargetObjectType;
-  active_type: ActiveType;
-  text: string;
-  like_count: number;
-  quote_count: number;
-  retweet_count: number;
-  reply_count: number;
-  view_count: number | null;
-  bookmarked_count: number;
-};
+export type ForceGraphHandle = ForceGraphMethods<
+  NodeObject<GraphNode>,
+  LinkObject<GraphNode, GraphLink>
+>;
 
-export type KolTweetRaw = Pick<
+export type KolTweet = Pick<
   Tweet,
   | "created"
   | "text"
@@ -77,3 +73,31 @@ export type KolTweetRaw = Pick<
   object_type: TargetObjectType;
   active_type: ActiveType;
 };
+
+export type KolTweetRaw = {
+  totalPage: number;
+  tweets: KolTweet[];
+};
+
+export interface ForceGraphParams {
+  token: string;
+  filter_time: number; // 毫秒时间戳
+  filter_followers: number; // 最小粉丝数
+  add_user_list: string[]; // array<BigInt>
+  sub_user_list: string[]; // array<BigInt>
+  ttl: number; // 天数
+  volatility: number; // 波动率（-1 ~ 1）
+  bubble_num: number; // 总节点数
+  top_ratio: number; // Top 样本比例（0～1），如 0.3
+  nodes?: GraphNode[];
+}
+
+export interface TweetParams {
+  author_id: string; // 主用户 A
+  label_id: string | null; // 可选：用户 B，与 A 的交互；为空时按 token 查询 A 自身数据
+  token: string; // 当 label_id 为空时，按 token 筛选
+  ttl: number; // 时间窗口天数
+  page_size: number; // 每页条数
+  page_num: number; // 页码，从 1 开始
+  filter_time: number; // 参考时间戳 ms
+}

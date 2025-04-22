@@ -30,8 +30,8 @@ function buildTweetSQL(params: TweetParams, getCount = false) {
        AND object_type = 'user'`
       : // 仅 A 对 token 的所有操作
         `author_id = ${author_id}
-       AND label = '${token.replace(/'/g, "''")}'
-       AND object_type != 'user'`; // 排除 user-object 情形，可按需调整
+       AND label = '${token.replace(/'/g, "''")}'`;
+      //  AND object_type != 'user'`; // 排除 user-object 情形，可按需调整
 
   if (getCount) {
     return `
@@ -39,7 +39,7 @@ function buildTweetSQL(params: TweetParams, getCount = false) {
       COUNT(*) AS total
     FROM user_graph_detail_score
     WHERE
-      created BETWEEN ${startTime} AND ${filter_time}
+      created <= ${filter_time}
       AND ${filterClause};
       `;
   }
@@ -58,7 +58,7 @@ SELECT
   bookmarked_count
 FROM user_graph_detail_score
 WHERE
-  created BETWEEN ${startTime} AND ${filter_time}
+  created <= ${filter_time}
   AND ${filterClause}
 ORDER BY created DESC
 LIMIT ${page_size}

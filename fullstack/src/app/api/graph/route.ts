@@ -208,9 +208,12 @@ function buildGraphLinksSQL(params: ForceGraphParams) {
 
 
 -- 4) 合并并排序
-SELECT source_id, target_id, source2target_score, target2source_score FROM directional
+SELECT source_id, target_id, source2target_score, target2source_score 
+FROM directional
+WHERE source_id <> target_id
 UNION ALL
-SELECT source_id, target_id, source2target_score, target2source_score FROM inverse_only;`;
+SELECT source_id, target_id, source2target_score, target2source_score FROM inverse_only
+WHERE source_id <> target_id;`;
 }
 
 export async function POST(req: NextRequest) {

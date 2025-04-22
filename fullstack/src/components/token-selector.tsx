@@ -2,7 +2,7 @@
 
 import { useKolStore } from "@/stores/kol-store";
 
-import { TokenSymbol } from "@/types/token-symbol";
+import { TokenSymbol } from "@/types/graph";
 import {
   Select,
   SelectContent,

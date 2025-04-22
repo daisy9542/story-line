@@ -21,8 +21,8 @@ import {
   KolInfo,
   KolListCard,
 } from "@/components/cards/index";
-import ForceGraph from "@/components/graph/force-graph";
 import Header from "@/components/layouts/header";
+import dynamic from "next/dynamic";
 
 export default function IndexPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
@@ -38,6 +38,11 @@ export default function IndexPage() {
     setLeftCardsOpen,
     setCandlestickChartOpen,
   } = useKolStore();
+
+  const ForceGraph = dynamic(
+    () => import("@/components/graph/force-graph"),
+    { ssr: false }
+  );
 
   const graphRef = useRef<ForceGraphHandle>(null);
 

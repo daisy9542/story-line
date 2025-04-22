@@ -96,7 +96,6 @@ const ForceGraph = forwardRef(function ForceGraph(
 
   useEffect(() => {
     if (!containerRef.current || !fgRef.current) return;
-    const { width, height } = containerRef.current.getBoundingClientRect();
     const sim = fgRef.current;
     // sim.d3Force(
     //   "link",

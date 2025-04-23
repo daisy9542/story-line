@@ -163,19 +163,33 @@ const ForceGraph = forwardRef(function ForceGraph(
           ctx.stroke();
 
           // 文本（缩小时隐藏）
-          if (node.isTop && radius > 25 && scale > 0.35) {
+          const selected = node.id === selectedKol?.id;
+          if ((node.isTop && radius > 25 && scale > 0.35) || selected) {
             const fontSize = 12;
-            const truncatedLabel = truncateTextToFit(
-              ctx,
-              label,
-              radius * 2 - 12,
-            );
+            const text = selected
+              ? label
+              : truncateTextToFit(ctx, label, radius * 2 - 12);
 
             ctx.font = `${fontSize / scale}px sans-serif`;
-            ctx.fillStyle = "#ffffff";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(truncatedLabel, node.x, node.y);
+
+            const textWidth = ctx.measureText(text).width;
+            const padding = 4;
+
+            // 背景框（淡黑半透明），防止文字看不清
+            if (selected) {
+              ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+              ctx.fillRect(
+                node.x - textWidth / 2 - padding,
+                node.y - fontSize / (2 * scale),
+                textWidth + padding * 2,
+                fontSize / scale + 4,
+              );
+            }
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(text, node.x, node.y);
           }
         }}
         linkCanvasObject={(link, ctx) => {

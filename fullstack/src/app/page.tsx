@@ -185,7 +185,9 @@ export default function IndexPage() {
                   isLoading={isLoading}
                   onFilterChange={() => getGraphData()}
                 />
-                <KolListCard kols={sortedUsers} />
+                <div className="flex-1 overflow-hidden">
+                  <KolListCard kols={sortedUsers} />
+                </div>
               </>
             )}
           </div>

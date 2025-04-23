@@ -49,7 +49,8 @@ export const useKolStore = create<KolState>()(
       selectedKol: null,
       targetKol: null,
       filterFollowers: 1000,
-      filterTime: Date.now(),
+      // filterTime: Date.now(),
+      filterTime: 1743544033000, // 离线数据最大时间戳
       filterChanged: false,
       leftCardsOpen: true,
       candlestickChartOpen: false,

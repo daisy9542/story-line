@@ -2,6 +2,7 @@
 
 import { useKolStore } from "@/stores/kol-store";
 import { Loader2 } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 
 import { SimpleKOL } from "@/types/kol";
 import { formatDigital } from "@/lib/utils";
@@ -20,15 +21,20 @@ type SidebarProps = {
 const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
   const {
     filterFollowers,
+    setNeedRefresh,
     setFilterFollowers,
     filterChanged,
     setFilterChanged,
   } = useKolStore();
+  const debouncedRefresh = useDebouncedCallback(() => {
+    setNeedRefresh(true);
+  }, 300);
+
   return (
     <div className="relative">
       <Card>
         <CardContent>
-          <div className="mb-3 flex h-52 w-full flex-col gap-4 py-4">
+          <div className="flex min-h-0 w-full flex-col gap-4 py-4">
             <KolSearch kols={kols} />
             <div className="h-8 space-y-2">
               <p className="text-sm">
@@ -44,6 +50,7 @@ const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
                 max={100000}
                 step={1000}
                 onValueChange={(val) => {
+                  debouncedRefresh();
                   setFilterFollowers(val[0]);
                   setFilterChanged(true);
                 }}
@@ -54,7 +61,7 @@ const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
               disabled={!filterChanged || isLoading}
               onClick={() => {
                 onFilterChange(() => setFilterChanged(false));
-                setFilterChanged(false)
+                setFilterChanged(false);
               }}
             >
               {isLoading ? (
@@ -63,7 +70,7 @@ const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
                   Loading
                 </>
               ) : (
-                <>Apply</>
+                <>Apply Filters</>
               )}
             </Button>
           </div>

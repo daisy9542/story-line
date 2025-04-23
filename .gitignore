@@ -37,14 +37,10 @@ __pycache__/
 venv/
 .venv/
 
-# Frontend (Vite/React)
-frontend/dist/
-frontend/node_modules/
-frontend/.vite/
-
-# Backend
-backend/dist/
-backend/node_modules/
+# Fullstack
+fullstack/dist/
+fullstack/node_modules/
+fullstack/.vite/
 
 # Python crawler
 crawler/__pycache__/
@@ -60,3 +56,5 @@ crawler/.venv
 Thumbs.db
 ehthumbs.db
 *.swp
+
+.idea/

@@ -35,10 +35,32 @@ export default function IndexPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [panelWidth, setPanelWidth] = useState(320);
+  const MIN_WIDTH = 240;
+  const MAX_WIDTH = 600;
+
   const debouncedGetGraphData = useDebouncedCallback(() => {
     getGraphData();
     setNeedRefresh(false);
   }, 500);
+
+  const handleDrag = (e: MouseEvent) => {
+    const newWidth = window.innerWidth - e.clientX;
+    setPanelWidth(Math.max(MIN_WIDTH, Math.min(newWidth, MAX_WIDTH)));
+  };
+
+  const startResize = () => {
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", handleDrag);
+    window.addEventListener("mouseup", stopResize);
+  };
+
+  const stopResize = () => {
+    document.body.style.userSelect = "auto";
+    window.removeEventListener("mousemove", handleDrag);
+    window.removeEventListener("mouseup", stopResize);
+  };
+
   const {
     needRefresh,
     setNeedRefresh,
@@ -196,11 +218,18 @@ export default function IndexPage() {
         {/* 右侧 KOL 信息卡片 */}
         <div
           className={cn(
-            "transparent fixed bottom-16 right-0 top-16 z-50 flex h-[calc(100vh-64px)] w-80 flex-col space-y-4 overflow-hidden overflow-y-auto p-4 transition-transform duration-300 ease-in-out will-change-transform",
+            "fixed bottom-16 right-0 top-16 z-50 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-l bg-background p-4 transition-transform duration-300 ease-in-out will-change-transform",
             selectedKol ? "" : "hidden",
           )}
+          style={{ width: `${panelWidth}px` }}
         >
           <KolInfo />
+          <div
+            onMouseDown={startResize}
+            className="group absolute left-0 top-0 h-full w-2 cursor-ew-resize bg-transparent hover:bg-transparent"
+          >
+            <div className="absolute left-1/2 top-1/2 h-12 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground opacity-50" />
+          </div>
         </div>
 
         {/* 底部 K 线图 */}

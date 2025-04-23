@@ -13,6 +13,7 @@ import {
   MessageCircle,
   Repeat2,
   ShieldCheck,
+  X,
 } from "lucide-react";
 
 import { KolTweet, KolTweetRaw } from "@/types/graph";
@@ -30,8 +31,13 @@ export default function KolInfo() {
   const [pageNum, setPageNum] = useState(1);
   const [loading, setLoading] = useState(false);
   const [totalPage, setTotalPage] = useState(-1);
-  const { selectedKol, targetKol, selectedTokenSymbol, filterTime } =
-    useKolStore();
+  const {
+    selectedKol,
+    setSelectedKol,
+    targetKol,
+    selectedTokenSymbol,
+    filterTime,
+  } = useKolStore();
   const lastSelectedKolIdRef = useRef<string | null>(null);
 
   const fetchKol = () => {
@@ -120,6 +126,14 @@ export default function KolInfo() {
 
   return (
     <Card className="flex h-full flex-col">
+      <Button
+        variant="outline"
+        onClick={() => setSelectedKol(null)}
+        className="absolute right-1 top-1 h-8 w-8 rounded-full"
+        aria-label="Close"
+      >
+        <X />
+      </Button>
       <CardContent className="flex min-h-0 flex-1 flex-col space-y-4 py-4">
         {sourceKolInfo && (
           <div className="space-y-2">

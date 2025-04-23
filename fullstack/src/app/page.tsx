@@ -25,6 +25,7 @@ import {
 } from "@/components/cards/index";
 import { ThemeToggle } from "@/components/theme-toggle";
 import TokenSelector from "@/components/token-selector";
+import WelcomeOverlay from "@/components/welcome-overlay";
 
 const ForceGraph = dynamic(() => import("@/components/graph/force-graph"), {
   ssr: false,
@@ -122,7 +123,10 @@ export default function IndexPage() {
     <div className="flex h-screen flex-col">
       <header className="relative flex h-16 items-center justify-between px-4 py-2">
         <TokenSelector />
-        <ThemeToggle />
+        <div className="flex gap-2">
+          <WelcomeOverlay />
+          <ThemeToggle />
+        </div>
       </header>
 
       <div className="relative flex-1 overflow-hidden">

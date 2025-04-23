@@ -9,7 +9,6 @@ import {
   ChevronRight,
   CircleMinus,
   CirclePlus,
-  UserRoundPlus,
 } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -189,9 +188,6 @@ export default function IndexPage() {
               onClick={() => handleZoomOut()}
             >
               <CircleMinus />
-            </Button>
-            <Button variant="outline" className="h-12 w-12">
-              <UserRoundPlus />
             </Button>
           </div>
           <div

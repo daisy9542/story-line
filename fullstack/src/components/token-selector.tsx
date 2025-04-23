@@ -12,15 +12,19 @@ import {
 } from "@/components/ui/select";
 
 const TokenSelector = () => {
-  const {
-    selectedTokenSymbol: selectedToken,
-    setSelectedTokenSymbol: setSelectedToken,
-  } = useKolStore();
+  const { setNeedRefresh, selectedTokenSymbol, setSelectedTokenSymbol } =
+    useKolStore();
 
   const tokenOptions: TokenSymbol[] = ["BTC", "ETH", "SOL"];
 
   return (
-    <Select value={selectedToken} onValueChange={setSelectedToken}>
+    <Select
+      value={selectedTokenSymbol}
+      onValueChange={(val: TokenSymbol) => {
+        setSelectedTokenSymbol(val);
+        setNeedRefresh(true);
+      }}
+    >
       <SelectTrigger className="w-20">
         <SelectValue placeholder="ALL" />
       </SelectTrigger>

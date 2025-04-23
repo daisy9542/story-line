@@ -8,8 +8,8 @@ import { formatDigital } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import KolSearch from "@/components/filter/kol-search";
-import TimeSlider from "@/components/filter/time-slider";
+import KolSearch from "@/components/cards/filter/kol-search";
+import TimeSlider from "@/components/cards/filter/time-slider";
 
 type SidebarProps = {
   kols: SimpleKOL[];

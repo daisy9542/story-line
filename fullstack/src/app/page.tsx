@@ -11,6 +11,7 @@ import {
   CirclePlus,
   UserRoundPlus,
 } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 
 import type { ForceGraphHandle, GraphData } from "@/types/graph";
 import type { SimpleKOL } from "@/types/kol";
@@ -22,7 +23,8 @@ import {
   KolInfo,
   KolListCard,
 } from "@/components/cards/index";
-import Header from "@/components/layouts/header";
+import { ThemeToggle } from "@/components/theme-toggle";
+import TokenSelector from "@/components/token-selector";
 
 const ForceGraph = dynamic(() => import("@/components/graph/force-graph"), {
   ssr: false,
@@ -32,7 +34,13 @@ export default function IndexPage() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const debouncedGetGraphData = useDebouncedCallback(() => {
+    getGraphData();
+    setNeedRefresh(false);
+  }, 500);
   const {
+    needRefresh,
+    setNeedRefresh,
     selectedKol,
     selectedTokenSymbol,
     filterFollowers,
@@ -41,6 +49,9 @@ export default function IndexPage() {
     candlestickChartOpen,
     setLeftCardsOpen,
     setCandlestickChartOpen,
+    interestedKolIds,
+    excludedKolIds,
+    hydrated,
   } = useKolStore();
 
   const graphRef = useRef<ForceGraphHandle>(null);
@@ -56,12 +67,15 @@ export default function IndexPage() {
   };
 
   const getGraphData = (cb?: () => void) => {
+    if (!hydrated) return;
     setIsLoading(true);
     http
       .post<GraphData>("/graph", {
         token: selectedTokenSymbol,
         filter_followers: filterFollowers,
         filter_time: filterTime,
+        add_user_list: interestedKolIds,
+        sub_user_list: excludedKolIds,
       })
       .then((res) => {
         const { nodes, links } = res;
@@ -96,16 +110,20 @@ export default function IndexPage() {
   };
 
   useEffect(() => {
-    getGraphData();
-  }, []);
+    debouncedGetGraphData();
+  }, [hydrated]);
 
   useEffect(() => {
-    getGraphData();
-  }, [selectedTokenSymbol]);
+    if (!needRefresh) return;
+    debouncedGetGraphData();
+  }, [needRefresh]);
 
   return (
     <div className="flex h-screen flex-col">
-      <Header />
+      <header className="relative flex h-16 items-center justify-between px-4 py-2">
+        <TokenSelector />
+        <ThemeToggle />
+      </header>
 
       <div className="relative flex-1 overflow-hidden">
         {graphData && (

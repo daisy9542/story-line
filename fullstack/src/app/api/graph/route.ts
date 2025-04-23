@@ -211,9 +211,11 @@ function buildGraphLinksSQL(params: ForceGraphParams) {
 SELECT source_id, target_id, source2target_score, target2source_score 
 FROM directional
 WHERE source_id <> target_id
+AND source2target_score + target2source_score  > 30
 UNION ALL
 SELECT source_id, target_id, source2target_score, target2source_score FROM inverse_only
-WHERE source_id <> target_id;`;
+WHERE source_id <> target_id
+AND source2target_score + target2source_score  > 30;`
 }
 
 export async function POST(req: NextRequest) {

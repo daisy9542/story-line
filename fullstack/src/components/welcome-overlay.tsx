@@ -47,11 +47,11 @@ export default function WelcomeOverlay() {
             </h2>
             <div className="space-y-2 text-sm leading-relaxed">
               <p>
-                Here, you'll dive into the universe of Twitter KOLs and explore
+                Here, you&apos;ll dive into the universe of Twitter KOLs and explore
                 their interconnected influence:
               </p>
               <p>
-                🔵 <strong>Bubble size</strong> represents a user's follower
+                🔵 <strong>Bubble size</strong> represents a user&apos;s follower
                 count — the bigger the bubble, the greater their influence.
               </p>
               <p>

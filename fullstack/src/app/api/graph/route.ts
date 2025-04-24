@@ -228,7 +228,7 @@ export async function POST(req: NextRequest) {
       add_user_list = [],
       sub_user_list = [],
       ttl = 60,
-      volatility = 0.4,
+      volatility = 0.1,
       bubble_num = 150,
       top_ratio = 0.3,
     } = body;

@@ -97,15 +97,15 @@ const ForceGraph = forwardRef(function ForceGraph(
   useEffect(() => {
     if (!containerRef.current || !fgRef.current) return;
     const sim = fgRef.current;
-    // sim.d3Force(
-    //   "link",
-    //   d3
-    //     .forceLink<GraphNode, GraphLink>()
-    //     .id((d) => d.id)
-    //     .distance(50)
-    //     .strength(0.7),
-    // );
-    sim.d3Force("charge", d3.forceManyBody().strength(-200));
+    sim.d3Force(
+      "link",
+      d3
+        .forceLink<GraphNode, GraphLink>()
+        .id((d) => d.id)
+        .distance(80)
+        .strength(0.5),
+    );
+    sim.d3Force("charge", d3.forceManyBody().strength(-150));
     sim.d3Force("center", d3.forceCenter(0, 0));
     sim.d3Force(
       "radial",
@@ -117,7 +117,10 @@ const ForceGraph = forwardRef(function ForceGraph(
     );
     sim.d3Force(
       "collision",
-      d3.forceCollide<GraphNode>().radius(10).strength(0.8),
+      d3
+        .forceCollide<GraphNode>()
+        .radius((d) => getRadius(d.percentage) + 4)
+        .strength(1),
     );
   }, [nodes, links]);
 

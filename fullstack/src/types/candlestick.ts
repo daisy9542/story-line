@@ -5,7 +5,7 @@ export interface CandleRequestParams {
   bar?: string; // 粒度，例如 "1m", "5m", "1H", "1Dutc"
   after?: string; // 请求早于某时间戳的数据
   before?: string; // 请求晚于某时间戳的数据
-  limit?: string; // 返回数量，默认 100，最大 300
+  limit?: string; // 返回数量，默认 100，最大 300；如果请求的历史数据接口，最大 100
 }
 
 export interface CandleData {
@@ -17,7 +17,7 @@ export interface CandleData {
   volume: number; // 交易量（交易币种）
   volumeBase: number; // 交易量（计价币种）
   volumeQuote: number; // 交易量（以计价币种为单位）
-  confirm: boolean; // K 线状态：0=未完成，1=已完结
+  confirm: boolean; // K 线状态是否完成
 }
 
 export type RawCandleData = [

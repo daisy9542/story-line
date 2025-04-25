@@ -1,8 +1,9 @@
 "use client";
 
+import { use, useEffect, useMemo } from "react";
 import { useKolStore } from "@/stores/kol-store";
+import debounce from "lodash.debounce";
 import { Loader2 } from "lucide-react";
-import { useDebouncedCallback } from "use-debounce";
 
 import { SimpleKOL } from "@/types/kol";
 import { formatDigital } from "@/lib/utils";
@@ -26,9 +27,17 @@ const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
     filterChanged,
     setFilterChanged,
   } = useKolStore();
-  const debouncedRefresh = useDebouncedCallback(() => {
-    setNeedRefresh(true);
-  }, 300);
+
+  const debouncedRefresh = useMemo(
+    () => debounce(() => setNeedRefresh(true), 300),
+    [setNeedRefresh],
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedRefresh.cancel();
+    };
+  }, [debouncedRefresh]);
 
   return (
     <div className="relative">

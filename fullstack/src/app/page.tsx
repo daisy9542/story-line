@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
+import debounce from "lodash.debounce";
 import {
   CandlestickChart as CandlestickChartIcon,
   ChevronRight,
   CircleMinus,
   CirclePlus,
 } from "lucide-react";
-import { useDebouncedCallback } from "use-debounce";
 
 import type { ForceGraphHandle, GraphData } from "@/types/graph";
 import type { SimpleKOL } from "@/types/kol";
@@ -37,11 +37,6 @@ export default function IndexPage() {
   const [panelWidth, setPanelWidth] = useState(320);
   const MIN_WIDTH = 240;
   const MAX_WIDTH = 600;
-
-  const debouncedGetGraphData = useDebouncedCallback(() => {
-    getGraphData();
-    setNeedRefresh(false);
-  }, 500);
 
   const handleDrag = (e: MouseEvent) => {
     const newWidth = window.innerWidth - e.clientX;
@@ -88,57 +83,76 @@ export default function IndexPage() {
     if (currentZoom) graphRef.current?.zoom(currentZoom / 1.3, 400);
   };
 
-  const getGraphData = (cb?: () => void) => {
-    if (!hydrated) return;
-    setIsLoading(true);
-    http
-      .post<GraphData>("/graph", {
-        token: selectedTokenSymbol,
-        filter_followers: filterFollowers,
-        filter_time: filterTime,
-        add_user_list: interestedKolIds,
-        sub_user_list: excludedKolIds,
-      })
-      .then((res) => {
-        const { nodes, links } = res;
-        const kols: SimpleKOL[] = [];
+  const getGraphData = useCallback(
+    (cb?: () => void) => {
+      if (!hydrated) return;
+      setIsLoading(true);
+      http
+        .post<GraphData>("/graph", {
+          token: selectedTokenSymbol,
+          filter_followers: filterFollowers,
+          filter_time: filterTime,
+          add_user_list: interestedKolIds,
+          sub_user_list: excludedKolIds,
+        })
+        .then((res) => {
+          const { nodes, links } = res;
+          const kols: SimpleKOL[] = [];
 
-        nodes.forEach((node) => {
-          kols.push({
-            id: node.id,
-            name: node.name,
-            username: node.username,
-            followers: node.followers,
+          nodes.forEach((node) => {
+            kols.push({
+              id: node.id,
+              name: node.name,
+              username: node.username,
+              followers: node.followers,
+            });
           });
-        });
 
-        const sortedByFollowers = kols.sort(
-          (a, b) => b.followers - a.followers,
-        );
+          const sortedByFollowers = kols.sort(
+            (a, b) => b.followers - a.followers,
+          );
 
-        setSortedUsers(sortedByFollowers);
-        setGraphData({
-          nodes,
-          links,
+          setSortedUsers(sortedByFollowers);
+          setGraphData({
+            nodes,
+            links,
+          });
+        })
+        .catch((err) => {
+          console.error("获取图谱数据失败:", err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+          cb && cb();
         });
-      })
-      .catch((err) => {
-        console.error("获取图谱数据失败:", err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-        cb && cb();
-      });
-  };
+    },
+    [hydrated],
+  );
+
+  const debouncedGetGraphData = useMemo(() => {
+    return debounce(getGraphData, 500, { leading: true, trailing: true });
+  }, [getGraphData]);
 
   useEffect(() => {
+    return () => {
+      debouncedGetGraphData.cancel();
+    };
+  }, [debouncedGetGraphData]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     debouncedGetGraphData();
-  }, [hydrated]);
+    return () => {
+      debouncedGetGraphData.cancel();
+    };
+  }, [hydrated, debouncedGetGraphData]);
 
   useEffect(() => {
     if (!needRefresh) return;
-    debouncedGetGraphData();
-  }, [needRefresh]);
+    debouncedGetGraphData(() => {
+      setNeedRefresh(false);
+    });
+  }, [needRefresh, debouncedGetGraphData, setNeedRefresh]);
 
   return (
     <div className="flex h-screen flex-col">
@@ -247,7 +261,7 @@ export default function IndexPage() {
               candlestickChartOpen ? "translate-y-0" : "translate-y-full",
             )}
           >
-            <CandlestickChart />
+            {candlestickChartOpen ? <CandlestickChart /> : null}
           </div>
         </div>
       </div>

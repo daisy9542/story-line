@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useKolStore } from "@/stores/kol-store";
 import dayjs from "dayjs";
+import debounce from "lodash.debounce";
 import { ChevronDown, ChevronLeft } from "lucide-react";
-import { useDebouncedCallback } from "use-debounce";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,9 +36,20 @@ export default function TimeSlider() {
     { value: "month", label: "Month" },
     { value: "year", label: "Year" },
   ];
-  const debouncedRefresh = useDebouncedCallback(() => {
-    setNeedRefresh(true);
-  }, 300);
+
+  // 使用 ref 保证只在首次渲染时创建 debounce 函数
+  const debouncedRefresh = useRef(
+    debounce(() => {
+      setNeedRefresh(true);
+    }, 300),
+  ).current;
+
+  // 卸载时取消未执行的 debounce 调用
+  useEffect(() => {
+    return () => {
+      debouncedRefresh.cancel();
+    };
+  }, [debouncedRefresh]);
 
   const handleSliderChange = (value: number[]): void => {
     const newValue = value[0];
@@ -54,13 +65,13 @@ export default function TimeSlider() {
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const inputValue = e.target.value;
-    
+
     const newTime = dayjs(inputValue).valueOf();
-    
-    // ⏳ 限制不能超过最大时间戳
+
+    // 限制不能超过最大时间戳
     const cappedTime = Math.min(newTime, maxTimestamp);
     setDateTime(dayjs(cappedTime).format("YYYY-MM-DDTHH:ss"));
-    
+
     setFilterTime(cappedTime);
     setFilterChanged(true);
   };

@@ -1,125 +1,250 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
 import {
   CandlestickSeries,
   createChart,
+  IRange,
   UTCTimestamp,
+  type ISeriesApi,
 } from "lightweight-charts";
+import throttle from "lodash.throttle";
 import { useTheme } from "next-themes";
 
-import type { CandleData, RawCandleData } from "@/types/candlestick";
+import type { CandleData, CandleRequestParams } from "@/types/candlestick";
 import { cn } from "@/lib/utils";
-import { useCandleQuery } from "@/hooks/use-candle-query";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function CandlestickChart() {
-  const chartRef = useRef<HTMLDivElement>(null);
-  const { selectedTokenSymbol } = useKolStore();
-  const [bar, setBar] = useState("1H");
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
+  const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+
+  const { selectedTokenSymbol, filterTime } =
+    useKolStore();
   const { resolvedTheme } = useTheme();
 
-  const barMap = [
-    { label: "1 minute", value: "1m" },
-    { label: "1 hour", value: "1H" },
-    { label: "1 day", value: "1D" },
-    { label: "1 week", value: "1W" },
-    { label: "1 month", value: "1M" },
-  ];
+  // 用于无限加载的 Ref
+  const earliestRef = useRef<UTCTimestamp | null>(null);
+  const latestRef = useRef<UTCTimestamp | null>(null);
+  const candlesRef = useRef<CandleData[]>([]);
+  const isLoadingMoreRef = useRef(false); // 防止并发加载
 
-  const LoadingOverlay = () => (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
-    </div>
+  const instId = useMemo(
+    () => `${selectedTokenSymbol}-USDT`,
+    [selectedTokenSymbol],
   );
 
-  const {
-    data = [],
-    isLoading,
-    isError,
-    error,
-  } = useCandleQuery({
-    instId: `${selectedTokenSymbol}-USDT`,
-    bar,
-  });
+  const [bar, setBar] = useState("1H");
+  const [loading, setLoading] = useState(false);
 
-  const transformToCandles = (data: RawCandleData[]): CandleData[] => {
-    return data
-      .map((item) => ({
-        time: Math.floor(Number(item[0]) / 1000) as UTCTimestamp,
-        open: parseFloat(item[1]),
-        high: parseFloat(item[2]),
-        low: parseFloat(item[3]),
-        close: parseFloat(item[4]),
-        volume: parseFloat(item[5]),
-        volumeBase: parseFloat(item[6]),
-        volumeQuote: parseFloat(item[7]),
-        confirm: item[8] === "1",
-      }))
-      .reverse();
+  const minTimestampSec = useMemo(() => 1275095205000 / 1000, []); // 离线数据的最小毫秒时间戳
+  const maxTimestampSec = useMemo(() => 1743544033000 / 1000, []); // 离线数据的最大毫秒时间戳
+
+  const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
+    http.get("/market/candles", params) as Promise<CandleData[]>;
+
+  const chartOptions = {
+    layout: {
+      background: { color: resolvedTheme === "dark" ? "#111" : "#fff" },
+      textColor: resolvedTheme === "dark" ? "#DDD" : "#333",
+    },
+    grid: {
+      vertLines: { color: resolvedTheme === "dark" ? "#333" : "#EEE" },
+      horzLines: { color: resolvedTheme === "dark" ? "#333" : "#EEE" },
+    },
+    localization: {
+      timeFormatter: (time: UTCTimestamp) => {
+        const date = new Date(time * 1000);
+        const y = date.getFullYear();
+        const m = (date.getMonth() + 1).toString().padStart(2, "0");
+        const d = date.getDate().toString().padStart(2, "0");
+        const h = date.getHours().toString().padStart(2, "0");
+        const min = date.getMinutes().toString().padStart(2, "0");
+        const s = date.getSeconds().toString().padStart(2, "0");
+
+        return `${y}-${m}-${d} ${h}:${min}:${s}`;
+      },
+    },
   };
 
-  const candleData = useMemo(() => transformToCandles(data), [data]);
+  const intervalMap: Record<string, string> = {
+    "1H": "1 hour",
+    "1D": "1 day",
+    "1W": "1 week",
+    "1M": "1 month",
+  };
 
   useEffect(() => {
-    if (!chartRef.current || !candleData.length) return;
-
-    const chart = createChart(chartRef.current, {
-      width: chartRef.current.clientWidth,
-      height: chartRef.current.clientHeight,
-      layout: {
-        background: {
-          color: resolvedTheme === "dark" ? "#111" : "#fff",
-        },
-        textColor: resolvedTheme === "dark" ? "#DDD" : "#333",
-      },
-      grid: {
-        vertLines: {
-          color: resolvedTheme === "dark" ? "#333" : "#EEE",
-        },
-        horzLines: {
-          color: resolvedTheme === "dark" ? "#333" : "#EEE",
-        },
-      },
+    if (!chartContainerRef.current) return;
+    const chart = createChart(chartContainerRef.current, {
+      ...chartOptions,
+      width: chartContainerRef.current.clientWidth,
+      height: chartContainerRef.current.clientHeight,
     });
+    chartRef.current = chart;
+    seriesRef.current = chart.addSeries(CandlestickSeries);
 
-    const series = chart.addSeries(CandlestickSeries);
-    series.setData(candleData);
+    const handleRange = throttle((logicalRange: IRange<number> | null) => {
+      if (!logicalRange) return;
+      const prev = candlesRef.current || [];
+      const total = prev.length;
 
-    return () => chart.remove();
-  }, [data, resolvedTheme]);
+      // 左滑加载更多历史数据
+      if (
+        logicalRange.from <= 10 &&
+        !isLoadingMoreRef.current &&
+        earliestRef.current !== null
+      ) {
+        isLoadingMoreRef.current = true;
+        const after = (earliestRef.current * 1000).toString();
+        fetchCandles({ instId, bar, after })
+          .then((more) => {
+            // 过滤掉所有 time < minTimestampSec
+            const filtered = more.filter((c) => c.time >= minTimestampSec);
+            const combined = [...filtered, ...prev].sort(
+              (a, b) => a.time - b.time,
+            );
+            if (filtered.length) {
+              candlesRef.current = combined;
+              seriesRef.current!.setData(combined);
+              // 如果已经追到最小时间戳，就不再请求
+              if (combined[0].time <= minTimestampSec) {
+                earliestRef.current = null;
+              } else {
+                earliestRef.current = combined[0].time;
+              }
+            } else {
+              // 如果没有新数据，就不再请求
+              earliestRef.current = null;
+            }
+          })
+          .catch(() => {
+            console.error("加载更多失败");
+          })
+          .finally(() => {
+            isLoadingMoreRef.current = false;
+          });
+      }
+
+      // 右滑加载更多未来数据
+      if (
+        total - logicalRange.to <= 10 &&
+        !isLoadingMoreRef.current &&
+        latestRef.current !== null &&
+        latestRef.current < maxTimestampSec
+      ) {
+        isLoadingMoreRef.current = true;
+        const before = (latestRef.current * 1000).toString();
+        fetchCandles({ instId, bar, before })
+          .then((more) => {
+            // 过滤上界
+            const filtered = more.filter((c) => c.time <= maxTimestampSec);
+            const combined = [...prev, ...filtered].sort(
+              (a, b) => a.time - b.time,
+            );
+
+            if (combined.length) {
+              latestRef.current =
+                combined[combined.length - 1].time >= maxTimestampSec
+                  ? null
+                  : combined[combined.length - 1].time;
+              earliestRef.current = combined[0].time;
+            } else {
+              latestRef.current = null;
+            }
+
+            candlesRef.current = combined;
+            seriesRef.current!.setData(combined);
+          })
+          .catch(() => console.error("加载新数据失败"))
+          .finally(() => {
+            isLoadingMoreRef.current = false;
+          });
+      }
+    }, 500);
+
+    chart.timeScale().subscribeVisibleLogicalRangeChange(handleRange);
+
+    // 监听窗口大小变化，调整图表大小
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) {
+        chart.applyOptions({
+          width: e.contentRect.width,
+          height: e.contentRect.height,
+        });
+      }
+    });
+    ro.observe(chartContainerRef.current);
+
+    return () => {
+      chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleRange);
+      handleRange.cancel();
+      chart.remove();
+      ro.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    chartRef.current.applyOptions(chartOptions);
+  }, [resolvedTheme]);
+
+  const loadInitial = useCallback(async () => {
+    setLoading(true);
+    try {
+      const after = Math.min(maxTimestampSec * 1000, filterTime).toString();
+      const data = await fetchCandles({ instId, bar, after });
+      data.sort((a, b) => a.time - b.time);
+      candlesRef.current = data;
+      seriesRef.current!.setData(data);
+      earliestRef.current = data.length ? data[0].time : null;
+      latestRef.current = data.length ? data[data.length - 1].time : null;
+    } catch (err) {
+      console.error("加载初始数据失败:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [instId, bar, filterTime]);
+
+  useEffect(() => {
+    if (!chartRef.current) return;
+    loadInitial();
+  }, [loadInitial]);
 
   return (
     <Card className="flex h-full flex-col">
       <CardContent className="relative flex-grow py-2">
-        {isLoading && <LoadingOverlay />}
+        {loading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          </div>
+        )}
         <div
-          ref={chartRef}
-          className={cn(
-            "h-full w-full",
-            isLoading && "pointer-events-none opacity-20",
-          )}
+          ref={chartContainerRef}
+          className={cn("h-full w-full", loading && "opacity-20")}
         />
       </CardContent>
       <CardFooter className="flex h-16 w-full items-center justify-center p-0 pb-2">
         <ToggleGroup
           type="single"
           value={bar}
-          onValueChange={(value) => value && setBar(value)}
+          onValueChange={(v) => v && setBar(v)}
           className="rounded-full px-2 py-1"
         >
-          {barMap.map((item) => (
+          {Object.keys(intervalMap).map((k) => (
             <ToggleGroupItem
-              key={item.value}
-              value={item.value}
+              key={k}
+              value={k}
               className={cn(
-                "rounded-full px-4 py-1 text-xs text-muted-foreground transition",
-                "data-[state=on]:bg-[#1f1f1f] data-[state=on]:text-white dark:data-[state=on]:bg-[#333] dark:data-[state=on]:text-white",
+                "w-20 rounded-full px-4 py-1 text-xs text-muted-foreground transition",
+                "data-[state=on]:bg[#1f1f1f] dark:data-[state=on]:bg[#333] data-[state=on]:text-white dark:data-[state=on]:text-white",
               )}
             >
-              {item.label}
+              {intervalMap[k]}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

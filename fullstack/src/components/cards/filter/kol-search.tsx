@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
+import debounce from "lodash.debounce";
 import { LoaderCircle, Search, X } from "lucide-react";
-import { useDebounce } from "use-debounce";
 
 import { SimpleKOL } from "@/types/kol";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,6 @@ export default function KolSearch({ kols: initialKols }: KolSearchProps) {
   const [query, setQuery] = useState("");
   const [searchedKols, setSearchedKols] = useState<SimpleKOL[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [debouncedQuery] = useDebounce(query, 300);
 
   const {
     setNeedRefresh,
@@ -33,27 +32,34 @@ export default function KolSearch({ kols: initialKols }: KolSearchProps) {
     setNeedRefresh(true);
   }, [interestedKolIds]);
 
-  // 发起搜索请求
-  const fetchSearch = useCallback(async (query: string) => {
-    setIsLoading(true);
-    try {
-      const data = await http.get<SimpleKOL[]>("/user/search", { query });
-      setSearchedKols(data);
-    } catch (err) {
-      console.error("Search failed", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchSearchDebounced = useRef(
+    debounce(async (q: string) => {
+      if (!q.trim()) {
+        setSearchedKols([]);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const data = await http.get<SimpleKOL[]>("/user/search", { query: q });
+        setSearchedKols(data);
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300),
+  ).current;
+
+  useEffect(() => {
+    return () => {
+      fetchSearchDebounced.cancel();
+    };
   }, []);
 
   useEffect(() => {
-    const trimmed = debouncedQuery.trim();
-    if (trimmed) {
-      fetchSearch(trimmed);
-    } else {
-      setSearchedKols([]);
-    }
-  }, [debouncedQuery, fetchSearch]);
+    fetchSearchDebounced(query);
+  }, [query]);
 
   return (
     <div className="relative w-full max-w-md rounded-lg border bg-background text-foreground shadow-sm">

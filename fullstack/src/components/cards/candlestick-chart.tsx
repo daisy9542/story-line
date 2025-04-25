@@ -94,7 +94,6 @@ export default function CandlestickChart() {
     if (!seriesMarkers || !candlesRef.current.length) return;
 
     // 清空所有 markers
-    console.log("清空所有 markers");
     seriesMarkers.setMarkers([]);
     // 找到最近 candle
     const nearest = candlesRef.current.reduce((prev, curr) =>
@@ -109,7 +108,6 @@ export default function CandlestickChart() {
       shape: "arrowDown",
       text: "Here",
     };
-    console.log("添加 marker", marker);
     seriesMarkers.setMarkers([marker]);
   };
 

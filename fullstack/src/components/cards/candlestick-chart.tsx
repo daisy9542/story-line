@@ -6,9 +6,14 @@ import { useKolStore } from "@/stores/kol-store";
 import {
   CandlestickSeries,
   createChart,
+  createSeriesMarkers,
   IRange,
+  ISeriesMarkersPluginApi,
+  MouseEventParams,
+  Time,
   UTCTimestamp,
   type ISeriesApi,
+  type SeriesMarker,
 } from "lightweight-charts";
 import throttle from "lodash.throttle";
 import { useTheme } from "next-themes";
@@ -22,16 +27,21 @@ export default function CandlestickChart() {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const seriesMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
 
-  const { selectedTokenSymbol, filterTime } =
-    useKolStore();
+  const {
+    selectedTokenSymbol,
+    filterTime,
+    needRefresh,
+    setFilterTime,
+    setNeedRefresh,
+  } = useKolStore();
   const { resolvedTheme } = useTheme();
 
-  // 用于无限加载的 Ref
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const latestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
-  const isLoadingMoreRef = useRef(false); // 防止并发加载
+  const isLoadingMoreRef = useRef<boolean>(false); // 防止并发加载
 
   const instId = useMemo(
     () => `${selectedTokenSymbol}-USDT`,
@@ -78,6 +88,31 @@ export default function CandlestickChart() {
     "1M": "1 month",
   };
 
+  // 清空并绘制新的 marker
+  const updateMarker = (timeSec: UTCTimestamp) => {
+    const seriesMarkers = seriesMarkersRef.current;
+    if (!seriesMarkers || !candlesRef.current.length) return;
+
+    // 清空所有 markers
+    console.log("清空所有 markers");
+    seriesMarkers.setMarkers([]);
+    // 找到最近 candle
+    const nearest = candlesRef.current.reduce((prev, curr) =>
+      Math.abs(curr.time - timeSec) < Math.abs(prev.time - timeSec)
+        ? curr
+        : prev,
+    );
+    const marker: SeriesMarker<UTCTimestamp> = {
+      time: nearest.time,
+      position: "aboveBar",
+      color: "#2196F3",
+      shape: "arrowDown",
+      text: "Here",
+    };
+    console.log("添加 marker", marker);
+    seriesMarkers.setMarkers([marker]);
+  };
+
   useEffect(() => {
     if (!chartContainerRef.current) return;
     const chart = createChart(chartContainerRef.current, {
@@ -87,6 +122,17 @@ export default function CandlestickChart() {
     });
     chartRef.current = chart;
     seriesRef.current = chart.addSeries(CandlestickSeries);
+    seriesMarkersRef.current = createSeriesMarkers(seriesRef.current, []);
+
+    // 点击事件：只更新 marker & store，不重载数据
+    const handleClick = (param: MouseEventParams) => {
+      if (param.time) {
+        updateMarker(param.time as UTCTimestamp);
+        setFilterTime((param.time as UTCTimestamp) * 1000);
+        setNeedRefresh(true);
+      }
+    };
+    chart.subscribeClick(handleClick);
 
     const handleRange = throttle((logicalRange: IRange<number> | null) => {
       if (!logicalRange) return;
@@ -181,6 +227,7 @@ export default function CandlestickChart() {
     ro.observe(chartContainerRef.current);
 
     return () => {
+      chart.unsubscribeClick(handleClick);
       chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleRange);
       handleRange.cancel();
       chart.remove();
@@ -188,6 +235,7 @@ export default function CandlestickChart() {
     };
   }, []);
 
+  // 监听主题变化，更新图表样式
   useEffect(() => {
     if (!chartRef.current) return;
     chartRef.current.applyOptions(chartOptions);
@@ -203,12 +251,24 @@ export default function CandlestickChart() {
       seriesRef.current!.setData(data);
       earliestRef.current = data.length ? data[0].time : null;
       latestRef.current = data.length ? data[data.length - 1].time : null;
+
+      if (filterTime) {
+        updateMarker((filterTime / 1000) as UTCTimestamp);
+      }
     } catch (err) {
       console.error("加载初始数据失败:", err);
     } finally {
       setLoading(false);
     }
-  }, [instId, bar, filterTime]);
+  }, [instId, bar]);
+
+  useEffect(() => {
+    if (needRefresh) {
+      setNeedRefresh(false);
+    } else {
+      loadInitial();
+    }
+  }, [filterTime]);
 
   useEffect(() => {
     if (!chartRef.current) return;

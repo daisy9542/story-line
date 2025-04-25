@@ -11,7 +11,7 @@ if (process.env.HTTPS_PROXY_URL) {
 
 
 const service = axios.create({
-  baseURL: 'https://www.okx.com/api',
+  baseURL: 'https://www.okx.com/priapi',
   timeout: 10 * 1000,
   headers: { 'Content-Type': 'application/json' },
   ...(proxyAgent && { 

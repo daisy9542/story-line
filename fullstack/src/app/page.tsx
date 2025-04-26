@@ -12,8 +12,10 @@ import {
   CirclePlus,
 } from "lucide-react";
 
+import { CandleData, CandleRequestParams } from "@/types/candlestick";
 import type { ForceGraphHandle, GraphData } from "@/types/graph";
 import type { SimpleKOL } from "@/types/kol";
+import { calcChangePct } from "@/lib/market";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +37,7 @@ export default function IndexPage() {
   const [sortedUsers, setSortedUsers] = useState<SimpleKOL[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [panelWidth, setPanelWidth] = useState(320);
+  const [volatility, setVolatility] = useState<number | null>(null);
   const MIN_WIDTH = 240;
   const MAX_WIDTH = 600;
 
@@ -83,10 +86,37 @@ export default function IndexPage() {
     if (currentZoom) graphRef.current?.zoom(currentZoom / 1.3, 400);
   };
 
+  const fetchDailyVolatility = useCallback(async (): Promise<number | null> => {
+    if (!selectedTokenSymbol) return null;
+
+    const params: CandleRequestParams = {
+      instId: `${selectedTokenSymbol}-USDT`,
+      bar: "1D",
+      after: filterTime.toString(),
+      limit: "1",
+    };
+
+    try {
+      const res = await http.get<CandleData[]>("/market/candles", params);
+      const candles = res;
+      if (candles.length === 0) return null;
+
+      // 计算单日单组 k 线涨幅
+      const vol = calcChangePct(candles[0]);
+      console.log("volatility:", vol, "filterTime:", filterTime);
+      setVolatility(vol);
+      return vol;
+    } catch (err) {
+      console.error("获取今日 K 线失败：", err);
+      return null;
+    }
+  }, [selectedTokenSymbol, filterTime]);
+
   const getGraphData = useCallback(
-    (cb?: () => void) => {
+    async (cb?: () => void) => {
       if (!hydrated) return;
       setIsLoading(true);
+      await fetchDailyVolatility();
       http
         .post<GraphData>("/graph", {
           token: selectedTokenSymbol,
@@ -94,6 +124,7 @@ export default function IndexPage() {
           filter_time: filterTime,
           add_user_list: interestedKolIds,
           sub_user_list: excludedKolIds,
+          volatility: volatility,
         })
         .then((res) => {
           const { nodes, links } = res;
@@ -126,7 +157,7 @@ export default function IndexPage() {
           cb && cb();
         });
     },
-    [hydrated],
+    [hydrated, fetchDailyVolatility],
   );
 
   const debouncedGetGraphData = useMemo(() => {

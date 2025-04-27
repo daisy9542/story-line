@@ -18,7 +18,7 @@ import {
 
 import { KolTweet, KolTweetRaw } from "@/types/graph";
 import { KOL } from "@/types/kol";
-import { formatDigital } from "@/lib/utils";
+import { cn, formatDigital, score2color } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -137,17 +137,29 @@ export default function KolInfo() {
       <CardContent className="flex min-h-0 flex-1 flex-col space-y-4 py-4">
         {sourceKolInfo && (
           <div className="space-y-2">
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="font-semibold">{sourceKolInfo.name}</span>
+            <div className="flex h-11">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold">{sourceKolInfo.name}</span>
 
-                <div className="relative h-5 w-5">
-                  <VerifiedBadge type={sourceKolInfo.verified_type} />
+                  <div className="relative h-5 w-5">
+                    <VerifiedBadge type={sourceKolInfo.verified_type} />
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <span>@{sourceKolInfo.username}</span>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <span>@{sourceKolInfo.username}</span>
-              </div>
+              {selectedKol ? (
+                <div
+                  className="flex w-10 items-center justify-center rounded-md px-2 py-0.5 text-sm font-semibold"
+                  style={{
+                    color: score2color(selectedKol.score_metrics, 1).fillColor,
+                  }}
+                >
+                  {formatDigital(selectedKol.score_metrics, 0)}
+                </div>
+              ) : null}
             </div>
             {sourceKolInfo.bio && (
               <p className="whitespace-pre-wrap break-words text-sm text-foreground">

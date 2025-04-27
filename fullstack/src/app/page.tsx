@@ -136,6 +136,7 @@ export default function IndexPage() {
               name: node.name,
               username: node.username,
               followers: node.followers,
+              score_metrics: node.score_metrics,
             });
           });
 

@@ -17,7 +17,7 @@ import ForceGraph2D, {
 } from "react-force-graph-2d";
 
 import type { ForceGraphHandle, GraphLink, GraphNode } from "@/types/graph";
-import { getNodeColor } from "@/lib/utils";
+import { score2color } from "@/lib/utils";
 
 interface ForceGraphProps {
   nodes: GraphNode[];
@@ -164,7 +164,7 @@ const ForceGraph = forwardRef(function ForceGraph(
             const { fillColor, strokeColor } =
               isSelected || isHovered
                 ? { fillColor: "rgba(255,255,255,0.2)", strokeColor: "#ffffff" }
-                : getNodeColor(node.score_metrics ?? 0, node.opacity ?? 1);
+                : score2color(node.score_metrics ?? 0, node.opacity ?? 1);
 
             const label = node.name ?? node.id;
             const lineWidth = isSelected ? 4 : isHovered ? 3 : 2;
@@ -238,8 +238,8 @@ const ForceGraph = forwardRef(function ForceGraph(
             const radius = 4;
 
             // 颜色
-            const sColor = getNodeColor(forward, 1).strokeColor;
-            const tColor = getNodeColor(backward, 1).strokeColor;
+            const sColor = score2color(forward, 1).strokeColor;
+            const tColor = score2color(backward, 1).strokeColor;
 
             // 起点略缩，避免压住节点
             const startX = source.x + Math.cos(angle) * radius;
@@ -256,8 +256,8 @@ const ForceGraph = forwardRef(function ForceGraph(
             if (isBidirectional) {
               // 在双向情况下用 source -> target 坐标创建渐变
               const grad = ctx.createLinearGradient(startX, startY, endX, endY);
-              const sColor = getNodeColor(forward, 1).strokeColor;
-              const tColor = getNodeColor(backward, 1).strokeColor;
+              const sColor = score2color(forward, 1).strokeColor;
+              const tColor = score2color(backward, 1).strokeColor;
               grad.addColorStop(0, sColor);
               grad.addColorStop(1, tColor);
               strokeStyle = grad;
@@ -266,8 +266,8 @@ const ForceGraph = forwardRef(function ForceGraph(
               // 单向用虚线 + 单色
               strokeStyle =
                 forward > 0
-                  ? getNodeColor(forward, 1).strokeColor
-                  : getNodeColor(backward, 1).strokeColor;
+                  ? score2color(forward, 1).strokeColor
+                  : score2color(backward, 1).strokeColor;
               dash = [6, 4];
             }
 

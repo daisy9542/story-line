@@ -25,4 +25,5 @@ export interface SimpleKOL {
   name: string; // 昵称
   username: string; // 用户名
   followers: number; // 粉丝数
+  score_metrics: number; // 对币种的情绪分值，范围 -100 到 100
 }

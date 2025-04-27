@@ -22,7 +22,7 @@ export function cn(...inputs: ClassValue[]) {
 export function formatDigital(num: number, fixed = 1) {
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + "M";
   if (num >= 1_000) return (num / 1_000).toFixed(fixed) + "K";
-  return num.toString();
+  return num.toFixed(fixed);
 }
 
 /**
@@ -59,7 +59,7 @@ function parseColor(color: string): RGBColor {
  * @param opacity 透明度，范围 0 到 1，1 表示完全不透明
  * @returns 颜色对象，包含 fillColor 和 strokeColor
  */
-export function getNodeColor(score: number, opacity: number) {
+export function score2color(score: number, opacity: number) {
   const NEGATIVE_PALETTE = [
     "#fee2e2", // 轻微负向
     "#fecaca",

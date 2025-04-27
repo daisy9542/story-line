@@ -38,7 +38,7 @@ export default function IndexPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [panelWidth, setPanelWidth] = useState(320);
   const [volatility, setVolatility] = useState<number | null>(null);
-  const MIN_WIDTH = 240;
+  const MIN_WIDTH = 300;
   const MAX_WIDTH = 600;
 
   const handleDrag = (e: MouseEvent) => {

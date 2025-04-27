@@ -50,7 +50,7 @@ const FilterCard = ({ kols, isLoading, onFilterChange }: SidebarProps) => {
                 Followers
                 <span className="text-muted-foreground">
                   {" "}
-                  ≥ {formatDigital(filterFollowers)}
+                  ≥ {formatDigital(filterFollowers, 0)}
                 </span>
               </p>
               <Slider

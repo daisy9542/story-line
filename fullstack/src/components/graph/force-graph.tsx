@@ -17,62 +17,12 @@ import ForceGraph2D, {
 } from "react-force-graph-2d";
 
 import type { ForceGraphHandle, GraphLink, GraphNode } from "@/types/graph";
+import { getNodeColor } from "@/lib/utils";
 
 interface ForceGraphProps {
   nodes: GraphNode[];
   links: GraphLink[];
 }
-
-/**
- * 根据分数分级映射颜色
- *
- * @param score 对币种的情绪分值，范围 -100 到 100
- * @param opacity 透明度，范围 0 到 1，1 表示完全不透明
- * @returns 颜色对象，包含 fillColor 和 strokeColor
- */
-const getNodeColor = (score: number, opacity: number) => {
-  const NEGATIVE_PALETTE = [
-    "#fee2e2", // 轻微负向
-    "#fecaca",
-    "#fca5a5",
-    "#f87171",
-    "#ef4444", // 强烈负向
-  ];
-  const POSITIVE_PALETTE = [
-    "#d1fae5", // 轻微正向
-    "#a7f3d0",
-    "#6ee7b7",
-    "#34d399",
-    "#10b981", // 强烈正向
-  ];
-  const NEUTRAL_COLOR = "#9ca3af"; // 中性
-  const thresholds = [0.1, 0.2, 0.4, 0.6, 1.0];
-  const absNorm = Math.min(1, Math.abs(score) / 100);
-
-  let idx = 0;
-  for (let i = 0; i < thresholds.length; i++) {
-    if (absNorm <= thresholds[i]) {
-      idx = i;
-      break;
-    }
-  }
-
-  let strokeColor: string;
-  if (score > 0) {
-    strokeColor = POSITIVE_PALETTE[idx];
-  } else if (score < 0) {
-    strokeColor = NEGATIVE_PALETTE[idx];
-  } else {
-    strokeColor = NEUTRAL_COLOR;
-  }
-
-  const c = d3.color(strokeColor);
-  const fillColor = c
-    ? `rgba(${c.rgb().r},${c.rgb().g},${c.rgb().b},${opacity})`
-    : `rgba(156,163,175,${opacity})`;
-
-  return { strokeColor, fillColor };
-};
 
 /**
  * 计算节点的半径

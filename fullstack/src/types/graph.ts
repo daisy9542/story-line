@@ -101,3 +101,9 @@ export interface TweetParams {
   page_num: number; // 页码，从 1 开始
   filter_time: number; // 参考时间戳 ms
 }
+
+export interface RGBColor {
+  r: number;
+  g: number;
+  b: number;
+}

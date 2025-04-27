@@ -15,7 +15,7 @@ export default function UserListCard({ kols }: UserListCardProps) {
   return (
     <Card>
       <CardContent>
-        <ScrollArea className="h-[400px] pr-2 pt-4">
+        <ScrollArea className="h-full pr-2 pt-4">
           <div className="cursor-pointer space-y-2">
             {kols.map((kol) => (
               <div

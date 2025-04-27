@@ -262,21 +262,21 @@ export default function IndexPage() {
           </div>
           <div
             className={cn(
-              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden border-none transition-all duration-300 ease-in-out will-change-transform",
+              "transparent fixed bottom-16 left-0 top-16 flex h-[calc(100vh-64px)] flex-col overflow-hidden border-none transition-all duration-300 ease-in-out will-change-transform",
               leftCardsOpen ? "w-80 border-r p-4" : "w-0 p-0",
             )}
           >
             {leftCardsOpen && (
-              <>
-                <FilterCard
-                  kols={sortedUsers}
-                  isLoading={isLoading}
-                  onFilterChange={() => getGraphData()}
-                />
-                <div className="flex-1 overflow-hidden">
-                  <KolListCard kols={sortedUsers} />
+              <div className="flex h-full flex-col space-y-4">
+                  <FilterCard
+                    kols={sortedUsers}
+                    isLoading={isLoading}
+                    onFilterChange={() => getGraphData()}
+                  />
+                  <div className="flex-1 overflow-hidden">
+                    <KolListCard kols={sortedUsers} />
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>

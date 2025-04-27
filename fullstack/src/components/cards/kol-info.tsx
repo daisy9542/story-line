@@ -150,7 +150,7 @@ export default function KolInfo({ kols, kolTargetMap }: KolInfoProps) {
                   <span>
                     {format(Number(tweet.created), "yyyy-MM-dd HH:mm")}
                   </span>
-                  {tweet.view_count && (
+                  {tweet.view_count && tweet.view_count > 0 && (
                     <>
                       <span>·</span>
                       <span className="font-semibold text-foreground">

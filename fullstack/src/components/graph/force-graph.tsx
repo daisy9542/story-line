@@ -17,7 +17,6 @@ import ForceGraph2D, {
 } from "react-force-graph-2d";
 
 import type { ForceGraphHandle, GraphLink, GraphNode } from "@/types/graph";
-import { SimpleKOL } from "@/types/kol";
 
 interface ForceGraphProps {
   nodes: GraphNode[];
@@ -25,28 +24,54 @@ interface ForceGraphProps {
 }
 
 /**
- * 计算节点和边的颜色
+ * 根据分数分级映射颜色
  *
  * @param score 对币种的情绪分值，范围 -100 到 100
  * @param opacity 透明度，范围 0 到 1，1 表示完全不透明
  * @returns 颜色对象，包含 fillColor 和 strokeColor
  */
 const getNodeColor = (score: number, opacity: number) => {
-  const greenInterpolate = d3.interpolateRgb("#d1fae5", "#10b981");
-  const redInterpolate = d3.interpolateRgb("#fee2e2", "#ef4444");
-  const clampedScore = Math.max(-100, Math.min(100, score));
-  const normalized = Math.abs(clampedScore) / 100;
+  const NEGATIVE_PALETTE = [
+    "#fee2e2", // 轻微负向
+    "#fecaca",
+    "#fca5a5",
+    "#f87171",
+    "#ef4444", // 强烈负向
+  ];
+  const POSITIVE_PALETTE = [
+    "#d1fae5", // 轻微正向
+    "#a7f3d0",
+    "#6ee7b7",
+    "#34d399",
+    "#10b981", // 强烈正向
+  ];
+  const NEUTRAL_COLOR = "#9ca3af"; // 中性
+  const thresholds = [0.1, 0.2, 0.4, 0.6, 1.0];
+  const absNorm = Math.min(1, Math.abs(score) / 100);
 
-  const baseColor =
-    clampedScore >= 0
-      ? greenInterpolate(normalized)
-      : redInterpolate(normalized);
+  let idx = 0;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (absNorm <= thresholds[i]) {
+      idx = i;
+      break;
+    }
+  }
 
-  const rgb = d3.color(baseColor)?.formatRgb() ?? "rgb(128,128,128)";
-  return {
-    fillColor: rgb.replace("rgb(", "rgba(").replace(")", `,${opacity})`),
-    strokeColor: rgb,
-  };
+  let strokeColor: string;
+  if (score > 0) {
+    strokeColor = POSITIVE_PALETTE[idx];
+  } else if (score < 0) {
+    strokeColor = NEGATIVE_PALETTE[idx];
+  } else {
+    strokeColor = NEUTRAL_COLOR;
+  }
+
+  const c = d3.color(strokeColor);
+  const fillColor = c
+    ? `rgba(${c.rgb().r},${c.rgb().g},${c.rgb().b},${opacity})`
+    : `rgba(156,163,175,${opacity})`;
+
+  return { strokeColor, fillColor };
 };
 
 /**
@@ -55,7 +80,8 @@ const getNodeColor = (score: number, opacity: number) => {
  * @param percentage 粉丝数百分比
  * @returns 半径
  */
-const getRadius = (percentage: number) => 30.2 * Math.sqrt(percentage) + 2;
+const getRadius = (percentage: number) =>
+  Math.min(100, 30.2 * Math.sqrt(percentage) + 2);
 
 /**
  * 截断文本以适应指定的最大宽度
@@ -81,7 +107,8 @@ const ForceGraph = forwardRef(function ForceGraph(
   { nodes, links }: ForceGraphProps,
   ref: Ref<ForceGraphHandle | null>,
 ) {
-  const { selectedKol, setSelectedKol, setTargetKol } = useKolStore();
+  const { selectedKol, targetKol, setSelectedKol, setTargetKol } =
+    useKolStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef =
     useRef<
@@ -89,12 +116,16 @@ const ForceGraph = forwardRef(function ForceGraph(
     >(undefined);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const kolMap = new Map<string, GraphNode>();
+  const [hoveredNode, setHoveredNode] = useState<NodeObject<GraphNode> | null>(
+    null,
+  );
+
   let dashOffset = 0;
   nodes.forEach((node) => {
     kolMap.set(node.id, node);
   });
 
-  useImperativeHandle(ref, () => fgRef.current!, []);
+  useImperativeHandle(ref, () => fgRef.current!, [fgRef.current]);
 
   // 用 ResizeObserver 监听容器尺寸
   useEffect(() => {
@@ -137,10 +168,10 @@ const ForceGraph = forwardRef(function ForceGraph(
         .radius((d) => getRadius(d.percentage) + 4)
         .strength(1),
     );
-  }, [nodes, links]);
+  }, [containerRef.current, fgRef.current, nodes, links]);
 
   useEffect(() => {
-    if (!selectedKol || !fgRef.current) return;
+    if (!selectedKol || !fgRef.current || targetKol) return;
 
     // 查找选中的节点
     const nodeToFocus = nodes.find((node) => node.id === selectedKol.id);
@@ -162,15 +193,31 @@ const ForceGraph = forwardRef(function ForceGraph(
           height={size.height}
           graphData={{ nodes, links }}
           backgroundColor="#101827"
+          d3AlphaDecay={
+            links.length > 1e3
+              ? 0.9
+              : links.length > 800
+                ? 0.8
+                : links.length > 600
+                  ? 0.7
+                  : links.length > 400
+                    ? 0.1
+                    : links.length > 300
+                      ? 0.05
+                      : 0.0228
+          }
           nodeCanvasObject={(node, ctx, scale) => {
             if (!node.x || !node.y) return;
+            const isSelected = !targetKol && node.id === selectedKol?.id;
+            const isHovered = hoveredNode === node;
             const radius = getRadius(node.percentage);
-            const { fillColor, strokeColor } = getNodeColor(
-              node.score_metrics ?? 0,
-              node.opacity ?? 1,
-            );
+            const { fillColor, strokeColor } =
+              isSelected || isHovered
+                ? { fillColor: "rgba(255,255,255,0.2)", strokeColor: "#ffffff" }
+                : getNodeColor(node.score_metrics ?? 0, node.opacity ?? 1);
 
             const label = node.name ?? node.id;
+            const lineWidth = isSelected ? 4 : isHovered ? 3 : 2;
 
             // 圆形
             ctx.beginPath();
@@ -183,7 +230,7 @@ const ForceGraph = forwardRef(function ForceGraph(
             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
             ctx.strokeStyle =
               node.id === selectedKol?.id ? "#ffffff" : strokeColor;
-            ctx.lineWidth = node.id === selectedKol?.id ? 4 : 2;
+            ctx.lineWidth = lineWidth;
             ctx.stroke();
 
             // 文本（缩小时隐藏）
@@ -233,16 +280,16 @@ const ForceGraph = forwardRef(function ForceGraph(
             const dy = target.y - source.y;
             const angle = Math.atan2(dy, dx);
 
-            const s2t = link.source2target_score ?? 0;
-            const t2s = link.target2source_score ?? 0;
+            const forward = link.source2target_score ?? 0;
+            const backward = link.target2source_score ?? 0;
 
-            const isBidirectional = s2t > 0 && t2s > 0;
+            const isBidirectional = forward > 0 && backward > 0;
             const arrowLength = 8;
             const radius = 4;
 
             // 颜色
-            const sColor = getNodeColor(s2t, 1).strokeColor;
-            const tColor = getNodeColor(t2s, 1).strokeColor;
+            const sColor = getNodeColor(forward, 1).strokeColor;
+            const tColor = getNodeColor(backward, 1).strokeColor;
 
             // 起点略缩，避免压住节点
             const startX = source.x + Math.cos(angle) * radius;
@@ -252,29 +299,39 @@ const ForceGraph = forwardRef(function ForceGraph(
             const dist = Math.hypot(endX - startX, endY - startY);
             if (dist < 2) return;
 
+            let strokeStyle: CanvasGradient | string;
+            let dash: number[] = [];
+
             // 渐变（双向）
             if (isBidirectional) {
-              const grad = ctx.createLinearGradient(
-                source.x,
-                source.y,
-                target.x,
-                target.y,
-              );
+              // 在双向情况下用 source -> target 坐标创建渐变
+              const grad = ctx.createLinearGradient(startX, startY, endX, endY);
+              const sColor = getNodeColor(forward, 1).strokeColor;
+              const tColor = getNodeColor(backward, 1).strokeColor;
               grad.addColorStop(0, sColor);
               grad.addColorStop(1, tColor);
-              ctx.strokeStyle = grad;
-              ctx.setLineDash([]); // 实线
+              strokeStyle = grad;
+              dash = []; // 实线
             } else {
-              ctx.strokeStyle = s2t > 0 ? sColor : tColor;
-              ctx.setLineDash([6, 4]);
-              ctx.lineDashOffset = dashOffset;
+              // 单向用虚线 + 单色
+              strokeStyle =
+                forward > 0
+                  ? getNodeColor(forward, 1).strokeColor
+                  : getNodeColor(backward, 1).strokeColor;
+              dash = [6, 4];
             }
 
+            // 渲染线条
+            ctx.save();
+            ctx.setLineDash(dash);
+            ctx.lineDashOffset = dashOffset;
             ctx.lineWidth = 1.5;
+            ctx.strokeStyle = strokeStyle;
             ctx.beginPath();
             ctx.moveTo(startX, startY);
             ctx.lineTo(endX, endY);
             ctx.stroke();
+            ctx.restore();
 
             // 箭头（仅单向显示）
             const drawArrow = (
@@ -298,15 +355,15 @@ const ForceGraph = forwardRef(function ForceGraph(
               ctx.fill();
             };
 
-            if (s2t > 0) {
-              // Arrow from source → target
+            if (forward > 0) {
+              // source → target
               const arrowX = target.x - Math.cos(angle) * radius;
               const arrowY = target.y - Math.sin(angle) * radius;
               drawArrow(arrowX, arrowY, angle, sColor);
             }
 
-            if (t2s > 0) {
-              // Arrow from target → source (reverse direction)
+            if (backward > 0) {
+              // target → source
               const reverseAngle = angle + Math.PI;
               const arrowX = source.x - Math.cos(reverseAngle) * radius;
               const arrowY = source.y - Math.sin(reverseAngle) * radius;
@@ -326,28 +383,18 @@ const ForceGraph = forwardRef(function ForceGraph(
             node.fx = node.x;
             node.fy = node.y;
           }}
-          onNodeHover={() => {
-            if (containerRef.current) {
-              containerRef.current.style.cursor = "pointer";
+          onNodeHover={(node) => {
+            if (node) {
+              setHoveredNode(node);
             }
+            if (containerRef.current)
+              containerRef.current.style.cursor = node ? "pointer" : "";
           }}
           onNodeClick={(node) => {
             setSelectedKol(node);
           }}
-          onLinkClick={(link) => {
-            const sourceNode = kolMap.get(link.source as string);
-            const targetNode = kolMap.get(link.target as string);
-            if (!sourceNode || !targetNode) return;
-            setSelectedKol({
-              id: sourceNode.id,
-              name: sourceNode.name,
-              username: sourceNode.username,
-            } as SimpleKOL);
-            setTargetKol({
-              id: targetNode.id,
-              name: targetNode.name,
-              username: targetNode.username,
-            } as SimpleKOL);
+          onRenderFramePost={() => {
+            dashOffset -= 0.2; // 给单向边添加动画效果
           }}
         />
       )}

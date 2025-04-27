@@ -78,12 +78,13 @@ export default function IndexPage() {
 
   const handleZoomIn = () => {
     const currentZoom = graphRef.current?.zoom();
-    if (currentZoom) graphRef.current?.zoom(currentZoom * 1.3, 400);
+    if (currentZoom) graphRef.current?.zoom(currentZoom * 1.3, 200);
   };
 
   const handleZoomOut = () => {
+    console.log("zoom out", graphRef.current);
     const currentZoom = graphRef.current?.zoom();
-    if (currentZoom) graphRef.current?.zoom(currentZoom / 1.3, 400);
+    if (currentZoom) graphRef.current?.zoom(currentZoom / 1.3, 200);
   };
 
   const fetchDailyVolatility = useCallback(async (): Promise<number | null> => {
@@ -103,7 +104,6 @@ export default function IndexPage() {
 
       // 计算单日单组 k 线涨幅
       const vol = calcChangePct(candles[0]);
-      console.log("volatility:", vol, "filterTime:", filterTime);
       setVolatility(vol);
       return vol;
     } catch (err) {

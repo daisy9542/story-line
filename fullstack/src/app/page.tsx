@@ -151,13 +151,17 @@ export default function IndexPage() {
               if (!newKolTargetMap[sourceId]) {
                 newKolTargetMap[sourceId] = [];
               }
-              newKolTargetMap[sourceId].push(targetId);
+              if (!newKolTargetMap[sourceId].includes(targetId)) {
+                newKolTargetMap[sourceId].push(targetId);
+              }
             }
             if (link.target2source_score) {
               if (!newKolTargetMap[targetId]) {
                 newKolTargetMap[targetId] = [];
               }
-              newKolTargetMap[targetId].push(sourceId);
+              if (!newKolTargetMap[targetId].includes(sourceId)) {
+                newKolTargetMap[targetId].push(sourceId);
+              }
             }
           });
           setKolTargetMap(newKolTargetMap);

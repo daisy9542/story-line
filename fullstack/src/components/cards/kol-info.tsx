@@ -5,64 +5,49 @@ import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
 import { format } from "date-fns";
 import {
-  BadgeCheck,
   Bookmark,
   ChevronLeft,
   ChevronRight,
   Heart,
   MessageCircle,
+  Minus,
+  Plus,
   Repeat2,
-  ShieldCheck,
   X,
 } from "lucide-react";
 
 import { KolTweet, KolTweetRaw } from "@/types/graph";
-import { KOL } from "@/types/kol";
-import { cn, formatDigital, score2color } from "@/lib/utils";
+import { SimpleKOL } from "@/types/kol";
+import { formatDigital } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import KolProfileCard from "@/components/cards/kol-profile-card";
 
-export default function KolInfo() {
-  const [sourceKolInfo, setSourceKolInfo] = useState<KOL | null>(null);
-  const [targetKolInfo, setTargetKolInfo] = useState<KOL | null>(null);
+interface KolInfoProps {
+  kols: SimpleKOL[];
+  kolTargetMap: Record<string, string[]>;
+}
+
+export default function KolInfo({ kols, kolTargetMap }: KolInfoProps) {
   const [tweets, setTweets] = useState<KolTweet[]>([]);
   const [pageNum, setPageNum] = useState(1);
   const [loading, setLoading] = useState(false);
   const [totalPage, setTotalPage] = useState(-1);
   const {
     selectedKol,
-    setSelectedKol,
     targetKol,
     selectedTokenSymbol,
     filterTime,
+    showLess,
+    setSelectedKol,
+    setTargetKol,
+    setTargetHoveredKol,
+    setShowLess,
   } = useKolStore();
-  const lastSelectedKolIdRef = useRef<string | null>(null);
-
-  const fetchKol = () => {
-    if (!selectedKol) return;
-    setLoading(true);
-    if (targetKol) {
-      http
-        .get<KOL>("/user", {
-          id: targetKol.id,
-        })
-        .then((data) => {
-          setTargetKolInfo(data);
-        });
-    }
-    http
-      .get<KOL>("/user", {
-        id: selectedKol.id,
-      })
-      .then((data) => {
-        setSourceKolInfo(data);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  const lastSourceKolIdRef = useRef<string | null>(null);
+  const lastTargetKolIdRef = useRef<string | null>(null);
 
   const fetchTweets = () => {
     if (!selectedKol) return;
@@ -88,102 +73,64 @@ export default function KolInfo() {
   useEffect(() => {
     if (!selectedKol) return;
     // 若 selectedKolId 变了，重置页码为 1
-    if (selectedKol.id !== lastSelectedKolIdRef.current) {
-      lastSelectedKolIdRef.current = selectedKol.id;
+    if (
+      selectedKol.id !== lastSourceKolIdRef.current ||
+      (targetKol && targetKol.id !== lastTargetKolIdRef.current)
+    ) {
+      lastSourceKolIdRef.current = selectedKol.id;
+      lastTargetKolIdRef.current = targetKol?.id ?? null;
       if (pageNum !== 1) {
         setPageNum(1);
         return;
       }
     }
-    fetchKol();
     fetchTweets();
-  }, [selectedKol, pageNum]);
-
-  function VerifiedBadge({ type }: { type: string }) {
-    const map = {
-      blue: { icon: BadgeCheck, bg: "#1DA1F2" },
-      business: { icon: ShieldCheck, bg: "#FFAD1F" },
-      organization: { icon: ShieldCheck, bg: "#FFAD1F" },
-      government: { icon: ShieldCheck, bg: "#828282" },
-    };
-
-    const conf = map[type as keyof typeof map];
-    if (!conf) return null;
-
-    const Icon = conf.icon;
-
-    return (
-      <div className="relative h-5 w-5">
-        <div
-          className="absolute inset-0 m-auto flex h-4 w-4 items-center justify-center rounded-full"
-          style={{ backgroundColor: conf.bg }}
-        >
-          <Icon className="h-3 w-3 text-white" strokeWidth={3} />
-        </div>
-      </div>
-    );
-  }
+  }, [selectedKol, targetKol, pageNum]);
 
   return (
     <Card className="flex h-full flex-col">
-      <Button
-        variant="outline"
-        onClick={() => setSelectedKol(null)}
-        className="absolute right-1 top-1 h-8 w-8 rounded-full"
-        aria-label="Close"
-      >
-        <X />
-      </Button>
+      <div className="absolute right-1 top-1 flex gap-1">
+        <Button
+          variant="outline"
+          onClick={() => setShowLess(!showLess)}
+          className="h-8 w-8 rounded-full p-0"
+        >
+          {!showLess ? <Minus /> : <Plus />}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSelectedKol(null);
+            setTargetKol(null);
+            setTargetHoveredKol(null);
+          }}
+          className="h-8 w-8 rounded-full p-0"
+          aria-label="Close"
+        >
+          <X />
+        </Button>
+      </div>
       <CardContent className="flex min-h-0 flex-1 flex-col space-y-4 py-4">
-        {sourceKolInfo && (
-          <div className="space-y-2">
-            <div className="flex h-11">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold">{sourceKolInfo.name}</span>
-
-                  <div className="relative h-5 w-5">
-                    <VerifiedBadge type={sourceKolInfo.verified_type} />
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <span>@{sourceKolInfo.username}</span>
-                </div>
-              </div>
-              {selectedKol ? (
-                <div
-                  className="flex w-10 items-center justify-center rounded-md px-2 py-0.5 text-sm font-semibold"
-                  style={{
-                    color: score2color(selectedKol.score_metrics, 1).fillColor,
-                  }}
-                >
-                  {formatDigital(selectedKol.score_metrics, 0)}
-                </div>
-              ) : null}
-            </div>
-            {sourceKolInfo.bio && (
-              <p className="whitespace-pre-wrap break-words text-sm text-foreground">
-                {sourceKolInfo.bio}
-              </p>
-            )}
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>
-                <span className="font-semibold text-foreground">
-                  {formatDigital(sourceKolInfo.friendsCount)}
-                </span>{" "}
-                <span>Following</span>
-              </span>
-              <span>
-                <span className="font-semibold text-foreground">
-                  {formatDigital(sourceKolInfo.followers)}
-                </span>{" "}
-                <span>Followers</span>
-              </span>
-            </div>
-          </div>
+        {selectedKol && (
+          <KolProfileCard
+            kol={selectedKol}
+            kols={kols}
+            kolTargetMap={kolTargetMap}
+            isSource={true}
+          />
+        )}
+        {targetKol && (
+          <>
+            <Separator />
+            <KolProfileCard
+              kol={targetKol}
+              kols={kols}
+              kolTargetMap={kolTargetMap}
+              isSource={false}
+            />
+          </>
         )}
         <Separator />
-
         {/* 推文列表区域 */}
         <div className="flex-1 space-y-3 overflow-y-auto">
           {loading ? (

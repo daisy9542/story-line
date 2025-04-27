@@ -12,11 +12,13 @@ interface KolState {
   selectedTokenSymbol: TokenSymbol;
   selectedKol: SimpleKOL | null;
   targetKol: SimpleKOL | null;
+  targetHoveredKol: SimpleKOL | null;
   filterFollowers: number;
   filterTime: number;
   filterChanged: boolean;
   leftCardsOpen: boolean;
   candlestickChartOpen: boolean;
+  showLess: boolean;
 
   // 用户关注或屏蔽的 KOL ID
   interestedKolIds: string[];
@@ -27,11 +29,13 @@ interface KolState {
   setSelectedTokenSymbol: (token: TokenSymbol) => void;
   setSelectedKol: (kol: SimpleKOL | null) => void;
   setTargetKol: (kol: SimpleKOL | null) => void;
+  setTargetHoveredKol: (kol: SimpleKOL | null) => void;
   setFilterFollowers: (followers: number) => void;
   setFilterTime: (time: number) => void;
   setFilterChanged: (changed: boolean) => void;
   setLeftCardsOpen: (open: boolean) => void;
   setCandlestickChartOpen: (open: boolean) => void;
+  setShowLess: (showLess: boolean) => void;
 
   addInterestedKolId: (kolId: string) => void;
   removeInterestedKolId: (kolId: string) => void;
@@ -48,12 +52,14 @@ export const useKolStore = create<KolState>()(
       selectedTokenSymbol: "BTC",
       selectedKol: null,
       targetKol: null,
+      targetHoveredKol: null,
       filterFollowers: 1000,
       // filterTime: Date.now(),
       filterTime: 1743544033000, // 离线数据最大时间戳
       filterChanged: false,
       leftCardsOpen: true,
       candlestickChartOpen: false,
+      showLess: true,
 
       interestedKolIds: [],
       excludedKolIds: [],
@@ -61,13 +67,15 @@ export const useKolStore = create<KolState>()(
       setNeedRefresh: (needRefresh: boolean) =>
         set({ needRefresh: needRefresh }),
       setSelectedTokenSymbol: (token) => set({ selectedTokenSymbol: token }),
-      setSelectedKol: (kol) => set({ selectedKol: kol }),
+      setSelectedKol: (kol) => set({ selectedKol: kol, targetKol: null }),
       setTargetKol: (kol) => set({ targetKol: kol }),
+      setTargetHoveredKol: (kol) => set({ targetHoveredKol: kol }),
       setFilterFollowers: (followers) => set({ filterFollowers: followers }),
       setFilterTime: (time) => set({ filterTime: time }),
       setFilterChanged: (changed) => set({ filterChanged: changed }),
       setLeftCardsOpen: (open) => set({ leftCardsOpen: open }),
       setCandlestickChartOpen: (open) => set({ candlestickChartOpen: open }),
+      setShowLess: (showLess) => set({ showLess: showLess }),
 
       addInterestedKolId: (kolId) =>
         set((state) => ({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { http } from "@/http/client";
 import { useKolStore } from "@/stores/kol-store";
 import debounce from "lodash.debounce";
@@ -12,7 +12,7 @@ export interface KolSearchProps {
   kols: SimpleKOL[]; // 已有用户列表
 }
 
-export default function KolSearch({ kols: initialKols }: KolSearchProps) {
+export default function KolSearch({ kols }: KolSearchProps) {
   const [query, setQuery] = useState("");
   const [searchedKols, setSearchedKols] = useState<SimpleKOL[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -111,7 +111,7 @@ export default function KolSearch({ kols: initialKols }: KolSearchProps) {
           {!isLoading &&
             searchedKols.length > 0 &&
             searchedKols.map((kol) => {
-              const inInitial = initialKols.some((i) => i.id === kol.id);
+              const exitedKol = kols.find((k) => k.id === kol.id);
               const isExcluded = excludedKolIds.includes(kol.id);
 
               return (
@@ -121,12 +121,12 @@ export default function KolSearch({ kols: initialKols }: KolSearchProps) {
                 >
                   <div
                     className={`flex w-0 flex-grow flex-col ${
-                      inInitial && !isExcluded
+                      exitedKol && !isExcluded
                         ? "cursor-pointer"
                         : "cursor-default opacity-50"
                     }`}
                     onClick={() =>
-                      inInitial && !isExcluded && setSelectedKol(kol)
+                      exitedKol && !isExcluded && setSelectedKol(exitedKol)
                     }
                   >
                     <span className="truncate font-medium">{kol.name}</span>

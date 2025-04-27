@@ -38,6 +38,9 @@ export default function IndexPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [panelWidth, setPanelWidth] = useState(320);
   const [volatility, setVolatility] = useState<number | null>(null);
+  const [kolTargetMap, setKolTargetMap] = useState<Record<string, string[]>>(
+    {},
+  );
   const MIN_WIDTH = 300;
   const MAX_WIDTH = 600;
 
@@ -140,11 +143,28 @@ export default function IndexPage() {
             });
           });
 
-          const sortedByFollowers = kols.sort(
-            (a, b) => b.followers - a.followers,
-          );
+          const newKolTargetMap: Record<string, string[]> = {};
+          links.forEach((link) => {
+            const sourceId = link.source as string;
+            const targetId = link.target as string;
+            if (link.source2target_score) {
+              if (!newKolTargetMap[sourceId]) {
+                newKolTargetMap[sourceId] = [];
+              }
+              newKolTargetMap[sourceId].push(targetId);
+            }
+            if (link.target2source_score) {
+              if (!newKolTargetMap[targetId]) {
+                newKolTargetMap[targetId] = [];
+              }
+              newKolTargetMap[targetId].push(sourceId);
+            }
+          });
+          setKolTargetMap(newKolTargetMap);
 
-          setSortedUsers(sortedByFollowers);
+          const sortedKols = kols.sort((a, b) => b.followers - a.followers);
+
+          setSortedUsers(sortedKols);
           setGraphData({
             nodes,
             links,
@@ -265,7 +285,7 @@ export default function IndexPage() {
           )}
           style={{ width: `${panelWidth}px` }}
         >
-          <KolInfo />
+          <KolInfo kols={sortedUsers} kolTargetMap={kolTargetMap} />
           <div
             onMouseDown={startResize}
             className="group absolute left-0 top-0 h-full w-2 cursor-ew-resize bg-transparent hover:bg-transparent"

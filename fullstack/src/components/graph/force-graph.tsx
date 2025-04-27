@@ -57,7 +57,7 @@ const ForceGraph = forwardRef(function ForceGraph(
   { nodes, links }: ForceGraphProps,
   ref: Ref<ForceGraphHandle | null>,
 ) {
-  const { selectedKol, targetKol, setSelectedKol, setTargetKol } =
+  const { selectedKol, targetKol, targetHoveredKol, setSelectedKol } =
     useKolStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fgRef =
@@ -158,47 +158,74 @@ const ForceGraph = forwardRef(function ForceGraph(
           }
           nodeCanvasObject={(node, ctx, scale) => {
             if (!node.x || !node.y) return;
-            const isSelected = !targetKol && node.id === selectedKol?.id;
-            const isHovered = hoveredNode === node;
+
+            const isSourceHovered = hoveredNode === node;
+            const isSourceSelected = selectedKol?.id === node.id;
+            const isTargetHovered = targetHoveredKol?.id === node.id;
+            const isTargetSelected = targetKol?.id === node.id;
+
+            let fillColor = "";
+            let strokeColor = "";
+            let lineWidth = 2;
+
+            if (isSourceHovered) {
+              // 节点被 hover
+              fillColor = "rgba(255,255,255,0.2)";
+              strokeColor = "#ffffff";
+              lineWidth = 3;
+            } else if (isSourceSelected) {
+              // 节点被点击
+              fillColor = "rgba(255,255,255,0.2)";
+              strokeColor = "#ffffff";
+              lineWidth = 4;
+            } else if (isTargetHovered) {
+              // hover 了目标 kol
+              fillColor = "rgba(59,130,246,0.15)";
+              strokeColor = "#3b82f6"; // 绿色边框
+              lineWidth = 2.5;
+            } else if (isTargetSelected) {
+              // 选中了目标 kol
+              fillColor = "rgba(59,130,246,0.25)";
+              strokeColor = "#3b82f6";
+              lineWidth = 3;
+            } else {
+              const colors = score2color(
+                node.score_metrics,
+                node.opacity,
+              );
+              fillColor = colors.fillColor;
+              strokeColor = colors.strokeColor;
+            }
+
+            // 画圆形
             const radius = getRadius(node.percentage);
-            const { fillColor, strokeColor } =
-              isSelected || isHovered
-                ? { fillColor: "rgba(255,255,255,0.2)", strokeColor: "#ffffff" }
-                : score2color(node.score_metrics ?? 0, node.opacity ?? 1);
-
-            const label = node.name ?? node.id;
-            const lineWidth = isSelected ? 4 : isHovered ? 3 : 2;
-
-            // 圆形
             ctx.beginPath();
             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
             ctx.fillStyle = fillColor;
             ctx.fill();
 
-            // 边框
+            // 画边框
             ctx.beginPath();
             ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-            ctx.strokeStyle =
-              node.id === selectedKol?.id ? "#ffffff" : strokeColor;
+            ctx.strokeStyle = strokeColor;
             ctx.lineWidth = lineWidth;
             ctx.stroke();
 
-            // 文本（缩小时隐藏）
-            const selected = node.id === selectedKol?.id;
+            // 画文本，减少不必要的文本渲染
+            const selected = isSourceSelected || isTargetSelected;
             if ((node.isTop && radius > 25 && scale > 0.35) || selected) {
               const fontSize = 12;
-              const text = selected
-                ? label
-                : truncateTextToFit(ctx, label, radius * 2 - 12);
+              const label = selected
+                ? (node.name ?? node.id)
+                : truncateTextToFit(ctx, node.name ?? node.id, radius * 2 - 12);
 
               ctx.font = `${fontSize / scale}px sans-serif`;
               ctx.textAlign = "center";
               ctx.textBaseline = "middle";
 
-              const textWidth = ctx.measureText(text).width;
+              const textWidth = ctx.measureText(label).width;
               const padding = 4;
 
-              // 背景框（淡黑半透明），防止文字看不清
               if (selected) {
                 ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
                 ctx.fillRect(
@@ -210,7 +237,7 @@ const ForceGraph = forwardRef(function ForceGraph(
               }
 
               ctx.fillStyle = "#ffffff";
-              ctx.fillText(text, node.x, node.y);
+              ctx.fillText(label, node.x, node.y);
             }
           }}
           linkCanvasObject={(link, ctx) => {
@@ -336,6 +363,8 @@ const ForceGraph = forwardRef(function ForceGraph(
           onNodeHover={(node) => {
             if (node) {
               setHoveredNode(node);
+            } else {
+              setHoveredNode(null);
             }
             if (containerRef.current)
               containerRef.current.style.cursor = node ? "pointer" : "";

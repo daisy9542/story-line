@@ -284,7 +284,7 @@ export default function IndexPage() {
         {/* 右侧 KOL 信息卡片 */}
         <div
           className={cn(
-            "fixed bottom-16 right-0 top-16 z-50 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden overflow-y-auto border-l bg-background p-4 transition-transform duration-300 ease-in-out will-change-transform",
+            "fixed right-0 top-16 z-50 flex h-[calc(100vh-64px)] flex-col space-y-4 overflow-hidden border-l bg-background p-4 transition-transform duration-300 ease-in-out will-change-transform",
             selectedKol ? "" : "hidden",
           )}
           style={{ width: `${panelWidth}px` }}

@@ -290,7 +290,7 @@ export default function CandlestickChart() {
         <ToggleGroup
           type="single"
           value={bar}
-          onValueChange={(v) => v && setBar(v)}
+          onValueChange={(v: string) => v && setBar(v)}
           className="rounded-full px-2 py-1"
         >
           {Object.keys(intervalMap).map((k) => (

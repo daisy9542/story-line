@@ -32,6 +32,9 @@ importers:
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
+      fancy-canvas:
+        specifier: ^2.1.0
+        version: 2.1.0
       lightweight-charts:
         specifier: ^5.0.6
         version: 5.0.6

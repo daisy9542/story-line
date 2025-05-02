@@ -1,23 +1,24 @@
 import { TimelineEvent } from "@/types/timeline";
+import { UTCTimestamp } from "lightweight-charts";
 import { create } from "zustand";
 
 interface NewslineState {
   selectedTokenSymbol: "BTC";
-  currentRange: { start: Date; end: Date };
+  currentTimeRange: { start: UTCTimestamp; end: UTCTimestamp };
   hoveredEvent: TimelineEvent | null;
 
-  setRange: (start: Date, end: Date) => void;
+  setTimeRange: (start: UTCTimestamp, end: UTCTimestamp) => void;
   setHoveredEvent: (event: TimelineEvent | null) => void;
 }
 
 export const useNewslineStore = create<NewslineState>((set) => ({
   selectedTokenSymbol: "BTC",
-  currentRange: {
-    start: new Date(),
-    end: new Date(),
+  currentTimeRange: {
+    start: 0 as UTCTimestamp,
+    end: 0 as UTCTimestamp,
   },
   hoveredEvent: null,
 
-  setRange: (start, end) => set({ currentRange: { start, end } }),
+  setTimeRange: (start, end) => set({ currentTimeRange: { start, end } }),
   setHoveredEvent: (event) => set({ hoveredEvent: event }),
 }));

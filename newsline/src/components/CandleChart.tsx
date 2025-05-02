@@ -15,35 +15,70 @@ import {
   createSeriesMarkers,
   IRange,
   ISeriesMarkersPluginApi,
-  MouseEventParams,
+  ICustomSeriesPaneView,
   Time,
   UTCTimestamp,
   type ISeriesApi,
   type SeriesMarker,
 } from "lightweight-charts";
-import { useNewslineStore } from "@/stores/newslineStore";
+import { useNewslineStore } from "@/stores/newsline-store";
 import { CandleData, CandleRequestParams } from "@/types/candle";
 import { http } from "@/lib/axios";
 import { cn } from "@/lib/utils";
+import { CircleMarkerPlugin } from "@/components/lwc-plugin-circle-marker/circle-marker-plugin";
+import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
 
 export default function CandleChart() {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selectedTokenSymbol } = useNewslineStore();
+  const { selectedTokenSymbol, setTimeRange } = useNewslineStore();
   const instId = useMemo(
     () => `${selectedTokenSymbol}-USDT`,
     [selectedTokenSymbol]
   );
-  const isLoadingMoreRef = useRef<boolean>(false);
-  const earliestRef = useRef<UTCTimestamp | null>(null);
-  const candlesRef = useRef<CandleData[]>([]);
   const [bar, setBar] = useState("1D");
   const [loading, setLoading] = useState(false);
 
+  const isLoadingMoreRef = useRef<boolean>(false);
+  const earliestRef = useRef<UTCTimestamp | null>(null);
+  const candlesRef = useRef<CandleData[]>([]);
+  const seriesMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  const circleMarkerRef = useRef<CircleMarkerPlugin | null>(null);
+
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
+
+  function getMarkersFromCandles(
+    candles: CandleData[]
+  ): CircleMarker<UTCTimestamp>[] {
+    const threshold = 0.05; // 5%
+    const markers: CircleMarker<UTCTimestamp>[] = [];
+
+    candles.forEach((candle) => {
+      const change = (candle.close - candle.open) / candle.open;
+      // 随机丢弃百分之五十
+      if (Math.random() < 0.5) {
+        return;
+      }
+      if (Math.abs(change) >= threshold) {
+        markers.push({
+          time: candle.time as UTCTimestamp,
+          priceHigh: candle.high,
+          priceLow: candle.low,
+          offsetIndex: 0,
+          position: "aboveBar",
+          // position: change > 0 ? "aboveBar" : "belowBar",
+          // color: change > 0 ? "#4ade80" : "#f87171", // green / red
+          // shape: "circle",
+          // text: `${(change * 100).toFixed(2)}%`,
+        });
+      }
+    });
+
+    return markers;
+  }
 
   const chartOptions = {
     layout: {
@@ -60,7 +95,6 @@ export default function CandleChart() {
         const y = date.getFullYear();
         const m = (date.getMonth() + 1).toString().padStart(2, "0");
         const d = date.getDate().toString().padStart(2, "0");
-
         return `${y}-${m}-${d}`;
       },
     },
@@ -75,6 +109,8 @@ export default function CandleChart() {
     });
     chartRef.current = chart;
     seriesRef.current = chart.addSeries(CandlestickSeries);
+    seriesMarkersRef.current = createSeriesMarkers(seriesRef.current, []);
+    circleMarkerRef.current = new CircleMarkerPlugin(seriesRef.current!);
 
     // 监听窗口大小变化，调整图表大小
     const ro = new ResizeObserver((entries) => {
@@ -123,7 +159,6 @@ export default function CandleChart() {
     // chart.timeScale().subscribeVisibleLogicalRangeChange(handleRange);
 
     const series = seriesRef.current;
-    let bounceTimer: NodeJS.Timeout | null = null;
     const handleRangeChange = (range: IRange<number> | null) => {
       if (!range || !series) return;
 
@@ -131,10 +166,11 @@ export default function CandleChart() {
       if (!barsInfo) return;
 
       const { barsBefore, barsAfter } = barsInfo;
+      const maxOvershoot = 50; // 允许用户左右滑动最多超出数据区逻辑单位
 
       let shift = 0;
-      if (barsBefore < 0) shift = -barsBefore;
-      else if (barsAfter < 0) shift = barsAfter;
+      if (barsBefore < -maxOvershoot) shift = -(barsBefore + maxOvershoot);
+      else if (barsAfter < -maxOvershoot) shift = barsAfter + maxOvershoot;
       if (shift !== 0) {
         // 立即拉回
         chart.timeScale().setVisibleLogicalRange({
@@ -144,7 +180,13 @@ export default function CandleChart() {
       }
     };
 
+    const handleTimeRangeChange = (range: IRange<Time> | null) => {
+      if (!range) return;
+      setTimeRange(range.from as UTCTimestamp, range.to as UTCTimestamp);
+    };
+
     chart.timeScale().subscribeVisibleLogicalRangeChange(handleRangeChange);
+    chart.timeScale().subscribeVisibleTimeRangeChange(handleTimeRangeChange);
 
     return () => {
       // chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleRange);
@@ -170,6 +212,9 @@ export default function CandleChart() {
       seriesRef.current!.setData(data);
       earliestRef.current = data.length ? data[0].time : null;
       chartRef.current?.timeScale().fitContent();
+      const markers = getMarkersFromCandles(data);
+      // seriesMarkersRef.current?.setMarkers(markers);
+      circleMarkerRef.current?.setMarkers(markers);
     } catch (err) {
       console.error("加载初始数据失败:", err);
     } finally {

@@ -17,6 +17,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
+    "fancy-canvas": "^2.1.0",
     "lightweight-charts": "^5.0.6",
     "lodash.throttle": "^4.1.1",
     "lucide-react": "^0.503.0",

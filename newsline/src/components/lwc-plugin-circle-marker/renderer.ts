@@ -24,7 +24,8 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
       const ctx = scope.context;
       this._items.forEach((item) => {
         const priceLineY = positionsLine(item.y, pixelRatio);
-        const priceY = (priceLineY.position + priceLineY.length / 2) / pixelRatio;
+        const priceY =
+          (priceLineY.position + priceLineY.length / 2) / pixelRatio;
         ctx.beginPath();
         ctx.arc(item.x, 50 + priceY, 30, 0, 2 * Math.PI);
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)";

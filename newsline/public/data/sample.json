@@ -1,0 +1,71 @@
+{
+    // 文章/报告的唯一标识符
+    "report_id": "21124-323546-525",
+    // ---- 核心事件信息 ----
+    // 事件的唯一标识符 (如果一个报告可能涉及多个核心事件，这个字段很重要)
+    "event_id": "EVT-RUNES-X-BTC-TRACTION-001",
+    // 事件核心标题 (新增字段，比summary更精炼，比EventLabels.event更易读)
+    "event_title": "RUNES·X·BITCOIN 协议获得市场关注",
+    // 事件影响力 (0~100)，数值越高越重要
+    "event_influence": 90 ,
+    // 事件发生时间或报告时间 (新增字段，对于时间线展示很重要)
+    "event_timestamp": "2023-10-27T10:30:00Z", // 使用标准时间格式 ISO 8601
+    // 事件摘要 (保留，提供详细背景)
+    "summary": "文章详细介绍了RUNES·X·BITCOIN协议，特别是其社区驱动方法和空投策略如何帮助其获得市场关注。",
+    // 情绪评分 (-1 到 1)
+    "sentiment_score": 0.6,
+    // 情绪标签 (新增字段，基于分数生成，便于直接显示)
+    "sentiment_label": "Positive", // (例如: Positive, Neutral, Negative)
+  
+    // ---- 事件相关要素 ----
+    // 关键实体 (结构优化，增加类型和可选的规范名称/ID)
+    "key_entities": [
+      {
+        "name": "AICoins", // 实体名称
+        "type": "CryptocurrencyCategory", // 实体类型 (使用清晰的分类)
+        "entity_id": "Q12345" // 可选：链接到知识库或数据库的ID
+      }
+    ],
+    // 事件分类标签 (结构优化)
+    "event_categories": [
+      {
+        "category_name": "Cryptocurrency Innovation", // 使用更易读的分类名称
+        "category_code": "CRYPTO_INNOV" // 可选：内部使用的代码
+      }
+    ],
+  
+    // ---- 因果关系分析 ----  
+    "causal_analysis": [
+      {
+        // 主要原因/背景
+        "cause": "创新的项目特性", // Human-readable cause
+        // 触发该因果链的具体动作/子事件
+        "trigger": "RUNES·X·BITCOIN 的社区驱动方法和空投", // Human-readable trigger
+        // 直接导致的后果/影响
+        "effect": "市场关注度增加" // Human-readable effect
+      }
+    ],
+  
+    // ---- 历史相似事件 + 宏观和微观指数---- 
+    "historical_analogues": [
+      {
+        // 相似历史事件的描述
+        "historical_case_summary": "比特币空投 (例如 Bitcoin Cash)",
+        // 历史事件发生的大致日期/年份
+        "historical_event_date": "2017-03-25", // 统一日期格式
+        // 与当前事件的相似之处
+        "similarity_description": "社区驱动的代币分发机制",
+        // 指向相关历史事件/报告的ID (如有)
+        "related_report_id": "243657033-31251-51"
+        // 市场波动指标
+        "market_indicator": {
+          // 加密货币指数
+          "crypto": "-1%", 
+          // 道琼斯工业平均指数
+          "djia": "-3%",
+          // 纳斯达克 100 指数
+          "ndx": "-1%"
+        }
+      }
+    ]
+  }

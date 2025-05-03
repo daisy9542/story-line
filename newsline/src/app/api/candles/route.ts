@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
       process.cwd(),
       "public",
       "data",
-      "btc_kline_1d.jsonl"
+      "btc_kline_1d.jsonl",
     );
     const rawText = await fs.readFile(filePath, "utf-8");
     const lines = rawText
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
           high: item.high,
           low: item.low,
           close: item.close,
-        } as CandleData)
+        }) as CandleData,
     );
 
     return NextResponse.json({ code: 0, data: res });
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     console.error("[API_KLINE_ERROR]", error);
     return NextResponse.json(
       { code: 1, message: "读取 K 线数据失败" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/select";
 
 const TokenSelector = () => {
-  const { selectedTokenSymbol, setSelectedTokenSymbol } =
-    useNewslineStore();
+  const { selectedTokenSymbol, setSelectedTokenSymbol } = useNewslineStore();
 
   const tokenOptions: TokenSymbol[] = ["BTC", "ETH", "SOL"];
 

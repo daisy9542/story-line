@@ -1,13 +1,7 @@
 "use client";
 
 import throttle from "lodash.throttle";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import {
   CandlestickSeries,
@@ -34,10 +28,7 @@ export default function CandleChart() {
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const { resolvedTheme } = useTheme();
   const { selectedTokenSymbol, setTimeRange } = useNewslineStore();
-  const instId = useMemo(
-    () => `${selectedTokenSymbol}-USDT`,
-    [selectedTokenSymbol]
-  );
+  const instId = useMemo(() => `${selectedTokenSymbol}-USDT`, [selectedTokenSymbol]);
   const [bar, setBar] = useState("1D");
   const [loading, setLoading] = useState(false);
 
@@ -50,9 +41,7 @@ export default function CandleChart() {
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
 
-  function getMarkersFromCandles(
-    candles: CandleData[]
-  ): CircleMarker<UTCTimestamp>[] {
+  function getMarkersFromCandles(candles: CandleData[]): CircleMarker<UTCTimestamp>[] {
     const threshold = 0.05; // 5%
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
@@ -77,7 +66,8 @@ export default function CandleChart() {
       }
     });
 
-    return markers;
+    // return markers;
+    return [];
   }
 
   const chartOptions = {
@@ -105,7 +95,7 @@ export default function CandleChart() {
     const chart = createChart(chartContainerRef.current, {
       ...chartOptions,
       width: chartContainerRef.current.clientWidth,
-      height: 500,
+      height: chartContainerRef.current.clientHeight,
     });
     chartRef.current = chart;
     seriesRef.current = chart.addSeries(CandlestickSeries);
@@ -228,16 +218,13 @@ export default function CandleChart() {
   }, [loadInitial]);
 
   return (
-    <div className="w-full h-[500px] rounded-lg flex items-center justify-center">
+    <div className="w-full h-full rounded-lg flex items-center justify-center">
       {loading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
         </div>
       )}
-      <div
-        ref={chartContainerRef}
-        className={cn("h-full w-full", loading && "opacity-20")}
-      />
+      <div ref={chartContainerRef} className={cn("h-full w-full", loading && "opacity-20")} />
     </div>
   );
 }

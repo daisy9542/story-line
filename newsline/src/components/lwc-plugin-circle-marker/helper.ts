@@ -21,7 +21,7 @@ export function positionsLine(
   positionMedia: number,
   pixelRatio: number,
   desiredWidthMedia: number = 1,
-  widthIsBitmap?: boolean
+  widthIsBitmap?: boolean,
 ): BitmapPositionLength {
   const scaledPosition = Math.round(pixelRatio * positionMedia);
   const lineBitmapWidth = widthIsBitmap

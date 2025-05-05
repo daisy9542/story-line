@@ -253,7 +253,7 @@ export default function HomePage() {
         <section className="overflow-hidden min-h-[500px] flex min-w-0 flex-1 p-4 rounded-xl border border-gray-200 dark:border-[#171D24] dark:bg-[#111111]">
           <CandleChart />
         </section>
-        <aside className="md:w-[350px] min-h-[500px] w-full flex-shrink-0 border border-gray-200 dark:border-[#171D24]">
+        <aside className="md:w-[350px] min-h-[500px] w-full flex-shrink-0 border rounded-xl border-gray-200 dark:border-[#171D24]">
           <NewsEvents newsEvents={newsEvents} />
         </aside>
       </div>

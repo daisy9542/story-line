@@ -33,7 +33,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
       <AnimatePresence>
         <BentoGrid
           className={cn(
-            "flex flex-col gap-3 p-4 rounded-xl overflow-auto",
+            "flex flex-col gap-3 p-4 overflow-auto",
             `${expandedId ? "invisible" : ""}`,
           )}
         >
@@ -54,7 +54,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-0 z-10 flex flex-col bg-white dark:bg-black rounded-xl"
+            className="absolute inset-0 z-10 flex flex-col bg-white dark:bg-black border rounded-xl border-none"
           >
             <div className="h-10 flex items-center">
               <ArrowLeft className="ml-3 h-8 w-8 p-1 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/70" onClick={() => setExpandedId(null)} />

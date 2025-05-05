@@ -6,20 +6,20 @@ import { useTheme } from "next-themes";
 import {
   CandlestickSeries,
   createChart,
-  createSeriesMarkers,
   IRange,
-  ISeriesMarkersPluginApi,
-  ICustomSeriesPaneView,
   Time,
   UTCTimestamp,
   type ISeriesApi,
-  type SeriesMarker,
+  BarData,
 } from "lightweight-charts";
 import { useNewslineStore } from "@/stores/newsline-store";
 import { CandleData, CandleRequestParams } from "@/types/candle";
 import { http } from "@/lib/axios";
 import { cn } from "@/lib/utils";
-import { CircleMarkerPlugin } from "@/components/lwc-plugin-circle-marker/circle-marker-plugin";
+import {
+  createCircleMarkers,
+  ICircleMarkersPluginApi,
+} from "@/components/lwc-plugin-circle-marker/wrapper";
 import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
 
 export default function CandleChart() {
@@ -35,11 +35,26 @@ export default function CandleChart() {
   const isLoadingMoreRef = useRef<boolean>(false);
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
-  const seriesMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
-  const circleMarkerRef = useRef<CircleMarkerPlugin | null>(null);
+  const circleMarkerRef = useRef<ICircleMarkersPluginApi<Time> | null>(null);
+  const [info, setInfo] = useState<{ open: number; high: number; low: number; close: number }>({
+    open: 0,
+    high: 0,
+    low: 0,
+    close: 0,
+  });
 
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
+
+  function loadImg(url: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
 
   function getMarkersFromCandles(candles: CandleData[]): CircleMarker<UTCTimestamp>[] {
     const threshold = 0.05; // 5%
@@ -54,20 +69,20 @@ export default function CandleChart() {
       if (Math.abs(change) >= threshold) {
         markers.push({
           time: candle.time as UTCTimestamp,
-          priceHigh: candle.high,
-          priceLow: candle.low,
-          offsetIndex: 0,
           position: "aboveBar",
-          // position: change > 0 ? "aboveBar" : "belowBar",
-          // color: change > 0 ? "#4ade80" : "#f87171", // green / red
-          // shape: "circle",
-          // text: `${(change * 100).toFixed(2)}%`,
+          // img: await loadImg("/data/elonmusk.png"),
         });
+        if (Math.random() > 0.8) {
+          markers.push({
+            time: candle.time as UTCTimestamp,
+            position: "aboveBar",
+          });
+        }
       }
     });
 
-    // return markers;
-    return [];
+    return markers;
+    // return [];
   }
 
   const chartOptions = {
@@ -99,8 +114,17 @@ export default function CandleChart() {
     });
     chartRef.current = chart;
     seriesRef.current = chart.addSeries(CandlestickSeries);
-    seriesMarkersRef.current = createSeriesMarkers(seriesRef.current, []);
-    circleMarkerRef.current = new CircleMarkerPlugin(seriesRef.current!);
+    circleMarkerRef.current = createCircleMarkers(seriesRef.current, []);
+
+    // 监听鼠标移动（十字光标）来动态更新 OHLC
+    chart.subscribeCrosshairMove((param) => {
+      if (!param || !param.time) return;
+      // param.seriesPrices 是 Map<ISeriesApi, number|BarValue>
+      const b = param.seriesData.get(series) as BarData;
+      if (b && "open" in b) {
+        setInfo({ open: b.open, high: b.high, low: b.low, close: b.close });
+      }
+    });
 
     // 监听窗口大小变化，调整图表大小
     const ro = new ResizeObserver((entries) => {
@@ -198,13 +222,16 @@ export default function CandleChart() {
     try {
       const data = await fetchCandles({ instId, bar });
       data.sort((a, b) => a.time - b.time);
+      if (data.length) {
+        const last = data[data.length - 1];
+        setInfo({ open: last.open, high: last.high, low: last.low, close: last.close });
+      }
       candlesRef.current = data;
       seriesRef.current!.setData(data);
       earliestRef.current = data.length ? data[0].time : null;
       chartRef.current?.timeScale().fitContent();
       const markers = getMarkersFromCandles(data);
-      // seriesMarkersRef.current?.setMarkers(markers);
-      circleMarkerRef.current?.setMarkers(markers);
+      circleMarkerRef.current && circleMarkerRef.current.setMarkers(markers);
     } catch (err) {
       console.error("加载初始数据失败:", err);
     } finally {
@@ -212,18 +239,34 @@ export default function CandleChart() {
     }
   }, [instId, bar]);
 
+  const changePct = (((info.close - info.open) / info.open) * 100).toFixed(2);
+
   useEffect(() => {
     if (!chartRef.current) return;
     loadInitial();
   }, [loadInitial]);
 
   return (
-    <div className="w-full h-full rounded-lg flex items-center justify-center">
+    <div className="relative w-full h-full rounded-lg flex items-center justify-center">
       {loading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
         </div>
       )}
+      <div className="absolute top-0 left-0 text-sm z-10">
+        {Object.entries(info).map(([key, value]) => (
+          <span key={key} className="mr-1.5">
+            {key.charAt(0).toUpperCase()}{" "}
+            <span className={+changePct >= 0 ? "text-green-400" : "text-red-400"}>
+              {value.toFixed(4)}
+            </span>
+          </span>
+        ))}
+        <span className={+changePct >= 0 ? "text-green-400" : "text-red-400"}>
+          {+changePct >= 0 ? `+${changePct}` : `${changePct}`}%
+        </span>
+      </div>
+
       <div ref={chartContainerRef} className={cn("h-full w-full", loading && "opacity-20")} />
     </div>
   );

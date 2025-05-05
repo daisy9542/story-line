@@ -24,7 +24,6 @@ export const BentoGridItem = ({
   title: string;
   onClick?: () => void;
 }) => {
-  console.log(timestamp);
   return (
     <div
       className={cn(

@@ -11,6 +11,8 @@ import { useNewslineStore } from "@/stores/newsline-store";
 export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {
   const { focusedEventId, setFocusedEventId } = useNewslineStore();
 
+  const selectedEvent = newsEvents.find((event) => event.event_id === focusedEventId);
+
   const MarketTag = ({
     label,
     value,
@@ -69,16 +71,13 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               />
             </div>
             <div className="flex flex-1 flex-col gap-2 overflow-auto p-4 pt-0">
-              <h2 className="text-xl font-bold">
-                {newsEvents.find((event) => event.event_id === focusedEventId)?.event_title}
-              </h2>
+              <h2 className="text-xl font-bold">{selectedEvent?.event_title ?? "No title"}</h2>
               <p className="text-muted-foreground">
-                {new Date(
-                  newsEvents.find((event) => event.event_id === focusedEventId)?.event_timestamp! *
-                    1000,
-                ).toLocaleString()}
+                {selectedEvent?.event_timestamp
+                  ? new Date(selectedEvent.event_timestamp * 1000).toLocaleString()
+                  : "Unknown time"}
               </p>
-              <p>{newsEvents.find((event) => event.event_id === focusedEventId)?.summary}</p>
+              <p>{selectedEvent?.summary ?? "No summary available."}</p>
               <Separator />
               <div className="flex items-center">
                 <Share2 className="text-muted-foreground mr-1 h-5 w-5" />

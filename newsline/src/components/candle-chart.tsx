@@ -20,8 +20,9 @@ import {
   ICircleMarkersPluginApi,
 } from "@/components/lwc-plugin-circle-marker/wrapper";
 import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
+import { NewsEvent } from "@/types/news";
 
-export default function CandleChart() {
+export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -44,45 +45,21 @@ export default function CandleChart() {
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
 
-  function loadImg(url: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = url;
-    });
-  }
-
-  function getMarkersFromCandles(candles: CandleData[]): CircleMarker<UTCTimestamp>[] {
-    const threshold = 0.05; // 5%
+  function getMarkersFromCandles(): CircleMarker<UTCTimestamp>[] {
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
-    candles.forEach((candle) => {
-      const change = (candle.close - candle.open) / candle.open;
-      // 随机丢弃百分之五十
-      if (Math.random() < 0.5) {
-        return;
-      }
-      if (Math.abs(change) >= threshold) {
-        markers.push({
-          time: candle.time as UTCTimestamp,
-          position: "aboveBar",
-          text: "Elon Musk",
-          // img: await loadImg("/data/elonmusk.png"),
-        });
-        if (Math.random() > 0.8) {
-          markers.push({
-            time: candle.time as UTCTimestamp,
-            position: "aboveBar",
-            text: "Elon Musk",
-          });
-        }
-      }
+    newsEvents.forEach((event) => {
+      markers.push({
+        id: event.event_id,
+        time: event.event_timestamp as UTCTimestamp,
+        text: event.event_title,
+        position: "aboveBar",
+      });
     });
+    console.log(newsEvents)
+    console.log(markers);
 
     return markers;
-    // return [];
   }
 
   const chartOptions = {
@@ -230,14 +207,14 @@ export default function CandleChart() {
       seriesRef.current!.setData(data);
       earliestRef.current = data.length ? data[0].time : null;
       chartRef.current?.timeScale().fitContent();
-      const markers = getMarkersFromCandles(data);
+      const markers = getMarkersFromCandles();
       circleMarkerRef.current && circleMarkerRef.current.setMarkers(markers);
     } catch (err) {
       console.error("加载初始数据失败:", err);
     } finally {
       setLoading(false);
     }
-  }, [instId, bar]);
+  }, [instId, bar, newsEvents]);
 
   const changePct = (((info.close - info.open) / info.open) * 100).toFixed(2);
 

@@ -1,11 +1,11 @@
-import { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from "fancy-canvas";
+import { CanvasRenderingTarget2D } from "fancy-canvas";
 import {
   Coordinate,
   IPrimitivePaneRenderer,
   IRange,
   PrimitiveHoveredItem,
 } from "lightweight-charts";
-import { positionsLine, shapeSize, size } from "./helper/utils";
+import { shapeSize } from "./helper/utils";
 import { TimedValue } from "./i-circle-markers";
 
 export interface RenderItem extends TimedValue {

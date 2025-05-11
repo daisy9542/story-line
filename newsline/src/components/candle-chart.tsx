@@ -27,10 +27,11 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
   const { resolvedTheme } = useTheme();
-  const { selectedTokenSymbol, setTimeRange } = useNewslineStore();
+  const { selectedTokenSymbol, setTimeRange, setFocusedEventId } = useNewslineStore();
   const instId = useMemo(() => `${selectedTokenSymbol}-USDT`, [selectedTokenSymbol]);
   const [bar, setBar] = useState("1D");
   const [loading, setLoading] = useState(false);
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
@@ -45,7 +46,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
 
-  function getMarkersFromCandles(): CircleMarker<UTCTimestamp>[] {
+  function drawMarkers(): void {
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
     newsEvents.forEach((event) => {
@@ -54,12 +55,10 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
         time: event.event_timestamp as UTCTimestamp,
         text: event.event_title,
         position: "aboveBar",
+        hovered: hoveredEventId === event.event_id,
       });
     });
-    console.log(newsEvents)
-    console.log(markers);
-
-    return markers;
+    circleMarkerRef.current && circleMarkerRef.current.setMarkers(markers);
   }
 
   const chartOptions = {
@@ -113,6 +112,23 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
       }
     });
     ro.observe(chartContainerRef.current);
+
+    // 事件泡泡 hover 逻辑
+    chart.subscribeCrosshairMove((param) => {
+      // 如果 point 不存在，说明移出了图表区域
+      if (!param.point) {
+        return;
+      }
+      setHoveredEventId(param.hoveredObjectId as string);
+    });
+
+    // 事件泡泡 click 逻辑
+    chart.subscribeClick((param) => {
+      if (!param.point) {
+        return;
+      }
+      setFocusedEventId(param.hoveredObjectId as string);
+    });
 
     // const handleRange = throttle((logicalRange: IRange<number> | null) => {
     //   if (!logicalRange) return;
@@ -171,13 +187,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
       }
     };
 
-    const handleTimeRangeChange = (range: IRange<Time> | null) => {
-      if (!range) return;
-      setTimeRange(range.from as UTCTimestamp, range.to as UTCTimestamp);
-    };
-
     chart.timeScale().subscribeVisibleLogicalRangeChange(handleRangeChange);
-    chart.timeScale().subscribeVisibleTimeRangeChange(handleTimeRangeChange);
 
     return () => {
       // chart.timeScale().unsubscribeVisibleLogicalRangeChange(handleRange);
@@ -187,6 +197,11 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
       ro.disconnect();
     };
   }, []);
+
+  const handleTimeRangeChange = (range: IRange<Time> | null) => {
+    if (!range) return;
+    setTimeRange(range.from as UTCTimestamp, range.to as UTCTimestamp);
+  };
 
   // 监听主题变化，更新图表样式
   useEffect(() => {
@@ -207,8 +222,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
       seriesRef.current!.setData(data);
       earliestRef.current = data.length ? data[0].time : null;
       chartRef.current?.timeScale().fitContent();
-      const markers = getMarkersFromCandles();
-      circleMarkerRef.current && circleMarkerRef.current.setMarkers(markers);
+      chartRef.current?.timeScale().subscribeVisibleTimeRangeChange(handleTimeRangeChange);
     } catch (err) {
       console.error("加载初始数据失败:", err);
     } finally {
@@ -223,14 +237,18 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
     loadInitial();
   }, [loadInitial]);
 
+  useEffect(() => {
+    drawMarkers();
+  }, [newsEvents, hoveredEventId]);
+
   return (
-    <div className="relative w-full h-full rounded-lg flex items-center justify-center">
+    <div className="relative flex h-full w-full items-center justify-center rounded-lg">
       {loading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
         </div>
       )}
-      <div className="absolute top-0 left-0 text-sm z-10">
+      <div className="absolute top-0 left-0 z-10 text-sm">
         {Object.entries(info).map(([key, value]) => (
           <span key={key} className="mr-1.5">
             {key.charAt(0).toUpperCase()}{" "}

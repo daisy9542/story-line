@@ -241,6 +241,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
           size: marker.size,
           originalTime: marker.time,
           text: marker.text,
+          hovered: marker.hovered,
         };
 
         return baseMarker as InternalCircleMarker<TimePointIndex>;

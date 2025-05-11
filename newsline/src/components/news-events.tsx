@@ -3,12 +3,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { NewsEvent } from "@/types/news";
 import { Separator } from "@/components/ui/separator";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { ArrowLeft, Share2, History, TrendingUpDown, Puzzle } from "lucide-react";
+import { ArrowLeft, Share2, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RecursiveCausal } from "./recursive-causal";
+import { useNewslineStore } from "@/stores/newsline-store";
 
 export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { focusedEventId, setFocusedEventId } = useNewslineStore();
 
   const MarketTag = ({
     label,
@@ -32,14 +33,14 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
     <div
       className="relative h-full w-full overflow-y-auto"
       ref={(el) => {
-        if (expandedId && el) el.scrollTop = 0;
+        if (focusedEventId && el) el.scrollTop = 0;
       }}
     >
       <AnimatePresence>
         <BentoGrid
           className={cn(
             "flex flex-col gap-3 overflow-auto p-4",
-            `${expandedId ? "invisible" : ""}`,
+            `${focusedEventId ? "invisible" : ""}`,
           )}
         >
           {newsEvents.map((event) => (
@@ -48,13 +49,13 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               timestamp={event.event_timestamp}
               title={event.event_title}
               className="cursor-pointer py-2"
-              onClick={() => setExpandedId(event.event_id)}
+              onClick={() => setFocusedEventId(event.event_id)}
             ></BentoGridItem>
           ))}
         </BentoGrid>
-        {expandedId && (
+        {focusedEventId && (
           <motion.div
-            key="overlay"
+            key={focusedEventId}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -64,19 +65,19 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
             <div className="flex h-10 items-center">
               <ArrowLeft
                 className="ml-3 h-8 w-8 cursor-pointer rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-800/70"
-                onClick={() => setExpandedId(null)}
+                onClick={() => setFocusedEventId(null)}
               />
             </div>
             <div className="flex flex-1 flex-col gap-2 overflow-auto p-4 pt-0">
               <h2 className="text-xl font-bold">
-                {newsEvents.find((event) => event.event_id === expandedId)?.event_title}
+                {newsEvents.find((event) => event.event_id === focusedEventId)?.event_title}
               </h2>
               <p className="text-muted-foreground">
                 {new Date(
-                  newsEvents.find((event) => event.event_id === expandedId)?.event_timestamp!,
+                  newsEvents.find((event) => event.event_id === focusedEventId)?.event_timestamp!,
                 ).toLocaleString()}
               </p>
-              <p>{newsEvents.find((event) => event.event_id === expandedId)?.summary}</p>
+              <p>{newsEvents.find((event) => event.event_id === focusedEventId)?.summary}</p>
               <Separator />
               <div className="flex items-center">
                 <Share2 className="text-muted-foreground mr-1 h-5 w-5" />
@@ -84,7 +85,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               </div>
               <div className="flex flex-col">
                 {newsEvents
-                  .find((event) => event.event_id === expandedId)
+                  .find((event) => event.event_id === focusedEventId)
                   ?.causal_analysis.map((analysis) => (
                     <div
                       key={`${analysis.cause}-${analysis.trigger}`}
@@ -101,7 +102,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               </div>
               <div className="flex-1">
                 {newsEvents
-                  .find((event) => event.event_id === expandedId)
+                  .find((event) => event.event_id === focusedEventId)
                   ?.historical_analogues.map((analogue) => (
                     <div
                       key={

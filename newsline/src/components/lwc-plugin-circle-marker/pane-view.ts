@@ -157,6 +157,7 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
           internalId: marker.internalId,
           text: marker.text,
           imgUrl: undefined,
+          hovered: marker.hovered,
         }),
       );
       this._dataInvalidated = false;

@@ -14,12 +14,11 @@ interface CircleMarkerBase<TimeType> {
   size?: number;
   price?: number;
   text?: string;
+  hovered: boolean;
 }
 
 export interface CircleMarker<TimeType> extends CircleMarkerBase<TimeType> {
   img?: HTMLImageElement;
-  onClick?: (id: string) => void;
-  onHover?: (id: string) => void;
 }
 
 export interface InternalCircleMarker<TimeType> extends CircleMarkerBase<TimeType> {

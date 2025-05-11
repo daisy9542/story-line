@@ -4,9 +4,11 @@ import { create } from "zustand";
 interface NewslineState {
   selectedTokenSymbol: TokenSymbol;
   currentTimeRange: { from: number; to: number };
+  focusedEventId: string | null;
 
   setSelectedTokenSymbol: (symbol: TokenSymbol) => void;
   setTimeRange: (start: number, end: number) => void;
+  setFocusedEventId: (id: string | null) => void;
 }
 
 export const useNewslineStore = create<NewslineState>((set) => ({
@@ -15,8 +17,9 @@ export const useNewslineStore = create<NewslineState>((set) => ({
     from: 0 as number,
     to: 0 as number,
   },
-  hoveredEvent: null,
+  focusedEventId: null,
 
   setSelectedTokenSymbol: (symbol) => set({ selectedTokenSymbol: symbol }),
   setTimeRange: (start, end) => set({ currentTimeRange: { from: start, to: end } }),
+  setFocusedEventId: (id) => set({ focusedEventId: id }),
 }));

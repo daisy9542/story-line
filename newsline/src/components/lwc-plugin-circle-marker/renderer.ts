@@ -15,6 +15,7 @@ export interface RenderItem extends TimedValue {
   text?: string;
   internalId: number;
   externalId?: string;
+  hovered: boolean;
 }
 
 export interface RenderData {
@@ -55,10 +56,9 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      for (let index = this._data.visibleRange.from; index < this._data.visibleRange.to; index++) {
-        const item = this._data.items[index];
-        if (item.size === 0) {
-          continue;
+      const _drawImpl = (item: RenderItem) => {
+        if (!item || item.size === 0) {
+          return;
         }
         const cx = Math.round(item.x * hpr) + correction;
         const cy = Math.round(item.y * vpr);
@@ -68,6 +68,16 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         ctx.fillStyle = "white";
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.fill();
+
+        if (item.hovered) {
+          ctx.save();
+          ctx.lineWidth = 2 * hpr;
+          ctx.strokeStyle = "rgba(30,144,255,0.9)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius + 2, 0, 2 * Math.PI);
+          ctx.stroke();
+          ctx.restore();
+        }
 
         // 圆内切正方形边长，0.9 是留白，防止贴边
         if (item.text) {
@@ -92,7 +102,19 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.fillText(item.text, cx, cy);
           ctx.restore();
         }
+      };
+
+      let hoveredItemIdx = -1;
+      for (let index = this._data.visibleRange.from; index < this._data.visibleRange.to; index++) {
+        const item = this._data.items[index];
+        if (item.hovered) {
+          hoveredItemIdx = index;
+          continue;
+        }
+        _drawImpl(item);
       }
+      // 确保 hovered 的标记被绘制在最上层
+      _drawImpl(this._data.items[hoveredItemIdx]);
     });
   }
 
@@ -107,6 +129,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         return {
           zOrder: "normal",
           externalId: item.externalId ?? "",
+          cursorStyle: "pointer",
         };
       }
     }

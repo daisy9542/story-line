@@ -24,9 +24,20 @@ export interface RenderData {
 
 export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _data: RenderData | null = null;
+  private _fontSize: number = -1;
+  private _fontFamily: string = "";
+  private _font: string = "";
 
   public setData(data: RenderData): void {
     this._data = data;
+  }
+
+  public setParams(fontSize: number, fontFamily: string): void {
+    if (this._fontSize !== fontSize || this._fontFamily !== fontFamily) {
+      this._fontSize = fontSize;
+      this._fontFamily = fontFamily;
+      this._font = `${fontSize}px ${fontFamily}`;
+    }
   }
 
   draw(target: CanvasRenderingTarget2D): void {
@@ -49,25 +60,38 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         if (item.size === 0) {
           continue;
         }
-        const x = Math.round(item.x * hpr) + correction;
-        const y = Math.round(item.y * vpr);
-        const circleSize = shapeSize(item.size);
-        const halfSize = (circleSize - 1) / 2;
-        ctx.font = `${0.5 * hpr * halfSize}px sans-serif`;
+        const cx = Math.round(item.x * hpr) + correction;
+        const cy = Math.round(item.y * vpr);
+        const radius = ((shapeSize(item.size) - 1) / 2) * hpr;
 
         ctx.beginPath();
         ctx.fillStyle = "white";
-        ctx.arc(x, y, halfSize * hpr, 0, 2 * Math.PI);
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.fill();
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, halfSize * hpr, 0, 2 * Math.PI);
-        ctx.clip();
+        // 圆内切正方形边长，0.9 是留白，防止贴边
+        if (item.text) {
+          const maxTextWidth = radius * Math.SQRT2 * 0.9;
+          let fontSize = Math.floor(radius * 0.8);
+          let textWidth: number;
+          do {
+            ctx.font = this._font;
+            textWidth = ctx.measureText(item.text).width;
+            if (textWidth <= maxTextWidth) {
+              break;
+            }
+            fontSize--;
+          } while (fontSize > 1);
 
-        ctx.fillStyle = "black";
-        ctx.fillText("Elon Musk", x, y);
-        ctx.restore();
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+          ctx.clip();
+
+          ctx.fillStyle = "black";
+          ctx.fillText(item.text, cx, cy);
+          ctx.restore();
+        }
       }
     });
   }

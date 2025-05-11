@@ -58,7 +58,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
     this._paneView = new CircleMarkerPaneView(this._series, ensureNotNull(this._chart));
     this._requestUpdate = param.requestUpdate;
     /** 订阅系列数据变化，用于在数据变动时触发重新渲染 */
-    this._series.unsubscribeDataChanged((scope) => this._onDataChanged(scope));
+    this._series.subscribeDataChanged((scope: DataChangedScope) => this._onDataChanged(scope));
     this._recalculationRequired = true;
     this.requestUpdate();
   }
@@ -82,7 +82,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
     this._series = null;
     this._chart = null;
     this._paneView = null;
-    this._requestUpdate = undefined;
+    this._dataChangedHandler = null;
   }
 
   /**
@@ -108,12 +108,8 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
   /**
    * 强制更新所有视图
    */
-  public updateAllViews(updateType?: UpdateType): void {
-    if (this._paneView) {
-      this._recalculateMarkers();
-      this._paneView.setMarkers(this._indexedMarkers);
-      this._paneView.update(updateType);
-    }
+  public updateAllViews(): void {
+    this._updateAllViews();
   }
 
   /**
@@ -173,7 +169,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
   }
 
   /**
-   * 统计当前用户标记中有哪些位置类型，用于自动缩放判断
+   * 统计当前标记中有哪些位置类型，用于自动缩放判断
    */
   private _getMarkerPositions(): MarkerPositions {
     if (this._markersPositions === null) {
@@ -244,12 +240,21 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
           internalId: index,
           size: marker.size,
           originalTime: marker.time,
+          text: marker.text,
         };
 
         return baseMarker as InternalCircleMarker<TimePointIndex>;
       },
     );
     this._recalculationRequired = false;
+  }
+
+  public _updateAllViews(updateType?: UpdateType): void {
+    if (this._paneView) {
+      this._recalculateMarkers();
+      this._paneView.setMarkers(this._indexedMarkers);
+      this._paneView.update(updateType);
+    }
   }
 
   /**

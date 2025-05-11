@@ -1,6 +1,5 @@
 "use client";
 
-import throttle from "lodash.throttle";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import {
@@ -32,7 +31,6 @@ export default function CandleChart() {
   const [bar, setBar] = useState("1D");
   const [loading, setLoading] = useState(false);
 
-  const isLoadingMoreRef = useRef<boolean>(false);
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
   const circleMarkerRef = useRef<ICircleMarkersPluginApi<Time> | null>(null);
@@ -70,12 +68,14 @@ export default function CandleChart() {
         markers.push({
           time: candle.time as UTCTimestamp,
           position: "aboveBar",
+          text: "Elon Musk",
           // img: await loadImg("/data/elonmusk.png"),
         });
         if (Math.random() > 0.8) {
           markers.push({
             time: candle.time as UTCTimestamp,
             position: "aboveBar",
+            text: "Elon Musk",
           });
         }
       }

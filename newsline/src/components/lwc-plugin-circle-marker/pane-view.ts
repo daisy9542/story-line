@@ -16,7 +16,7 @@ import {
 import { RenderItem, RenderData, CircleMarkerRenderer } from "./renderer";
 import { InternalCircleMarker, UpdateType } from "./i-circle-markers";
 import { RangeImpl } from "@/lib/utils";
-import { calcShapeMargin, visibleTimedValues } from "./helper/utils";
+import { calcShapeHeight, calcShapeMargin, visibleTimedValues } from "./helper/utils";
 import { ensureNotNull } from "./helper/assertions";
 import { isNumber } from "./helper/strict-type-checks";
 
@@ -68,7 +68,7 @@ function fillSizeAndY<HorzScaleItem>(
   // 计算尺寸系数：如果 marker.size 是数字，就取最大值；否则默认为 1
   const sizeMultiplier = isNumber(marker.size) ? Math.max(marker.size, 0) : 1;
   // 基于当前 barSpacing 和尺寸系数，求出形状最终像素大小
-  const shapeSize = calcShapeMargin(timeScale.options().barSpacing) * sizeMultiplier;
+  const shapeSize = calcShapeHeight(timeScale.options().barSpacing) * sizeMultiplier;
 
   const halfSize = shapeSize / 2;
   rendererItem.size = shapeSize;
@@ -104,8 +104,8 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
   private readonly _chart: IChartApiBase<HorzScaleItem>;
   private _data: RenderData;
   private _markers: InternalCircleMarker<TimePointIndex>[] = [];
-  private _invalidated: boolean = false;
-  private _dataInvalidated: boolean = false;
+  private _invalidated: boolean = true;
+  private _dataInvalidated: boolean = true;
   private _renderer: CircleMarkerRenderer = new CircleMarkerRenderer();
 
   constructor(series: ISeriesApi<SeriesType, HorzScaleItem>, chart: IChartApiBase<HorzScaleItem>) {
@@ -124,6 +124,8 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     if (this._invalidated) {
       this._makeValid();
     }
+    const layout = this._chart.options()["layout"];
+    this._renderer.setParams(layout.fontSize, layout.fontFamily);
     this._renderer.setData(this._data);
     return this._renderer;
   }
@@ -142,22 +144,23 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
 
   protected _makeValid(): void {
     const timeScale = this._chart.timeScale();
-    const seriesMarkers = this._markers;
+    const circleMarkers = this._markers;
     if (this._dataInvalidated) {
       // 数据被标记为失效，先做一次完整的初始化
-      this._data.items = seriesMarkers.map<RenderItem>((marker: InternalCircleMarker<TimePointIndex>) => ({
-        time: marker.time,
-        x: 0 as Coordinate, // 占位，稍后计算
-        y: 0 as Coordinate, // 同上
-        size: 0, // 同上
-        externalId: marker.id,
-        internalId: marker.internalId,
-        text: undefined,
-        imgUrl: undefined,
-      }));
+      this._data.items = circleMarkers.map<RenderItem>(
+        (marker: InternalCircleMarker<TimePointIndex>) => ({
+          time: marker.time,
+          x: 0 as Coordinate, // 占位，稍后计算
+          y: 0 as Coordinate, // 同上
+          size: 0, // 同上
+          externalId: marker.id,
+          internalId: marker.internalId,
+          text: marker.text,
+          imgUrl: undefined,
+        }),
+      );
       this._dataInvalidated = false;
     }
-    const layoutOptions = this._chart.options()["layout"];
 
     this._data.visibleRange = null;
     const visibleBars = timeScale.getVisibleLogicalRange();
@@ -185,7 +188,7 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     };
     this._data.visibleRange = visibleTimedValues(this._data.items, visibleBarsRange, true);
     for (let index = this._data.visibleRange.from; index < this._data.visibleRange.to; index++) {
-      const marker = seriesMarkers[index];
+      const marker = circleMarkers[index];
       if (marker.time !== prevTimeIndex) {
         // 新的 bar，重置偏移
         offsets.aboveBar = shapeMargin;
@@ -214,26 +217,3 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     this._invalidated = false;
   }
 }
-
-// export class CircleMarkerPrimitive extends PluginBase {
-//   _source: CircleMarkerPlugin;
-//   _views: CircleMarkerPaneView[];
-
-//   constructor(source: CircleMarkerPlugin) {
-//     super();
-//     this._source = source;
-//     this._views = [new CircleMarkerPaneView(this._source)];
-//   }
-
-//   requestUpdate(): void {
-//     super.requestUpdate();
-//   }
-
-//   updateAllViews(): void {
-//     this._views.forEach((view) => view.update());
-//   }
-
-//   paneViews(): IPrimitivePaneView[] {
-//     return this._views;
-//   }
-// }

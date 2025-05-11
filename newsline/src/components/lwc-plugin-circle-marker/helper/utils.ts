@@ -42,7 +42,7 @@ export function positionsLine(
 }
 
 /**
- * 向上取整，并确保结果为奇数，以便在位图中中心像素对齐
+ * 向上取整，并确保结果为奇数
  * @param x 要取整的数值
  * @returns 向上取整且为奇数的值
  */
@@ -51,13 +51,23 @@ export function ceiledOdd(x: number): number {
   return ceiled % 2 === 0 ? ceiled - 1 : ceiled;
 }
 
+/**
+ * 向上取整，并确保结果为偶数
+ * @param x 要取整的数值
+ * @returns 向上取整且为偶数的值
+ */
+export function ceiledEven(x: number): number {
+  const ceiled = Math.ceil(x);
+  return ceiled % 2 !== 0 ? ceiled - 1 : ceiled;
+}
+
 const enum Constants {
   /** 标记尺寸下限（逻辑像素） */
-  MinShapeSize = 12,
+  MinShapeSize = 32,
   /** 标记尺寸上限（逻辑像素） */
-  MaxShapeSize = 30,
+  MaxShapeSize = 70,
   /** 最小形状间距（逻辑像素） */
-  MinShapeMargin = 3,
+  MinShapeMargin = 5,
 }
 
 /**
@@ -75,7 +85,8 @@ export function size(barSpacing: number, coeff: number): number {
 }
 
 export function shapeSize(originalSize: number): number {
-  return size(originalSize, 3);
+  return size(originalSize, 1);
+  // return Math.max(24, Math.min(originalSize * 1.5, 60));
 }
 
 /**
@@ -85,7 +96,7 @@ export function shapeSize(originalSize: number): number {
  * @returns 计算出的最小间距值
  */
 export function calcShapeMargin(barSpacing: number): number {
-  // 使用 size(barSpacing, 0.1) 计算相对间距，并与最小间距比较取大
+  // 计算相对间距，并与最小间距比较取大
   return Math.max(size(barSpacing, 0.1), Constants.MinShapeMargin);
 }
 
@@ -95,8 +106,7 @@ export function calcShapeMargin(barSpacing: number): number {
  * @returns 计算后的形状高度（偶数，单位：逻辑像素）
  */
 export function calcShapeHeight(barSpacing: number): number {
-  const ceiled = Math.ceil(size(barSpacing, 1));
-  return ceiled % 2 !== 0 ? ceiled - 1 : ceiled;
+  return ceiledEven(size(barSpacing, 1));
 }
 
 /**
@@ -115,7 +125,6 @@ export function calcAdjustedMargin(margin: number, hasSide: boolean, hasInBar: b
   } else if (hasInBar) {
     return Math.ceil(margin / 2);
   }
-
   return 0;
 }
 

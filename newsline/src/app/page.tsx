@@ -37,19 +37,19 @@ export default function HomePage() {
   }, [currentTimeRange]);
 
   return (
-    <main className="min-h-screen flex flex-col">
-      <header className="h-16 flex items-center justify-between px-4">
+    <main className="flex h-screen flex-col">
+      <header className="flex h-16 items-center justify-between px-4">
         <TokenSelector />
         <div className="flex gap-2">
           <ThemeToggle />
         </div>
       </header>
 
-      <div className="flex flex-col md:flex-row flex-1 gap-3 overflow-hidden p-4">
-        <section className="overflow-hidden min-h-[500px] flex min-w-0 flex-1 p-4 rounded-xl border border-gray-200 dark:border-[#171D24] dark:bg-[#111111]">
+      <div className="flex h-full flex-1 flex-col gap-3 overflow-hidden p-4 md:flex-row">
+        <section className="flex min-h-[500px] min-w-0 flex-1 overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-[#171D24] dark:bg-[#111111]">
           <CandleChart newsEvents={eventsData} />
         </section>
-        <aside className="md:w-[350px] min-h-[500px] w-full flex-shrink-0 border rounded-xl border-gray-200 dark:border-[#171D24]">
+        <aside className="h-64 w-full flex-shrink-0 rounded-xl border border-gray-200 md:h-full md:max-h-screen md:w-[350px] dark:border-[#171D24]">
           <NewsEvents newsEvents={eventsData} />
         </aside>
       </div>

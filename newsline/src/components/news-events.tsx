@@ -22,18 +22,23 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
 
     return (
       <div className="inline-flex items-center overflow-hidden rounded-full text-[10px] font-medium text-white shadow-sm">
-        <span className="bg-gray-400 dark:bg-gray-700 px-1 py-0.5">{label}</span>
+        <span className="bg-gray-400 px-1 py-0.5 dark:bg-gray-700">{label}</span>
         <span className={`px-1 py-0.5 ${color}`}>{value}</span>
       </div>
     );
   };
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
+    <div
+      className="relative h-full w-full overflow-y-auto"
+      ref={(el) => {
+        if (expandedId && el) el.scrollTop = 0;
+      }}
+    >
       <AnimatePresence>
         <BentoGrid
           className={cn(
-            "flex flex-col gap-3 p-4 overflow-auto",
+            "flex flex-col gap-3 overflow-auto p-4",
             `${expandedId ? "invisible" : ""}`,
           )}
         >
@@ -54,12 +59,15 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="absolute inset-0 z-10 flex flex-col bg-white dark:bg-black border rounded-xl border-none"
+            className="absolute inset-0 z-10 flex flex-col rounded-xl border border-none bg-white dark:bg-black"
           >
-            <div className="h-10 flex items-center">
-              <ArrowLeft className="ml-3 h-8 w-8 p-1 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/70" onClick={() => setExpandedId(null)} />
+            <div className="flex h-10 items-center">
+              <ArrowLeft
+                className="ml-3 h-8 w-8 cursor-pointer rounded-full p-1 hover:bg-gray-200 dark:hover:bg-gray-800/70"
+                onClick={() => setExpandedId(null)}
+              />
             </div>
-            <div className="flex flex-col flex-1 gap-2 overflow-auto p-4 pt-0">
+            <div className="flex flex-1 flex-col gap-2 overflow-auto p-4 pt-0">
               <h2 className="text-xl font-bold">
                 {newsEvents.find((event) => event.event_id === expandedId)?.event_title}
               </h2>
@@ -71,7 +79,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               <p>{newsEvents.find((event) => event.event_id === expandedId)?.summary}</p>
               <Separator />
               <div className="flex items-center">
-                <Share2 className="h-5 w-5 text-muted-foreground mr-1" />
+                <Share2 className="text-muted-foreground mr-1 h-5 w-5" />
                 <p className="">Causal Analysis</p>
               </div>
               <div className="flex flex-col">
@@ -80,7 +88,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                   ?.causal_analysis.map((analysis) => (
                     <div
                       key={`${analysis.cause}-${analysis.trigger}`}
-                      className="p-4 rounded-lg mb-4 border border-gray-200 dark:border-gray-800 hover:shadow-lg hover:scale-[1.01] transition-transform duration-150"
+                      className="mb-4 rounded-lg border border-gray-200 p-4 transition-transform duration-150 hover:scale-[1.01] hover:shadow-lg dark:border-gray-800"
                     >
                       <RecursiveCausal analysis={analysis} isRoot={true} />
                     </div>
@@ -88,7 +96,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               </div>
               <Separator />
               <div className="flex items-center">
-                <History className="h-5 w-5 text-muted-foreground mr-1" />
+                <History className="text-muted-foreground mr-1 h-5 w-5" />
                 <p className="">Historical Analogues</p>
               </div>
               <div className="flex-1">
@@ -100,11 +108,11 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                         analogue.related_report_id ??
                         `${analogue.historical_case_summary}-${analogue.historical_event_date}`
                       }
-                      className="px-3 py-2 w-full border border-gray dark:border-gray-800/80 rounded-md flex flex-col gap-1"
+                      className="border-gray flex w-full flex-col gap-1 rounded-md border px-3 py-2 dark:border-gray-800/80"
                     >
                       <p className="text-sm text-slate-400/80">{analogue.historical_event_date}</p>
                       <p className="font-semibold">{analogue.historical_case_summary}</p>
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="flex flex-wrap gap-2">
                         {analogue.market_indicator &&
                           Object.keys(analogue.market_indicator).map((key) => (
                             <MarketTag

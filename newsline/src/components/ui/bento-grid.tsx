@@ -24,6 +24,7 @@ export const BentoGridItem = ({
   title: string;
   onClick?: () => void;
 }) => {
+  console.log(timestamp, new Date(timestamp).toLocaleString());
   return (
     <div
       className={cn(
@@ -33,8 +34,8 @@ export const BentoGridItem = ({
       onClick={onClick}
     >
       <div className="transition duration-200 group-hover/bento:translate-x-2">
-        <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm">
-          <Clock className="h-4 w-4 mr-1" />
+        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+          <Clock className="mr-1 h-4 w-4" />
           <time>{new Date(timestamp).toLocaleString()}</time>
         </div>
         <div className="mt-2 font-sans font-bold text-neutral-600 dark:text-neutral-200">

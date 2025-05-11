@@ -46,7 +46,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
           {newsEvents.map((event) => (
             <BentoGridItem
               key={event.event_id}
-              timestamp={event.event_timestamp}
+              timestamp={event.event_timestamp * 1000}
               title={event.event_title}
               className="cursor-pointer py-2"
               onClick={() => setFocusedEventId(event.event_id)}
@@ -74,7 +74,8 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
               </h2>
               <p className="text-muted-foreground">
                 {new Date(
-                  newsEvents.find((event) => event.event_id === focusedEventId)?.event_timestamp!,
+                  newsEvents.find((event) => event.event_id === focusedEventId)?.event_timestamp! *
+                    1000,
                 ).toLocaleString()}
               </p>
               <p>{newsEvents.find((event) => event.event_id === focusedEventId)?.summary}</p>

@@ -34,7 +34,7 @@ export default function HomePage() {
     };
     fetchEvents();
     setFlag(true);
-  }, [currentTimeRange]);
+  }, [currentTimeRange, flag, selectedTokenSymbol]);
 
   return (
     <main className="flex h-screen flex-col">

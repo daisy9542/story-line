@@ -13,7 +13,6 @@ import {
   PrimitiveHoveredItem,
   AutoscaleInfo,
   Logical,
-  DataChangedScope,
   MismatchDirection,
   SeriesMarkerPosition,
 } from "lightweight-charts";
@@ -58,7 +57,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
     this._paneView = new CircleMarkerPaneView(this._series, ensureNotNull(this._chart));
     this._requestUpdate = param.requestUpdate;
     /** 订阅系列数据变化，用于在数据变动时触发重新渲染 */
-    this._series.subscribeDataChanged((scope: DataChangedScope) => this._onDataChanged(scope));
+    this._series.subscribeDataChanged(() => this._onDataChanged());
     this._recalculationRequired = true;
     this.requestUpdate();
   }
@@ -125,7 +124,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
   /**
    * 提供给图表的自动缩放接口，返回上下边距配置
    */
-  public autoscaleInfo(startTimePoint: Logical, endTimePoint: Logical): AutoscaleInfo | null {
+  public autoscaleInfo(): AutoscaleInfo | null {
     if (this._paneView) {
       const margins = this._getAutoScaleMargins();
       if (margins) {
@@ -261,7 +260,7 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
   /**
    * 系列数据变化回调，触发重新计算和更新
    */
-  private _onDataChanged(scope: DataChangedScope): void {
+  private _onDataChanged(): void {
     this._recalculationRequired = true;
     this.requestUpdate();
   }

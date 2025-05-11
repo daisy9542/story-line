@@ -29,7 +29,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
   const { resolvedTheme } = useTheme();
   const { selectedTokenSymbol, setTimeRange, setFocusedEventId } = useNewslineStore();
   const instId = useMemo(() => `${selectedTokenSymbol}-USDT`, [selectedTokenSymbol]);
-  const [bar, setBar] = useState("1D");
+  const [bar] = useState("1D");
   const [loading, setLoading] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
@@ -58,7 +58,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
         hovered: hoveredEventId === event.event_id,
       });
     });
-    circleMarkerRef.current && circleMarkerRef.current.setMarkers(markers);
+    circleMarkerRef.current?.setMarkers(markers);
   }
 
   const chartOptions = {

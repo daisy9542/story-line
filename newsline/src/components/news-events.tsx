@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { NewsEvent } from "@/types/news";
 import { Separator } from "@/components/ui/separator";

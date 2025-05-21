@@ -30,11 +30,11 @@ data/raw/
 data/processed/
 
 # Config files
-config/settings.yaml
+#config/settings.yaml
 
 # Output / models / temp
 *.sqlite3
-*.db
+#*.db
 *.bak
 *.tmp
 *.swp
@@ -46,8 +46,6 @@ notebooks/*.nbconvert.ipynb
 ehthumbs.db
 Icon?
 
-accounts/
 data/*
 # 种子用户文件
 !/data/seeds.jsonl
-accounts.db

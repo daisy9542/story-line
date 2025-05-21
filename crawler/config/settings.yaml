@@ -1,0 +1,25 @@
+accounts_db: accounts.db
+proxy: http://127.0.0.1:7890
+deepseek_api_key: sk-efcd2c28a56c4b33a04b8a60081dc64a
+min_followers: 1000
+latest_tweets_count: 20
+#limit_per_keyword: 100000
+limit_follows_per_user: 10000
+limit_tweets_per_user: 100000
+limit_replies: 100000
+limit_retweets: 100000
+max_no_value_depth: 1
+valuable_user_buffer_size: 100
+seen_user_buffer_size: 300
+tweet_per_worker_buffer_size: 100
+llm_semaphore: 20
+user_concurrency: 100
+tweet_concurrency: 200
+follow_concurrency: 200
+max_retries: 3
+
+host: 100.91.69.107
+user: root
+password: mysql_2ehee4
+database: crypto_bubble
+port: 3306

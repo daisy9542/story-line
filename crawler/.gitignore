@@ -47,5 +47,7 @@ ehthumbs.db
 Icon?
 
 accounts/
-data/
+data/*
+# 种子用户文件
+!/data/seeds.jsonl
 accounts.db

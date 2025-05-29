@@ -63,7 +63,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="h-[460px] w-full bg-[rgba(135,145,171,0.08)] pt-8">
+    <aside className="h-[460px] w-full bg-[rgba(135,145,171,0.08)] mt-8">
       <div className="flex h-full flex-col overflow-hidden rounded-[12px] border border-[#8791AB]/20">
         <div>
           <Command className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">

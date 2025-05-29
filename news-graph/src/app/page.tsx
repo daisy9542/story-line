@@ -1,4 +1,4 @@
-import GraphContainer from "@/components/graph-container";
+import GraphContainer from "@/components/graph/graph-container";
 import Header from "@/components/header";
 import Sidebar from "@/components/sidebar";
 

@@ -2,9 +2,7 @@
 
 import React from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Command, CommandInput } from "@/components/ui/command";
 
 import NewsItem from "./sidebar-list/news-item";
 
@@ -67,29 +65,32 @@ export default function Sidebar({
   return (
     <aside className="h-[460px] w-full bg-[rgba(135,145,171,0.08)] pt-8">
       <div className="flex h-full flex-col overflow-hidden rounded-[12px] border border-[#8791AB]/20">
-        <div className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">
-          <Input placeholder="Search news, company..." />
-          <div className="flex gap-2">
-            {tabList.map((tab) => (
-              <button
-                key={tab.value}
-                disabled={tab.value !== "news"}
-                onClick={() => setActiveTab(tab.value)}
-                className={`flex-1 cursor-pointer rounded-sm py-1 text-center text-sm font-medium transition-colors disabled:cursor-not-allowed ${
-                  activeTab === tab.value
-                    ? "bg-[rgb(37,38,39)] text-white"
-                    : "text-[rgb(162,163,164)]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div>
+          <Command className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">
+            <CommandInput placeholder="Search news, company..." />
+            <div className="flex gap-2">
+              {tabList.map((tab) => (
+                <button
+                  key={tab.value}
+                  disabled={tab.value !== "news"}
+                  onClick={() => setActiveTab(tab.value)}
+                  className={`flex-1 cursor-pointer rounded-sm py-1 text-center text-sm font-medium transition-colors disabled:cursor-not-allowed ${
+                    activeTab === tab.value
+                      ? "bg-[rgb(37,38,39)] text-white"
+                      : "text-[rgb(162,163,164)]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </Command>
         </div>
         <div className="flex-1 overflow-scroll p-2">
           <div className="flex cursor-pointer flex-col">
             {newsItems.map((item) => (
               <NewsItem
+                key={item.id}
                 item={item}
                 isSelected={item.id === selectedItem}
                 onClick={handleClick}

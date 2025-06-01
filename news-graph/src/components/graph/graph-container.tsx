@@ -75,8 +75,6 @@ export default function GraphContainer() {
       fitView
       attributionPosition="bottom-left"
     >
-      <Controls />
-      <Background gap={16} />
     </ReactFlow>
   );
 }

@@ -6,7 +6,7 @@
       "label": "SUI rebounds after $162 mln Cetus hack – Will lost funds make it home",
       "level": 0,
       "tags": ["Hack", "DeFi", "SUI"],
-      "time": "2025-05-29T08:23:00Z"
+      "time": 1748506980000
     },
     {
       "id": "event-2",
@@ -14,7 +14,7 @@
       "label": "How $330M was stolen without hacking: The dark power of social engineering",
       "level": 1,
       "tags": ["Hack", "ETH"],
-      "time": "2025-05-24T10:00:00Z"
+      "time": 1748516980000
     },
     {
       "id": "org-sui-team",
@@ -50,18 +50,21 @@
       "id": "Assets-sui",
       "type": "Assets",
       "label": "SUI",
+      "changePercent": 0.05,
       "level": 1
     },
     {
       "id": "Assets-cetus",
       "type": "Assets",
       "label": "Cetus",
+      "changePercent": 1.65,
       "level": 1
     },
     {
       "id": "Assets-sp500",
       "type": "Assets",
       "label": "S&P 500 Index",
+      "changePercent": -2.34,
       "level": 2
     },
     {

@@ -9,10 +9,10 @@ export default function Home() {
 
       <main className="relative flex min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 items-start">
-          <div className="absolute top-8 left-8 h-[460px] w-[300px] z-50">
+          <div className="absolute top-8 left-8 z-50 h-[460px] w-[300px]">
             <Sidebar />
           </div>
-          <section className="flex-1 h-full z-20">
+          <section className="z-20 h-full flex-1">
             <GraphContainer />
           </section>
         </div>

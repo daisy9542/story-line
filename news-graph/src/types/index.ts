@@ -17,7 +17,7 @@ export interface BaseNode {
 export interface EventNode extends BaseNode {
   type: NodeType.EVENT;
   tags: string[];
-  time: string; // ISO 字符串
+  time: number; // 时间戳
   imgs: string[]; // 多图
 }
 
@@ -31,6 +31,7 @@ export interface OrgNode extends BaseNode {
 
 export interface ASSETSNode extends BaseNode {
   type: NodeType.ASSETS;
+  changePercent: number;
 }
 
 export type NodeData = EventNode | PersonNode | OrgNode | ASSETSNode;

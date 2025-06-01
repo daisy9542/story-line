@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap");
+
+* {
+  font-family: Lexend;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

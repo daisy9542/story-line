@@ -24,28 +24,28 @@ export default function Sidebar({
       title:
         "Hyperliquid Soars, Sui vs Solana & Internet Capital Markets Explained Road PRO",
       tags: ["Hack", "Destroy", "DeFi"],
-      time: "23m",
+      time: "06/07 2025",
     },
     {
       id: "2",
       title:
         "SUI rebounds after $162 mln Cetus hack – Will lost funds make it home?",
       tags: ["Hack", "Destroy", "DeFi"],
-      time: "23m",
+      time: "06/07 2025",
     },
     {
       id: "3",
       title:
         "Bitcoin Whale Doubles Down With $1.25 Billion Long Bet on Hyperliquid",
       tags: ["Hack", "Destroy", "DeFi"],
-      time: "23m",
+      time: "06/07 2025",
     },
     {
       id: "4",
       title:
         "Crypto Investor Allegedly Tortured Tourist With a Chainsaw To Steal His Password",
       tags: ["Hack", "Destroy", "DeFi"],
-      time: "23m",
+      time: "06/07 2025",
     },
   ],
 }: SidebarProps) {
@@ -63,11 +63,9 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="h-full w-full overflow-hidden bg-[rgba(135,145,171,0.08)]">
-      <div className="flex h-full flex-col rounded-[12px] border border-[#8791AB]/20">
-        <div className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">
-          <Input placeholder="Search news, company..." />
-
+    <aside className="h-full w-full overflow-hidden bg-[rgba(135,145,171,0.08)] pt-6">
+      <div className="flex h-full flex-col border-r border-[#8791AB]/20">
+        {/* <div className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">
           <div className="flex gap-2">
             {tabList.map((tab) => (
               <button
@@ -84,8 +82,9 @@ export default function Sidebar({
               </button>
             ))}
           </div>
-        </div>
-        <div className="flex-1 overflow-scroll p-2 backdrop-blur-[30px]">
+        </div> */}
+        <div className="h-6 px-4">🔥 Hot</div>
+        <div className="flex-1 overflow-scroll backdrop-blur-[30px]">
           <div className="flex cursor-pointer flex-col">
             {newsItems.map((item) => (
               <NewsItem

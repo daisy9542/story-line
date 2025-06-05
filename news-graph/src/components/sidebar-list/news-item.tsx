@@ -19,7 +19,7 @@ export default function NewsItem({
 }) {
   return (
     <div
-      className="w-full px-3 py-2 hover:bg-[rgb(31,32,33)]"
+      className="h-[104px] w-full p-4 hover:bg-[rgb(31,32,33)]"
       onClick={() => onClick(item.id)}
     >
       <div
@@ -31,7 +31,7 @@ export default function NewsItem({
         {item.title}
       </div>
       <div className="mt-3 flex items-center justify-between">
-        <div className="flex space-x-2">
+        {/* <div className="flex space-x-2">
           {item.tags.map((tag) => (
             <div
               key={tag}
@@ -43,7 +43,7 @@ export default function NewsItem({
               {tag}
             </div>
           ))}
-        </div>
+        </div> */}
         <div
           className={cn(
             "text-[12px] text-gray-500",

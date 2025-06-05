@@ -6,7 +6,7 @@ export default function Header() {
       <div className="flex h-18 items-center gap-2 md:gap-4">
         <div>StoryLine</div>
         <div className="ml-auto flex items-center gap-2 md:flex-1 md:justify-end">
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>

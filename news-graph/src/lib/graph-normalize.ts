@@ -1,4 +1,4 @@
-import { NodeData, NodeType, RenderNodeData } from "@/types";
+import { NodeData, NodeType, GraphNode } from "@/types";
 
 // 为每种类型设置一个“基础尺寸”：
 const BASE_SIZE: Record<NodeType, number> = {
@@ -30,7 +30,7 @@ function computeShowLabel(level: number): boolean {
  *  - 输入：原始节点数组，已带 level 信息
  *  - 输出：附带 size / opacity / showLabel
  */
-export function normalizeNodes(nodes: NodeData[]): RenderNodeData[] {
+export function normalizeNodes(nodes: NodeData[]): GraphNode[] {
   return nodes.map((node) => ({
     ...node,
     size: computeSize(node.type, node.level),

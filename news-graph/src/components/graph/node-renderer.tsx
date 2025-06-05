@@ -1,17 +1,9 @@
 import React, { useRef } from "react";
-import { NodeType, RenderNodeData } from "@/types";
-import { differenceInSeconds, formatDistanceToNow } from "date-fns";
-import {
-  BadgeDollarSign,
-  Building2,
-  Calendar,
-  Group,
-  Tag,
-  User,
-  Users,
-} from "lucide-react";
+import { GraphNode, NodeType } from "@/types";
+import { BadgeDollarSign, Building2, User, Users } from "lucide-react";
 import { Handle, NodeProps, Position } from "react-flow-renderer";
 
+import { getNodeDimensions } from "@/lib/node-dimensions";
 import { toRelativeShort } from "@/lib/utils";
 import {
   Popover,
@@ -19,47 +11,159 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-export const NodeRenderer = ({ id, data }: NodeProps<RenderNodeData>) => {
+export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  // 根据并行边数量渲染右侧 Handle
-  const handleCount = data.parallelCount || 1;
-  const handles = Array.from({ length: handleCount }).map((_, idx) => {
-    const top = ((idx + 1) / (handleCount + 1)) * 100;
-    return (
+  // 因为改成“不使用 size”，这里用 CSS class 或者内联样式给节点固定一个宽高
+  // 比如：“新闻事件” 200×100，其他节点 120×40。你可以根据 data.type 做区分。
+  const { width, height } = getNodeDimensions(data.type);
+
+  // =========== 1. 强制在 四个 边缘中点 放置一个“无 id”的 Handle，用作 edge 默认的目标 or 源 =============
+  //    - 因为我们会在 GraphContainer 中动态决定每条边到底挂上下左右哪一个，
+  //      所以这里先渲染出四个“候选 Handle”，分别用 id: `${id}-h-top/right/bottom/left`
+  //    - “type” 取决于你想让它当 source 还是 target；这里先不指定 type=id/id，
+  //      我们把“上下左右”都渲染成既可 “source” 又可 “target” 的版本。
+  //    在 React Flow 中，Handle 组件可以同时声明为 source 或 target，所以下面每个都写两次：
+  //      <Handle type="target" position={Position.XXX} id={`${id}-h-xxx`} />
+  //      <Handle type="source" position={Position.XXX} id={`${id}-h-xxx`} />
+  //
+  //  实际上，如果一条边只需要 “sourceHandle” 或 “targetHandle” 其中之一自动匹配，
+  //  也可以只渲染一个 type，另一侧让 React Flow 自动默认。但为了灵活起见，这里四个都做成“无差别可用”：
+  const candidateHandles = (
+    <>
+      {/* 上边缘中点 */}
       <Handle
-        key={idx}
+        type="source"
+        position={Position.Top}
+        id={`${id}-h-top`}
+        style={{
+          left: "50%",
+          top: 0,
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+      <Handle
+        type="target"
+        position={Position.Top}
+        id={`${id}-h-top`}
+        style={{
+          left: "50%",
+          top: 0,
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+
+      {/* 右边缘中点 */}
+      <Handle
         type="source"
         position={Position.Right}
-        id={`${id}-s-${idx}`}
-        style={{ top: `${top}%`, background: "#888" }}
+        id={`${id}-h-right`}
+        style={{
+          left: "100%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
       />
-    );
-  });
+      <Handle
+        type="target"
+        position={Position.Right}
+        id={`${id}-h-right`}
+        style={{
+          left: "100%",
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
 
-  /**
-   * 以下变量控制节点最外层容器的尺寸和透明度
-   * - data.size: 归一化后得出的“基准高度”
-   * - data.opacity: 归一化后得出的透明度
-   */
-  const commonContainerStyle: React.CSSProperties = {
-    // height: data.size,
-    opacity: data.opacity,
+      {/* 下边缘中点 */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id={`${id}-h-bottom`}
+        style={{
+          left: "50%",
+          top: "100%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+      <Handle
+        type="target"
+        position={Position.Bottom}
+        id={`${id}-h-bottom`}
+        style={{
+          left: "50%",
+          top: "100%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+
+      {/* 左边缘中点 */}
+      <Handle
+        type="source"
+        position={Position.Left}
+        id={`${id}-h-left`}
+        style={{
+          left: 0,
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+      <Handle
+        type="target"
+        position={Position.Left}
+        id={`${id}-h-left`}
+        style={{
+          left: 0,
+          top: "50%",
+          transform: "translate(-50%, -50%)",
+          background: "#888",
+          width: 8,
+          height: 8,
+        }}
+      />
+    </>
+  );
+
+  // =========== 2. 渲染节点主体的 CSS 样式（pos:relative + 固定宽高） ===========
+  const containerStyle: React.CSSProperties = {
+    maxWidth: `${width}px`,
+    maxHeight: `${height}px`,
+    position: "relative", // 使得上面所有百分比定位的 Handle 都能基于此容器
     backgroundColor: "#17181A",
-    fontWeight: 300,
+    borderRadius: "8px",
+    padding: "6px 8px",
+    color: "#fff",
     fontSize: "12px",
+    fontWeight: 300,
+    overflow: "visible", // 允许 Handle 挂在边缘之外
+    opacity: data.opacity,
     lineHeight: "16px",
     letterSpacing: 0,
-    color: "white",
   };
 
-  /**
-   * 按照不同节点类型返回对应的“内层内容”和“宽度策略”。
-   * 最外层容器统一套用 `commonContainerStyle`，然后用 `typeWidthStyle` 覆盖宽度或其他样式。
-   */
   let typeWidthStyle: React.CSSProperties = {};
   let innerContent: React.ReactNode = null;
-
   switch (data.type) {
     case NodeType.PERSON:
       typeWidthStyle = {
@@ -123,7 +227,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<RenderNodeData>) => {
                   <img
                     key={idx}
                     src={src}
-                    alt={`source-${idx}`}
+                    alt={source-${idx}}
                     className="h-5 w-5 rounded-full object-cover"
                   />
                 ))} */}
@@ -176,7 +280,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<RenderNodeData>) => {
           )}
           <span className="text-[14px]">{data.label}</span>
           <span
-            className={`text-sm ${data.changePercent < 0 ? "text-[#FF3838]" : "text-[#0FE871]"} `}
+            className={`text-sm ${data.changePercent < 0 ? "text-[#FF3838]" : "text-[#0FE871]"}`}
           >
             {data.changePercent >= 0 ? "+" : ""}
             {data.changePercent}%
@@ -199,23 +303,13 @@ export const NodeRenderer = ({ id, data }: NodeProps<RenderNodeData>) => {
   }
 
   return (
-    <div
-      ref={ref}
-      style={{
-        ...commonContainerStyle,
-        ...typeWidthStyle,
-      }}
-    >
-      {/* 渲染对应类型的内部内容 */}
+    <div style={{ ...containerStyle, ...typeWidthStyle }}>
       {innerContent}
+      {candidateHandles}
 
-      {/* 渲染右侧的 Handles */}
-      {handles}
-
-      {/* Popover：鼠标悬浮时显示详细卡片 */}
+      {/* Popover 逻辑（同你原来一样，鼠标 hover 弹出详细卡片） */}
       <Popover>
         <PopoverTrigger asChild>
-          {/* 用一个绝对的 div 全覆盖节点，保证整个区域都能触发 Popover */}
           <div className="absolute inset-0" />
         </PopoverTrigger>
         <PopoverContent
@@ -223,44 +317,35 @@ export const NodeRenderer = ({ id, data }: NodeProps<RenderNodeData>) => {
           align="center"
           className="z-50 max-w-xs rounded bg-white p-3 shadow-lg"
         >
-          {/* 弹窗内部根据类型展示更详细信息 */}
           <h4 className="mb-1 text-sm font-semibold">{data.label}</h4>
-
           {data.type === NodeType.PERSON && (
             <div className="text-xs text-gray-600">
-              {/* 在这里填充人物的更多信息，示例占位 */}
               人物：{data.label} 的详细信息…
             </div>
           )}
-
           {data.type === NodeType.GROUP && (
             <div className="text-xs text-gray-600">
-              组织：{data.label}。当前成员数：{data.memberCount ?? "未知"}。
+              组织：{data.label}。成员数：{data.memberCount ?? "未知"}。
             </div>
           )}
-
           {data.type === NodeType.EVENT && (
             <div className="space-y-1 text-xs text-gray-600">
               <p>时间：{data.time}</p>
-              {data.tags && data.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {data.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-blue-100 px-1 py-0.5 text-[9px] text-blue-800"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {/* 如果需要可继续添加事件描述、来源链接等 */}
+              <div className="flex flex-wrap gap-1">
+                {(data.tags || []).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded bg-blue-100 px-1 py-0.5 text-[9px] text-blue-800"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-
           {data.type === NodeType.ASSETS && (
             <div className="text-xs text-gray-600">
-              资产：{data.label}。当前涨跌：{data.changePercent}.
+              资产：{data.label}。涨跌：{data.changePercent}.
             </div>
           )}
         </PopoverContent>

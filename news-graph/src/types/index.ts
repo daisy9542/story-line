@@ -18,7 +18,7 @@ export interface EventNode extends BaseNode {
   type: NodeType.EVENT;
   tags: string[];
   time: number; // 时间戳
-  imgs: string[]; // 多图
+  imgs?: string[]; // 多图
 }
 
 export interface PersonNode extends BaseNode {
@@ -37,8 +37,27 @@ export interface ASSETSNode extends BaseNode {
 export type NodeData = EventNode | PersonNode | OrgNode | ASSETSNode;
 
 // 渲染时附加的计算属性（在 normalize 阶段填入）
-export type RenderNodeData = NodeData & {
-  size: number;
-  opacity: number;
-  showLabel: boolean;
+export type GraphNode = NodeData & {
+  size?: number;
+  opacity?: number;
+  showLabel?: boolean;
+  level?: number; // 节点所在层级
+  clusterId?: string; // 同一类型的分组 id
 };
+
+// - source, target: 节点 id
+// - relationType: 关系类型，比如 “involves”, “focusesOn” 等
+// - properties?: 可以留作以后扩展
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  relationType: string;
+  properties?: Record<string, any>;
+}
+
+// 最终导出的“图数据”接口
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}

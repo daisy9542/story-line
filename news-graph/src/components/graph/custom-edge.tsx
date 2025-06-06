@@ -29,13 +29,17 @@ const CustomEdge: React.FC<EdgeProps<any>> = ({
     curvature: 0.3,
   });
 
-  // 获取边的中心点
-  const [edgeCenterX, edgeCenterY] = getEdgeCenter({
+  // 获取边的中心点，添加安全检查
+  const edgeCenter = getEdgeCenter({
     sourceX,
     sourceY,
     targetX,
     targetY,
-  })!;
+  });
+
+  // 默认值，防止edgeCenter为null
+  const edgeCenterX = edgeCenter ? edgeCenter[0] : (sourceX + targetX) / 2;
+  const edgeCenterY = edgeCenter ? edgeCenter[1] : (sourceY + targetY) / 2;
 
   // 为边创建唯一的渐变ID
   const gradientId = `edge-gradient-${id}`;

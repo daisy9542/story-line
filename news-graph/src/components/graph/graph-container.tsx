@@ -135,7 +135,7 @@ export default function GraphContainer() {
       };
     });
     // 如果你不想展示"与中心不连通"的节点，可以 filter 掉 level<0
-    rNodes = rNodes.filter((n) => n.level >= 0);
+    // rNodes = rNodes.filter((n) => n.level >= 0);
 
     // —— 3.3 径向布局：把 rNodes 映射到绝对坐标 (x, y) —— //
     function computeRadialPositions(

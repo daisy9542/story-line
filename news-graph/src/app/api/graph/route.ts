@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
+import { transformDataToGraph } from '@/lib/data-transformer'
 
 // GET /api/graph
 export async function GET() {
-  // 构造 public/graph.json 的绝对路径
-  const jsonPath = path.join(process.cwd(), 'public', 'graph.json')
   try {
-    // 读取并解析
+    // 读取 src/data.json 文件
+    const jsonPath = path.join(process.cwd(), 'src', 'data.json')
     const fileContents = await fs.readFile(jsonPath, 'utf8')
-    const data = JSON.parse(fileContents)
-    // 返回 JSON
-    return NextResponse.json(data)
+    const rawData = JSON.parse(fileContents)
+
+    // 使用 transformDataToGraph 转换数据
+    const transformedData = transformDataToGraph(rawData)
+
+    // 返回转换后的数据
+    console.log(transformedData)
+    return NextResponse.json(transformedData)
   } catch (err) {
-    // 读取或解析失败时返回 500
+    console.error('Error processing graph data:', err)
     return NextResponse.json(
-      { error: 'Failed to load graph data' },
+      { error: 'Failed to process graph data' },
       { status: 500 }
     )
   }

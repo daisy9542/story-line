@@ -1,53 +1,39 @@
 export enum NodeType {
-  EVENT = "Event",
-  GROUP = "Group",
-  PERSON = "Person",
-  ASSETS = "Assets",
+  EVENT = "event",
+  PERSON = "person",
+  GROUP = "group",
+  ASSETS = "assets",
+  RELATED_EVENT = "related_event",
 }
 
-export interface BaseNode {
+export interface GraphNode {
   id: string;
   type: NodeType;
-  label: string; // 事件挑剔，人物/公司/资产的名称，都映射到 label
-  img?: string; // 单图模式
-  level: number; // 距离中心事件的层级，用来计算 size/opacity
-}
-
-// 事件节点，带 tags、time、多图
-export interface EventNode extends BaseNode {
-  type: NodeType.EVENT;
-  tags: string[];
-  time: number; // 时间戳
-  imgs?: string[]; // 多图
-}
-
-export interface PersonNode extends BaseNode {
-  type: NodeType.PERSON;
-}
-
-export interface OrgNode extends BaseNode {
-  type: NodeType.GROUP;
-}
-
-export interface ASSETSNode extends BaseNode {
-  type: NodeType.ASSETS;
-  changePercent: number;
-}
-
-export type NodeData = EventNode | PersonNode | OrgNode | ASSETSNode;
-
-// 渲染时附加的计算属性（在 normalize 阶段填入）
-export type GraphNode = NodeData & {
-  size?: number;
+  label: string;
+  level?: number;
+  clusterId?: string;
   opacity?: number;
-  showLabel?: boolean;
-  level?: number; // 节点所在层级
-  clusterId?: string; // 同一类型的分组 id
-};
+  parallelCount?: number;
+  img?: string;
+  time?: string;
+  tags?: string[];
+  url?: string;
+  sentiment?: number;
+}
 
-// - source, target: 节点 id
-// - relationType: 关系类型，比如 “involves”, “focusesOn” 等
-// - properties?: 可以留作以后扩展
+export interface EventNode extends GraphNode {
+  type: NodeType.EVENT;
+  background?: string;
+  viralPotential?: string;
+}
+
+export interface RelatedEventNode extends GraphNode {
+  type: NodeType.RELATED_EVENT;
+  sentiment: number;
+  date: string;
+  url: string;
+}
+
 export interface GraphEdge {
   id: string;
   source: string;
@@ -56,7 +42,6 @@ export interface GraphEdge {
   properties?: Record<string, any>;
 }
 
-// 最终导出的“图数据”接口
 export interface GraphData {
   nodes: GraphNode[];
   edges: GraphEdge[];

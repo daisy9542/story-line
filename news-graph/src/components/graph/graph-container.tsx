@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { GraphNode, NodeType } from "@/types";
+import { GraphEdge, GraphNode, NodeType } from "@/types";
 import ReactFlow, {
   Background,
   Controls,
@@ -21,46 +21,36 @@ const edgeTypes = { custom: CustomEdge };
 export default function GraphContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 1. state: rawData, nodes, edges
+  // 1. 修改 rawData 的类型定义，使其与 data-transformer 返回的数据结构匹配
   const [rawData, setRawData] = useState<{
-    nodes: Array<GraphNode>;
-    edges: Array<{
-      source: string;
-      target: string;
-      parallelIndex: number;
-      parallelTotal: number;
-      role?: string;
-    }>;
+    nodes: GraphNode[];
+    edges: GraphEdge[];
   } | null>(null);
 
   const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
-  // 2. fetchData：只在 mount 时跑一次，填充 rawData
+  // 2. 修改 fetchData 函数，适配新的数据结构
   const fetchData = useCallback(async () => {
-    const res = await fetch("/api/graph");
-    if (!res.ok) throw new Error("Network response was not ok");
-    return (await res.json()) as {
-      nodes: Array<{
-        id: string;
-        type: NodeType;
-        label: string;
-        img?: string;
-        time?: string;
-        tags?: string[];
-        orgId?: string;
-        parentEventId?: string;
-        changePercent?: string;
-        memberCount?: number;
-      }>;
-      edges: Array<{
-        source: string;
-        target: string;
-        parallelIndex: number;
-        parallelTotal: number;
-        role?: string;
-      }>;
-    };
+    try {
+      const res = await fetch("/api/graph");
+      if (!res.ok) throw new Error("Network response was not ok");
+      return await res.json();
+    } catch (error) {
+      console.error("Failed to fetch graph data:", error);
+      // 可以添加一个备用方案，直接导入本地数据
+      // 注意：这需要在客户端代码中导入 JSON 文件，可能需要配置 webpack
+      try {
+        // 在客户端动态导入数据
+        const localData = await import("@/data.json").then(module => module.default);
+        // 导入数据转换函数
+        const { transformDataToGraph } = await import("@/lib/data-transformer");
+        return transformDataToGraph(localData);
+      } catch (fallbackError) {
+        console.error("Failed to load local data:", fallbackError);
+        return null;
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -75,14 +65,14 @@ export default function GraphContainer() {
   }, [fetchData]);
 
   // ----------------------------------------------------------------------------
-  // 3. effect #1：当 rawData 改变时，“先”做 BFS + normalize + 径向布局 → setNodes
+  // 3. effect #1：当 rawData 改变时，"先"做 BFS + normalize + 径向布局 → setNodes
   // ----------------------------------------------------------------------------
   useEffect(() => {
     if (!rawData) return;
 
     const { nodes: rawNodes, edges: rawEdges } = rawData;
 
-    // —— 3.1 BFS 计算每个节点的 “层级 level” —— //
+    // —— 3.1 BFS 计算每个节点的 "层级 level" —— //
     function assignLevels(
       rawNodes: { id: string; type: NodeType }[],
       rawEdges: { source: string; target: string }[],
@@ -95,7 +85,7 @@ export default function GraphContainer() {
         adj.get(e.source)!.push(e.target);
         adj.get(e.target)!.push(e.source);
       });
-      const center = rawNodes.find((n) => n.type === NodeType.EVENT);
+      const center = rawNodes.find((n) => n.type === NodeType.EVENT && n.id === "main-event");
       if (!center) return levelMap;
       levelMap.set(center.id, 0);
       const queue: string[] = [center.id];
@@ -122,12 +112,13 @@ export default function GraphContainer() {
     rNodes = rNodes.map((n) => {
       const lvl = levelMap.get(n.id) ?? -1;
       let cId: string;
-      if (n.type === NodeType.GROUP) cId = n.id;
-      else if (n.type === NodeType.PERSON)
-        cId = (n as any).orgId ?? "uncat-person";
+
+      // 根据节点类型分配聚类ID
+      if (n.type === NodeType.GROUP) cId = "group";
+      else if (n.type === NodeType.PERSON) cId = "person";
       else if (n.type === NodeType.ASSETS) cId = "assets";
-      else if (n.type === NodeType.EVENT && lvl > 0)
-        cId = (n as any).parentEventId ?? "uncat-event";
+      else if (n.type === NodeType.EVENT && n.id !== "main-event") cId = "historical-events";
+      else if (n.type === NodeType.RELATED_EVENT) cId = "related-events";
       else cId = "center";
 
       // 并行边数量，用于 NodeRenderer 里决定要渲染多少个 source Handle
@@ -143,7 +134,7 @@ export default function GraphContainer() {
         parallelCount,
       };
     });
-    // 如果你不想展示“与中心不连通”的节点，可以 filter 掉 level<0
+    // 如果你不想展示"与中心不连通"的节点，可以 filter 掉 level<0
     rNodes = rNodes.filter((n) => n.level >= 0);
 
     // —— 3.3 径向布局：把 rNodes 映射到绝对坐标 (x, y) —— //
@@ -155,6 +146,14 @@ export default function GraphContainer() {
       const cx = width / 2;
       const cy = height / 2;
 
+      // 按类型分组
+      const typeGroups = new Map<NodeType, GraphNode[]>();
+      nodesArr.forEach((nd) => {
+        if (!typeGroups.has(nd.type)) typeGroups.set(nd.type, []);
+        typeGroups.get(nd.type)!.push(nd);
+      });
+
+      // 按层级分组
       const levelGroups = new Map<number, GraphNode[]>();
       nodesArr.forEach((nd) => {
         if (!levelGroups.has(nd.level)) levelGroups.set(nd.level, []);
@@ -163,8 +162,13 @@ export default function GraphContainer() {
 
       const lvls = Array.from(levelGroups.keys());
       const maxLvl = lvls.length ? Math.max(...lvls) : 0;
-      const maxR = Math.min(width, height) / 2 - 40;
-      const getR = (lvl: number) => (maxLvl <= 1 ? 0 : (maxR / maxLvl) * lvl);
+
+      // 增加基础半径，确保节点之间有足够距离
+      const baseRadius = Math.min(width, height) * 0.25; // 增加基础半径
+      const maxR = Math.min(width, height) * 0.4; // 增加最大半径
+
+      // 修改半径计算函数，确保即使只有一层也有合理距离
+      const getR = (lvl: number) => lvl === 0 ? 0 : baseRadius + (maxR - baseRadius) * (lvl / Math.max(1, maxLvl));
 
       const result: { id: string; x: number; y: number }[] = [];
 
@@ -173,39 +177,51 @@ export default function GraphContainer() {
         result.push({ id: nd.id, x: cx, y: cy });
       });
 
-      // 放其它层级
+      // 按节点类型分配不同的角度区间
+      const typeAngles: Record<NodeType, { start: number, span: number }> = {
+        [NodeType.EVENT]: { start: 0, span: 90 },
+        [NodeType.PERSON]: { start: 90, span: 90 },
+        [NodeType.GROUP]: { start: 180, span: 90 },
+        [NodeType.ASSETS]: { start: 270, span: 45 },
+        [NodeType.RELATED_EVENT]: { start: 315, span: 45 },
+      };
+
+      // 放其它层级，按类型分区
       for (const [lvl, groupNodes] of levelGroups.entries()) {
         if (lvl === 0) continue;
         const radius = getR(lvl);
 
-        // 先按 clusterId 分簇
-        const clusterMap = new Map<string, GraphNode[]>();
+        // 按类型分组
+        const typeMap = new Map<NodeType, GraphNode[]>();
         groupNodes.forEach((nd) => {
-          const cid = nd.clusterId;
-          if (!clusterMap.has(cid)) clusterMap.set(cid, []);
-          clusterMap.get(cid)!.push(nd);
+          if (!typeMap.has(nd.type)) typeMap.set(nd.type, []);
+          typeMap.get(nd.type)!.push(nd);
         });
 
-        const clusters = Array.from(clusterMap.values());
-        const cCount = clusters.length;
-        let angleAcc = 0;
+        // 为每种类型的节点分配角度
+        for (const [nodeType, nodes] of typeMap.entries()) {
+          const angleConfig = typeAngles[nodeType] || { start: 0, span: 360 };
+          const startAngle = angleConfig.start;
+          const spanAngle = angleConfig.span;
 
-        clusters.forEach((clusterNodes) => {
-          const sectorAngle = 360 / cCount;
-          const startA = angleAcc;
-          const span = sectorAngle;
-
-          clusterNodes.forEach((nodeInCluster, i) => {
-            const m = clusterNodes.length;
-            const angleDeg = startA + ((i + 1) / (m + 1)) * span;
+          // 在分配的角度范围内均匀分布节点
+          nodes.forEach((node, i) => {
+            const nodeCount = nodes.length;
+            // 确保节点之间有足够间距
+            const angleDeg = startAngle + (spanAngle * (i + 0.5)) / Math.max(nodeCount, 1);
             const rad = (angleDeg * Math.PI) / 180;
-            const px = cx + radius * Math.cos(rad);
-            const py = cy + radius * Math.sin(rad);
-            result.push({ id: nodeInCluster.id, x: px, y: py });
-          });
 
-          angleAcc += sectorAngle;
-        });
+            // 添加一些随机性，避免完全对齐
+            const jitter = radius * 0.1; // 10% 的半径作为抖动范围
+            const jitterX = (Math.random() - 0.5) * jitter;
+            const jitterY = (Math.random() - 0.5) * jitter;
+
+            const px = cx + radius * Math.cos(rad) + jitterX;
+            const py = cy + radius * Math.sin(rad) + jitterY;
+
+            result.push({ id: node.id, x: px, y: py });
+          });
+        }
       }
 
       return result;
@@ -254,7 +270,7 @@ export default function GraphContainer() {
       return;
     }
 
-    // 判断“目标相对于源在哪个象限” → 返回 "top" / "right" / "bottom" / "left"
+    // 判断"目标相对于源在哪个象限" → 返回 "top" / "right" / "bottom" / "left"
     function getHandlePosition(
       sx: number,
       sy: number,
@@ -287,7 +303,7 @@ export default function GraphContainer() {
           (tgtNode.data as GraphNode).type,
         );
 
-        // 计算“中心点”：srcNode.position.x/ y 是左上角坐标，加上宽高的一半
+        // 计算"中心点"：srcNode.position.x/ y 是左上角坐标，加上宽高的一半
         const sx = srcNode.position.x + sW / 2;
         const sy = srcNode.position.y + sH / 2;
         const tx = tgtNode.position.x + tW / 2;
@@ -300,27 +316,31 @@ export default function GraphContainer() {
         const sourceHandleId = `${e.source}-h-${sourceDir}`;
         const targetHandleId = `${e.target}-h-${targetDir}`;
 
+        // 从 properties 中获取 parallelIndex 和 parallelTotal
+        const parallelIndex = e.properties?.parallelIndex ?? 0;
+        const parallelTotal = e.properties?.parallelTotal ?? 1;
+
         return {
-          id: `${e.source}-${e.target}-${e.parallelIndex}`,
+          id: e.id,
           source: e.source,
           sourceHandle: sourceHandleId,
           target: e.target,
           targetHandle: targetHandleId,
           type: "custom",
           data: {
-            parallelIndex: e.parallelIndex,
-            parallelTotal: e.parallelTotal,
-            role: e.role,
+            parallelIndex,
+            parallelTotal,
+            role: e.relationType, // 使用 relationType 替代 role
           },
         } as Edge;
       })
       .filter((ed): ed is Edge => ed !== null);
 
     setEdges(rfEdges);
-  }, [nodes, rawData]); // 只在 nodes 或 rawData.edges 改变时触发
+  }, [nodes, rawData]); // 只在 nodes 或 rawData 改变时触发
 
   // ----------------------------------------------------------------------------
-  // 5. 渲染 ReactFlow，传入 nodes / edges / 自定义 nodeTypes / edgeTypes
+  // 5. 渲染 ReactFlow，移除节点点击事件
   // ----------------------------------------------------------------------------
   return (
     <div ref={containerRef} className="h-full w-full">
@@ -329,8 +349,11 @@ export default function GraphContainer() {
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        fitView={false}
+        fitView={true}
         attributionPosition="bottom-left"
+        // 移除了节点点击事件
+        // 添加控件
+        elementsSelectable={false} // 禁用节点选择功能
       >
       </ReactFlow>
     </div>

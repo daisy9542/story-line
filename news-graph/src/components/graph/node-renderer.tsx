@@ -15,19 +15,19 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
   const ref = useRef<HTMLDivElement>(null);
 
   // 因为改成“不使用 size”，这里用 CSS class 或者内联样式给节点固定一个宽高
-  // 比如：“新闻事件” 200×100，其他节点 120×40。你可以根据 data.type 做区分。
+  // 比如："新闻事件" 200×100，其他节点 120×40。你可以根据 data.type 做区分。
   const { width, height } = getNodeDimensions(data.type);
 
   // =========== 1. 强制在 四个 边缘中点 放置一个“无 id”的 Handle，用作 edge 默认的目标 or 源 =============
   //    - 因为我们会在 GraphContainer 中动态决定每条边到底挂上下左右哪一个，
-  //      所以这里先渲染出四个“候选 Handle”，分别用 id: `${id}-h-top/right/bottom/left`
-  //    - “type” 取决于你想让它当 source 还是 target；这里先不指定 type=id/id，
-  //      我们把“上下左右”都渲染成既可 “source” 又可 “target” 的版本。
+  //      所以这里先渲染出四个"候选 Handle"，分别用 id: `${id}-h-top/right/bottom/left`
+  //    - "type" 取决于你想让它当 source 还是 target；这里先不指定 type=id/id，
+  //      我们把"上下左右"都渲染成既可 "source" 又可 "target" 的版本。
   //    在 React Flow 中，Handle 组件可以同时声明为 source 或 target，所以下面每个都写两次：
   //      <Handle type="target" position={Position.XXX} id={`${id}-h-xxx`} />
   //      <Handle type="source" position={Position.XXX} id={`${id}-h-xxx`} />
   //
-  //  实际上，如果一条边只需要 “sourceHandle” 或 “targetHandle” 其中之一自动匹配，
+  //  实际上，如果一条边只需要 "sourceHandle" 或 "targetHandle" 其中之一自动匹配，
   //  也可以只渲染一个 type，另一侧让 React Flow 自动默认。但为了灵活起见，这里四个都做成“无差别可用”：
   const candidateHandles = (
     <>
@@ -40,9 +40,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "50%",
           top: 0,
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent", // 改为透明
           width: 8,
           height: 8,
+          opacity: 0, // 添加完全透明
+          border: "none", // 移除边框
         }}
       />
       <Handle
@@ -53,13 +55,15 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "50%",
           top: 0,
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent", // 改为透明
           width: 8,
           height: 8,
+          opacity: 0, // 添加完全透明
+          border: "none", // 移除边框
         }}
       />
 
-      {/* 右边缘中点 */}
+      {/* 右边缘中点 - 同样修改 */}
       <Handle
         type="source"
         position={Position.Right}
@@ -68,9 +72,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "100%",
           top: "50%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
       <Handle
@@ -81,13 +87,15 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "100%",
           top: "50%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
 
-      {/* 下边缘中点 */}
+      {/* 下边缘中点 - 同样修改 */}
       <Handle
         type="source"
         position={Position.Bottom}
@@ -96,9 +104,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "50%",
           top: "100%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
       <Handle
@@ -109,13 +119,15 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: "50%",
           top: "100%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
 
-      {/* 左边缘中点 */}
+      {/* 左边缘中点 - 同样修改 */}
       <Handle
         type="source"
         position={Position.Left}
@@ -124,9 +136,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: 0,
           top: "50%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
       <Handle
@@ -137,9 +151,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
           left: 0,
           top: "50%",
           transform: "translate(-50%, -50%)",
-          background: "#888",
+          background: "transparent",
           width: 8,
           height: 8,
+          opacity: 0,
+          border: "none",
         }}
       />
     </>

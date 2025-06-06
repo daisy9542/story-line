@@ -69,7 +69,7 @@ export default function GraphContainer() {
   // ----------------------------------------------------------------------------
   useEffect(() => {
     if (!rawData) return;
-
+    
     const { nodes: rawNodes, edges: rawEdges } = rawData;
 
     // —— 3.1 BFS 计算每个节点的 "层级 level" —— //

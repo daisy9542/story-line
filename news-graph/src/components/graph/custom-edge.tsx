@@ -18,10 +18,7 @@ export default function CustomEdge({
     role?: string; // 例如 "Chief Scientist"
   };
 }) {
-  // 1. 先用 React Flow 的 getBezierPath 计算一条“非常平滑”的二次贝塞尔
-  //    由于我们已经把 Handle 定在最邻近的“上/右/下/左”中点，
-  //    getBezierPath 大多数情况下已经可以生成一条很接近直线的曲线。
-  //    如果你觉得仍然“过于曲折”，后面我们可以把控制点拉得更“接近” source→target 连线中点。
+  // 计算贝塞尔曲线路径
   const edgePath = getBezierPath({
     sourceX,
     sourceY,
@@ -29,12 +26,10 @@ export default function CustomEdge({
     targetX,
     targetY,
     targetPosition,
-    // 可以传一个强制的“偏移距离”让曲线更直，例如 curve=0.5；默认是 0.5
-    // 但你可以尝试大一些或小一些，比如 curve: 0.3，能让拐弯更陡峭，更贴近直线。
     curvature: 0.3,
   });
 
-  // 2. 通过 getEdgeCenter 拿到曲线中间点，用来放置一个带 label 的 <foreignObject>
+  // 获取边的中心点
   const [edgeCenterX, edgeCenterY] = getEdgeCenter({
     sourceX,
     sourceY,
@@ -42,28 +37,59 @@ export default function CustomEdge({
     targetY,
   })!;
 
+  // 为边创建唯一的渐变ID
+  const gradientId = `edge-gradient-${id}`;
+
   return (
     <>
-      {/* 3. 渲染这条曲线路径，需要一个明显的 stroke */}
+      {/* 定义渐变 */}
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#4423FE" />
+          <stop offset="50%" stopColor="#5B3EFF" />
+          <stop offset="100%" stopColor="#A190FF" />
+        </linearGradient>
+      </defs>
+
+      {/* 渲染带渐变的路径 */}
       <path
         id={id}
         d={edgePath}
-        stroke="#555" /* 在深色背景上用稍亮的灰 (#555) 才能看得清 */
-        strokeWidth={1.2} /* 线条粗细可以根据喜好做小幅度调整 */
+        stroke="rgba(91, 62, 255, 1)"
+        strokeWidth={1}
         fill="none"
         style={style}
       />
 
-      {/* 4. 如果 data.role 存在，就在曲线中点插入一个小标签 */}
+      {/* 修改关系标签样式 */}
       {data.role && (
         <foreignObject
-          x={edgeCenterX - 40}
-          y={edgeCenterY - 8}
-          width={80}
-          height={16}
+          x={edgeCenterX - 50} // 减小初始宽度
+          y={edgeCenterY - 12} // 调整垂直位置
+          width={100} // 减小初始宽度
+          height={24} // 减小高度
           style={{ overflow: "visible" }}
+          className="edge-label-container"
         >
-          <div className="bg-opacity-60 pointer-events-none flex items-center justify-center rounded bg-gray-700 px-1 text-xs text-white">
+          <div
+            style={{
+              display: "inline-flex", // 改为 inline-flex
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#1E1E23", // 添加不透明的背景色
+              color: "rgba(200, 200, 210, 0.6)", // 浅灰色文字
+              padding: "2px 8px", // 水平方向增加内边距，垂直方向减少
+              borderRadius: "4px", // 保持圆角
+              fontSize: "12px",
+              fontWeight: "300",
+              border: "1px solid rgba(255, 255, 255, 0.1)", // 细边框
+              pointerEvents: "none", // 防止鼠标事件干扰
+              whiteSpace: "nowrap", // 防止文字换行
+              width: "fit-content", // 宽度适应内容
+              height: "fit-content", // 高度适应内容
+              margin: "0 auto", // 水平居中
+            }}
+          >
             {data.role}
           </div>
         </foreignObject>

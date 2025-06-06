@@ -24,7 +24,7 @@ export default function NewsItem({
     >
       <div
         className={cn(
-          "text-sm leading-snug text-[rgb(208,208,209)]",
+          "text-[12px] leading-[18px] font-light text-[rgba(255,255,255,0.6)]",
           isSelected ? "text-white" : "",
         )}
       >
@@ -46,7 +46,7 @@ export default function NewsItem({
         </div> */}
         <div
           className={cn(
-            "text-[12px] text-gray-500",
+            "text-[12px] font-light text-[rgba(255,255,255,0.3)]",
             isSelected ? "text-white" : "",
           )}
         >

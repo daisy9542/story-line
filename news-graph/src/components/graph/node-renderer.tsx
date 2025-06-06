@@ -13,6 +13,7 @@ import {
 
 export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
   const ref = useRef<HTMLDivElement>(null);
+  const isMainEvent = id === "main-event";
 
   // 因为改成“不使用 size”，这里用 CSS class 或者内联样式给节点固定一个宽高
   // 比如："新闻事件" 200×100，其他节点 120×40。你可以根据 data.type 做区分。
@@ -169,7 +170,6 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     backgroundColor: "#17181A",
     borderRadius: "8px",
     padding: "6px 8px",
-    color: "#fff",
     fontSize: "12px",
     fontWeight: 300,
     overflow: "visible", // 允许 Handle 挂在边缘之外
@@ -177,7 +177,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     lineHeight: "16px",
     letterSpacing: 0,
   };
-
+  
   let typeWidthStyle: React.CSSProperties = {};
   let innerContent: React.ReactNode = null;
   switch (data.type) {
@@ -185,22 +185,12 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
       typeWidthStyle = {
         width: "auto",
         height: "30px",
-        padding: "5px",
-        paddingRight: "12px",
-        borderRadius: "100px",
+        padding: "10px",
+        borderRadius: "10px",
       };
       innerContent = (
-        <div className="flex h-full items-center gap-1.5 pl-[5px]">
-          {data.img ? (
-            <img
-              src={data.img}
-              alt={data.label}
-              className="h-5 w-5 rounded-full object-cover"
-            />
-          ) : (
-            <User className="h-5 w-5 rounded-full bg-white text-blue-400" />
-          )}
-          <span>{data.label}</span>
+        <div className="flex h-full items-center">
+          <span className="text-red">{data.label}</span>
         </div>
       );
       break;
@@ -223,56 +213,111 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
               <Users className="h-6 w-6 rounded-full bg-white text-blue-400" />
             </div>
           )}
-          <span className="truncate text-center text-white">{data.label}</span>
+          <span className="truncate text-center">{data.label}</span>
         </div>
       );
       break;
 
     case NodeType.EVENT:
-      typeWidthStyle = {
-        borderRadius: "12px",
-        padding: "12px",
-        width: "200px",
-      };
-      innerContent = (
-        <div className="flex flex-col gap-2">
-          <div className="flex justify-between">
-            <div className="flex space-x-1">
-              {/* {data.imgs &&
-                data.imgs.map((src, idx) => (
-                  <img
-                    key={idx}
-                    src={src}
-                    alt={source-${idx}}
-                    className="h-5 w-5 rounded-full object-cover"
-                  />
-                ))} */}
-              {[1, 2, 3].map((_, idx) => (
-                <Building2
-                  key={idx}
-                  className="h-4 w-4 rounded-full bg-white text-blue-400"
-                />
-              ))}
-            </div>
-            <div className="text-xs text-gray-500">
-              {toRelativeShort(data.time)}
+      if (isMainEvent) {
+        // 主事件节点使用嵌套 div 实现渐变边框
+        typeWidthStyle = {
+          padding: "0", // 移除内边距
+          background: "transparent", // 背景透明
+          borderRadius: "12px",
+          width: "200px",
+        };
+
+        innerContent = (
+          <div
+            style={{
+              position: "relative",
+              padding: "1.5px", // 为渐变边框留出空间
+              borderRadius: "12px",
+              background: "linear-gradient(84.79deg, #4423FE -28.13%, #5B3EFF 46.23%, #A190FF 127.01%)",
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <div
+              style={{
+                background: "#17181A", // 使用与外层容器相同的背景色
+                borderRadius: "10.5px", // 略小于外层，确保边框可见
+                padding: "12px",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              <div className="flex flex-col gap-2">
+                <span>{data.label}</span>
+                <div className="flex justify-between">
+                  <div className="flex space-x-1">
+                    {[1, 2, 3].map((_, idx) => (
+                      <Building2
+                        key={idx}
+                        className="h-4 w-4 rounded-full bg-white text-blue-400"
+                      />
+                    ))}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {toRelativeShort(data.time)}
+                  </div>
+                </div>
+                {data.tags && data.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {data.tags.map((tag) => (
+                      <div
+                        key={tag}
+                        className="rounded-md bg-[rgb(34,39,55)] p-[5px] text-[10px] text-[RGB(68,104,205)]"
+                      >
+                        {tag}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <span>{data.label}</span>
-          {data.tags && data.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {data.tags.map((tag) => (
-                <div
-                  key={tag}
-                  className="rounded-md bg-[rgb(34,39,55)] p-[5px] text-[10px] text-[RGB(68,104,205)]"
-                >
-                  {tag}
-                </div>
-              ))}
+        );
+      } else {
+        // 非主事件节点
+        typeWidthStyle = {
+          borderRadius: "12px",
+          padding: "12px",
+          width: "200px",
+        };
+
+        innerContent = (
+          <div className="flex flex-col gap-2">
+            <span>{data.label}</span>
+            <div className="flex justify-between">
+              <div className="flex space-x-1">
+                {[1, 2, 3].map((_, idx) => (
+                  <Building2
+                    key={idx}
+                    className="h-4 w-4 rounded-full bg-white text-blue-400"
+                  />
+                ))}
+              </div>
+              <div className="text-xs text-gray-500">
+                {toRelativeShort(data.time)}
+              </div>
             </div>
-          )}
-        </div>
-      );
+            {/* {data.tags && data.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {data.tags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="rounded-md bg-[rgb(34,39,55)] p-[5px] text-[10px] text-[RGB(68,104,205)]"
+                  >
+                    {tag}
+                  </div>
+                ))}
+              </div>
+            )} */}
+          </div>
+        );
+      }
       break;
 
     case NodeType.ASSETS:
@@ -324,7 +369,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
       {candidateHandles}
 
       {/* Popover 逻辑（同你原来一样，鼠标 hover 弹出详细卡片） */}
-      <Popover>
+      {/* <Popover>
         <PopoverTrigger asChild>
           <div className="absolute inset-0" />
         </PopoverTrigger>
@@ -365,7 +410,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
             </div>
           )}
         </PopoverContent>
-      </Popover>
+      </Popover> */}
     </div>
   );
 };

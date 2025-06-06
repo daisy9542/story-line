@@ -1,7 +1,8 @@
 import React from "react";
 import { EdgeProps, getBezierPath, getEdgeCenter } from "react-flow-renderer";
 
-export default function CustomEdge({
+// 将组件定义为React.FC<EdgeProps<any>>类型，并处理可选的data属性
+const CustomEdge: React.FC<EdgeProps<any>> = ({
   id,
   sourceX,
   sourceY,
@@ -11,13 +12,12 @@ export default function CustomEdge({
   targetPosition,
   style = {},
   data,
-}: EdgeProps & {
-  data: {
-    parallelIndex: number;
-    parallelTotal: number;
-    role?: string; // 例如 "Chief Scientist"
-  };
-}) {
+}) => {
+  // 提取data中的属性，处理data可能为undefined的情况
+  const parallelIndex = data?.parallelIndex ?? 0;
+  const parallelTotal = data?.parallelTotal ?? 1;
+  const role = data?.role;
+
   // 计算贝塞尔曲线路径
   const edgePath = getBezierPath({
     sourceX,
@@ -62,7 +62,7 @@ export default function CustomEdge({
       />
 
       {/* 修改关系标签样式 */}
-      {data.role && (
+      {role && (
         <foreignObject
           x={edgeCenterX - 50} // 减小初始宽度
           y={edgeCenterY - 12} // 调整垂直位置
@@ -90,10 +90,12 @@ export default function CustomEdge({
               margin: "0 auto", // 水平居中
             }}
           >
-            {data.role}
+            {role}
           </div>
         </foreignObject>
       )}
     </>
   );
-}
+};
+
+export default CustomEdge;

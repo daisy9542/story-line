@@ -154,10 +154,11 @@ export default function GraphContainer() {
 
       // 按层级分组
       const levelGroups = new Map<number, GraphNode[]>();
-      // nodesArr.forEach((nd) => {
-      //   if (!levelGroups.has(nd.level)) levelGroups.set(nd.level, []);
-      //   levelGroups.get(nd.level)!.push(nd);
-      // });
+      nodesArr.forEach((nd) => {
+        const level = nd.level ?? 0;
+        if (!levelGroups.has(level)) levelGroups.set(level, []);
+        levelGroups.get(level)!.push(nd);
+      });
 
       const lvls = Array.from(levelGroups.keys());
       const maxLvl = lvls.length ? Math.max(...lvls) : 0;
@@ -244,7 +245,19 @@ export default function GraphContainer() {
     } else {
       const posList = computeRadialPositions(rNodes, width, height);
       const rfNodes: Node<GraphNode>[] = rNodes.map((nd) => {
-        const found = posList.find((p) => p.id === nd.id)!;
+        const found = posList.find((p) => p.id === nd.id);
+        // 添加安全检查，如果找不到位置信息，则使用默认位置
+        if (!found) {
+          return {
+            id: nd.id,
+            type: "custom",
+            data: nd,
+            position: {
+              x: Math.random() * width,
+              y: Math.random() * height,
+            },
+          };
+        }
         return {
           id: nd.id,
           type: "custom",
@@ -291,6 +304,11 @@ export default function GraphContainer() {
         const tgtNode = nodes.find((n) => n.id === e.target);
         if (!srcNode || !tgtNode) {
           // 如果节点不在布局列表里，则忽略这条边
+          return null;
+        }
+
+        // 确保节点有position属性
+        if (!srcNode.position || !tgtNode.position) {
           return null;
         }
 

@@ -9,7 +9,6 @@ import ReactFlow, {
   Node,
 } from "react-flow-renderer";
 
-import { normalizeNodes } from "@/lib/graph-normalize";
 import { getNodeDimensions } from "@/lib/node-dimensions";
 
 import CustomEdge from "./custom-edge";
@@ -108,7 +107,7 @@ export default function GraphContainer() {
     );
 
     // —— 3.2 normalizeNodes + 附加 level/clusterId/opacity/parallelCount —— //
-    let rNodes: GraphNode[] = normalizeNodes(rawNodes);
+    let rNodes: GraphNode[] = rawNodes;
     rNodes = rNodes.map((n) => {
       const lvl = levelMap.get(n.id) ?? -1;
       let cId: string;
@@ -155,10 +154,10 @@ export default function GraphContainer() {
 
       // 按层级分组
       const levelGroups = new Map<number, GraphNode[]>();
-      nodesArr.forEach((nd) => {
-        if (!levelGroups.has(nd.level)) levelGroups.set(nd.level, []);
-        levelGroups.get(nd.level)!.push(nd);
-      });
+      // nodesArr.forEach((nd) => {
+      //   if (!levelGroups.has(nd.level)) levelGroups.set(nd.level, []);
+      //   levelGroups.get(nd.level)!.push(nd);
+      // });
 
       const lvls = Array.from(levelGroups.keys());
       const maxLvl = lvls.length ? Math.max(...lvls) : 0;

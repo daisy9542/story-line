@@ -260,7 +260,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                     ))}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {toRelativeShort(data.time)}
+                    {toRelativeShort(data.time!)}
                   </div>
                 </div>
                 {data.tags && data.tags.length > 0 && (
@@ -300,7 +300,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                 ))}
               </div>
               <div className="text-xs text-gray-500">
-                {toRelativeShort(data.time)}
+                {toRelativeShort(data.time!)}
               </div>
             </div>
             {/* {data.tags && data.tags.length > 0 && (
@@ -340,12 +340,12 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
             <BadgeDollarSign className="h-6 w-6 rounded-full bg-white text-blue-400" />
           )}
           <span className="text-[14px]">{data.label}</span>
-          <span
+          {/* <span
             className={`text-sm ${data.changePercent < 0 ? "text-[#FF3838]" : "text-[#0FE871]"}`}
           >
             {data.changePercent >= 0 ? "+" : ""}
             {data.changePercent}%
-          </span>
+          </span> */}
         </div>
       );
       break;

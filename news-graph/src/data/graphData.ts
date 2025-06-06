@@ -1,9 +1,9 @@
 // src/data/graphData.ts
 
-import { GraphData, NodeType } from "@/types";
+import { NodeType } from "@/types";
 
 // 直接把你在问题里给的 JSON 复制过来，做成一个常量。
-export const graphData: GraphData = {
+export const graphData = {
   nodes: [
     {
       id: "event-1",

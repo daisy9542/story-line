@@ -15,7 +15,7 @@ export interface GraphNode {
   opacity?: number;
   parallelCount?: number;
   img?: string;
-  time?: string;
+  time?: number;
   tags?: string[];
   url?: string;
   sentiment?: number;

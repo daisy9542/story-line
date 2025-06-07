@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { GraphEdge, GraphNode, NodeType } from "@/types";
 import ReactFlow, {
   Background,
@@ -17,62 +17,27 @@ import NodeRenderer from "./node-renderer";
 const nodeTypes = { custom: NodeRenderer };
 const edgeTypes = { custom: CustomEdge };
 
-export default function GraphContainer() {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  // 1. 修改 rawData 的类型定义，使其与 data-transformer 返回的数据结构匹配
-  const [rawData, setRawData] = useState<{
+interface GraphContainerProps {
+  graphData: {
     nodes: GraphNode[];
     edges: GraphEdge[];
-  } | null>(null);
+  };
+}
 
+export default function GraphContainer({ graphData }: GraphContainerProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<Node<GraphNode>[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
-  // 2. 修改 fetchData 函数，适配新的数据结构
-  const fetchData = useCallback(async () => {
-    try {
-      const res = await fetch("/api/graph");
-      if (!res.ok) throw new Error("Network response was not ok");
-      return await res.json();
-    } catch (error) {
-      console.error("Failed to fetch graph data:", error);
-      // 可以添加一个备用方案，直接导入本地数据
-      // 注意：这需要在客户端代码中导入 JSON 文件，可能需要配置 webpack
-      try {
-        // 在客户端动态导入数据
-        const localData = await import("@/data.json").then(module => module.default);
-        // 导入数据转换函数
-        const { transformDataToGraph } = await import("@/lib/data-transformer");
-        return transformDataToGraph(localData);
-      } catch (fallbackError) {
-        console.error("Failed to load local data:", fallbackError);
-        return null;
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchData();
-        setRawData(data);
-      } catch (err) {
-        console.error("Failed to load graph data", err);
-      }
-    })();
-  }, [fetchData]);
-
   // ----------------------------------------------------------------------------
-  // 3. effect #1：当 rawData 改变时，"先"做 BFS + normalize + 径向布局 → setNodes
+  // 1. effect #1：当 graphData 改变时，"先"做 BFS + normalize + 径向布局 → setNodes
   // ----------------------------------------------------------------------------
   useEffect(() => {
-    if (!rawData) return;
+    if (!graphData) return;
     
-    const { nodes: rawNodes, edges: rawEdges } = rawData;
-    console.log(nodes)
+    const { nodes: rawNodes, edges: rawEdges } = graphData;
 
-    // —— 3.1 BFS 计算每个节点的 "层级 level" —— //
+    // —— 1.1 BFS 计算每个节点的 "层级 level" —— //
     function assignLevels(
       rawNodes: { id: string; type: NodeType }[],
       rawEdges: { source: string; target: string }[],
@@ -107,7 +72,7 @@ export default function GraphContainer() {
       rawEdges.map((e) => ({ source: e.source, target: e.target })),
     );
 
-    // —— 3.2 normalizeNodes + 附加 level/clusterId/opacity/parallelCount —— //
+    // —— 1.2 normalizeNodes + 附加 level/clusterId/opacity/parallelCount —— //
     let rNodes: GraphNode[] = rawNodes;
     rNodes = rNodes.map((n) => {
       const lvl = levelMap.get(n.id) ?? -1;
@@ -137,7 +102,7 @@ export default function GraphContainer() {
     // 如果你不想展示"与中心不连通"的节点，可以 filter 掉 level<0
     // rNodes = rNodes.filter((n) => n.level >= 0);
 
-    // —— 3.3 径向布局：把 rNodes 映射到绝对坐标 (x, y) —— //
+    // —— 1.3 径向布局：把 rNodes 映射到绝对坐标 (x, y) —— //
     function computeRadialPositions(
       nodesArr: GraphNode[],
       width: number,
@@ -268,15 +233,15 @@ export default function GraphContainer() {
       });
       setNodes(rfNodes);
     }
-  }, [rawData]); // 只依赖 rawData，确保只在 rawData 变化时执行一次
+  }, [graphData]); // 只依赖 graphData，确保只在 graphData 变化时执行一次
 
   // ----------------------------------------------------------------------------
-  // 4. effect #2：当 nodes 或 rawData.edges 改变时，生成新的 edges 列表
+  // 2. effect #2：当 nodes 或 graphData.edges 改变时，生成新的 edges 列表
   // ----------------------------------------------------------------------------
   useEffect(() => {
-    if (!rawData) return;
+    if (!graphData) return;
 
-    const rawEdges = rawData.edges;
+    const rawEdges = graphData.edges;
     // 如果 nodes 还没布局完，就不生成 edges
     if (nodes.length === 0) {
       setEdges([]);
@@ -363,10 +328,10 @@ export default function GraphContainer() {
       .filter((ed): ed is Edge => ed !== null);
 
     setEdges(rfEdges);
-  }, [nodes, rawData]); // 只在 nodes 或 rawData 改变时触发
+  }, [nodes, graphData]); // 只在 nodes 或 graphData 改变时触发
 
   // ----------------------------------------------------------------------------
-  // 5. 渲染 ReactFlow，移除节点点击事件
+  // 3. 渲染 ReactFlow，移除节点点击事件
   // ----------------------------------------------------------------------------
   return (
     <div ref={containerRef} className="h-full w-full">

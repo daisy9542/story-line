@@ -12,11 +12,38 @@ export async function GET() {
     const rawData = JSON.parse(fileContents)
 
     // 使用 transformDataToGraph 转换数据
-    const transformedData = transformDataToGraph(rawData)
+    const graphData = transformDataToGraph(rawData)
 
-    // 返回转换后的数据
-    console.log(transformedData)
-    return NextResponse.json(transformedData)
+    // 构建分析数据
+    const analysisData = [
+      {
+        title: "Event Background",
+        content: rawData.background_analysis,
+      },
+      {
+        title: "Viral Potential",
+        content: rawData.viral_potential,
+      },
+      {
+        title: "Negative Event",
+        content: rawData.negative_events_identification,
+      },
+      {
+        title: "Causal Inference",
+        content: rawData.causal_inference.effect,
+      },
+    ];
+
+    // 返回完整数据
+    const completeData = {
+      graphData,
+      eventTitle: rawData.event_title,
+      analysisData,
+      eventLines: rawData.event_lines,
+      sentimentScore: rawData.sentiment_score,
+    };
+
+    return NextResponse.json(completeData)
   } catch (err) {
     console.error('Error processing graph data:', err)
     return NextResponse.json(

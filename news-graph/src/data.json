@@ -1,91 +1,92 @@
 {
-    "event_title": "马斯克与特朗普关系破裂",
-    "background_analysis": "马斯克因反对特朗普税法案，与其公开交恶，关系破裂。",
-    "viral_potential": "高传播性，社交媒体热议，引发广泛关注。",
-    "negative_events_identification": "马斯克指控特朗普涉Epstein文件，特斯拉股价大跌。",
-    "causal_inference": {
-      "effect": "特斯拉股价波动，政策不确定性增加",
-      "overall_confidence": 0.8
+  "event_title": "James Wynn's High-Leverage Bitcoin Trades",
+  "background_analysis": "James Wynn, a crypto trader, made massive leveraged bets on Bitcoin, experiencing rapid gains and losses amid market volatility.",
+  "viral_potential": "High-stakes drama and public liquidations generate buzz in crypto communities, potentially spreading rapidly on social media.",
+  "negative_events_identification": "Multiple liquidations and losses exceeding $200 million due to Bitcoin's price drops and poor trade timing.",
+  "causal_inference": {
+    "effect": "Aggressive leverage increases loss risk in volatile markets, potentially wiping out capital.",
+    "overall_confidence": 0.85
+  },
+  "entities": [
+    {
+      "name": "James Wynn",
+      "type": "Crypto Trader"
     },
-    "historical_similar_events": [
-      {
-        "event_title": "马斯克与SEC冲突 (2018)",
-        "outcome": "马斯克因推文被罚款，特斯拉股价短期下跌。",
-        "similarity_reason": "马斯克公开言论引发市场动荡和监管关注。"
-      },
-      {
-        "event_title": "特朗普与班农分裂 (2018)",
-        "outcome": "班农被特朗普团队边缘化，失去政治影响力。",
-        "similarity_reason": "亲密盟友因政策分歧公开决裂，引发舆论热议。"
-      }
-    ],
-    "entities": [
-      {
-        "type": "team",
-        "team": "SUI Team",
-        "relation_type": "Relative"
-      },
-      {
-        "type": "person",
-        "team": "Georage Danezis",
-        "relation_type": "Co-Founder"
-      },
-      {
-        "type": "person",
-        "team": "Adeniyi Abiodun",
-        "relation_type": "Relative"
-      },
-      {
-        "type": "assets",
-        "team": "BTC",
-        "relation_type": null,
-        "priceChange": 3.2
-      }
-    ],
-    "sentiment_score": -0.7,
-    "event_lines": [
-      {
-        "event": "马斯克批评特朗普税法案",
-        "sentiment": -0.5,
-        "date": "2025-05-28",
-        "url": "https://t.co/WvhRceBIgt"
-      },
-      {
-        "event": "马斯克退出特朗普顾问角色",
-        "sentiment": -0.6,
-        "date": "2025-05-29",
-        "url": "https://t.co/NdWzqj27FT"
-      },
-      {
-        "event": "特朗普公开表示对马斯克失望",
-        "sentiment": -0.7,
-        "date": "2025-06-05",
-        "url": "https://www.theguardian.com"
-      },
-      {
-        "event": "马斯克指控特朗普涉Epstein文件",
-        "sentiment": -0.9,
-        "date": "2025-06-05",
-        "url": "https://www.cbsnews.com"
-      },
-      {
-        "event": "特朗普威胁取消马斯克公司补贴",
-        "sentiment": -0.8,
-        "date": "2025-06-05",
-        "url": "https://www.reuters.com"
-      },
-      {
-        "event": "特斯拉股价下跌14%，市值损失1500亿",
-        "sentiment": -0.9,
-        "date": "2025-06-05",
-        "url": "https://www.reuters.com"
-      },
-      {
-        "event": "马斯克支持特朗普弹劾提议",
-        "sentiment": -0.8,
-        "date": "2025-06-05",
-        "url": "https://www.usatoday.com"
-      }
-    ]
-  }
+    {
+      "name": "Bitcoin",
+      "type": "Cryptocurrency"
+    },
+    {
+      "name": "Hyperliquid",
+      "type": "Crypto Exchange"
+    },
+    {
+      "name": "Binance",
+      "type": "Crypto Exchange"
+    }
+  ],
+  "historical_similar_events": [
+    {
+      "event_title": "FTX Collapse",
+      "outcome": "Led to billions in losses and regulatory scrutiny, bankrupting the exchange.",
+      "similarity_reason": "Both involve high-risk trading and leverage, resulting in massive financial failures and market impact."
+    },
+    {
+      "event_title": "Mt. Gox Hack",
+      "outcome": "Resulted in loss of hundreds of thousands of BTC and exchange shutdown.",
+      "similarity_reason": "Similar high-profile crypto failures due to over-leveraging and market manipulation risks."
+    }
+  ],
+  "sentiment_score": -0.7,
+  "event_lines": [
+    {
+      "event": "James Wynn increases Bitcoin long to $820 million",
+      "sentiment": 0.8,
+      "date": "2025-05-20",
+      "url": "https://twitter.com/TheBitcoinHistorian/status/..."
+    },
+    {
+      "event": "Wynn flips to short position after losses",
+      "sentiment": -0.9,
+      "date": "2025-05-25",
+      "url": "https://twitter.com/CoinBureau/status/..."
+    },
+    {
+      "event": "Wynn opens new 40x leveraged Bitcoin long",
+      "sentiment": 0.7,
+      "date": "2025-05-26",
+      "url": "https://twitter.com/KyleChasseDD/status/..."
+    },
+    {
+      "event": "Wynn gets stopped out but reopens longs",
+      "sentiment": 0.4,
+      "date": "2025-05-27",
+      "url": "https://twitter.com/Arkham/status/..."
+    },
+    {
+      "event": "Wynn offloads PEPE holdings amid Bitcoin trade",
+      "sentiment": -0.5,
+      "date": "2025-05-28",
+      "url": "https://coingape.com/hyperliquid-whale-james-wynn-offloads-all-of-his-pepe-coin-holdings/"
+    },
+    {
+      "event": "$98 million plunge in Wynn's positions",
+      "sentiment": -1.0,
+      "date": "2025-05-30",
+      "url": "https://cryptoslate.com/insights/by-betting-against-james-wynn-this-trader-made-17-million-in-under-a-week/"
+    },
+    {
+      "event": "Wynn opens second $100 million Bitcoin bet",
+      "sentiment": 0.6,
+      "date": "2025-06-03",
+      "url": "https://cointelegraph.com/news/james-wynn-2nd-100m-bitcoin-bet-hunting-me"
+    },
+    {
+      "event": "Partial liquidation of Wynn's latest position",
+      "sentiment": -0.8,
+      "date": "2025-06-05",
+      "url": "https://www.theblock.co/post/357056/crypto-trader-james-wynn-partial-liquidation-bitcoin"
+    }
+  ]
+}
 

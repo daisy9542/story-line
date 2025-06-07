@@ -83,7 +83,7 @@ export default function Sidebar({
             ))}
           </div>
         </div> */}
-        <div className="h-6 px-4 text-[18px] leading-6">🔥 Hot</div>
+        <div className="h-6 px-4 text-[18px] leading-6 mb-1">🔥 Hot</div>
         <div className="flex-1 overflow-scroll backdrop-blur-[30px]">
           <div className="flex cursor-pointer flex-col">
             {newsItems.map((item) => (

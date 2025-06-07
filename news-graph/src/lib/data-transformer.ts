@@ -19,6 +19,7 @@ export function transformDataToGraph(data: any) {
     background: data.background_analysis,
     viralPotential: data.viral_potential,
     sentiment: data.sentiment_score,
+    time: Date.now(), // 使用当前时间作为默认时间
   };
   nodes.push(mainEvent);
 
@@ -28,22 +29,17 @@ export function transformDataToGraph(data: any) {
       const entityId = `entity-${index}`;
 
       // 根据实体类型确定节点类型
-      let nodeType = NodeType.ASSETS;
-      if (entity.type === "person") {
-        nodeType = NodeType.PERSON;
-      } else if (entity.type === "team") {
-        nodeType = NodeType.GROUP;
-      }
+      let nodeType = NodeType.ENTITY;
 
       // 创建实体节点
       const entityNode: GraphNode = {
         id: entityId,
         type: nodeType,
-        label: entity.team,
+        label: entity.name || entity.team, // 兼容新旧数据格式
       };
 
       // 如果是资产类型且有价格变动，添加到标签
-      if (entity.type === "assets" && entity.priceChange !== undefined) {
+      if (entity.priceChange !== undefined) {
         const priceChangeText =
           entity.priceChange > 0
             ? `+${entity.priceChange}%`
@@ -54,19 +50,17 @@ export function transformDataToGraph(data: any) {
 
       nodes.push(entityNode);
 
-      // 只有当存在关系类型时才创建边
-      // if (entity.relation_type) {
+      // 创建与主事件的连接边
       edges.push({
         id: `edge-${mainEventId}-${entityId}`,
         source: mainEventId,
         target: entityId,
-        relationType: entity.relation_type,
+        relationType: entity.relation_type || entity.type, // 使用关系类型或实体类型作为边的标签
         properties: {
           parallelIndex: index,
           parallelTotal: data.entities.length,
         },
       });
-      // }
     });
   }
 
@@ -105,6 +99,5 @@ export function transformDataToGraph(data: any) {
       });
     });
   }
-
   return { nodes, edges };
 }

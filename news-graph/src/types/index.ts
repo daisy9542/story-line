@@ -4,6 +4,7 @@ export enum NodeType {
   GROUP = "group",
   ASSETS = "assets",
   RELATED_EVENT = "related_event",
+  ENTITY = "entity",
 }
 
 export interface GraphNode {

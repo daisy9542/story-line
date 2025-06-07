@@ -19,6 +19,27 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+// 定义本地图片数组
+const sourceImages = [
+  "/images/律动.png",
+  "/images/深潮.png",
+  "/images/Frame 1597881946.png",
+  "/images/Frame 1597881951.png",
+  "/images/Frame 1597881954.png",
+  "/images/Frame 1597881947.png",
+  "/images/Frame 1597881957.png",
+  "/images/Frame 1597881952.png",
+  "/images/Frame 1597881955.png",
+  "/images/Frame 1597881949.png",
+  "/images/Frame 1597881953.png",
+];
+
+// 随机选择一张图片的函数
+const getRandomImage = () => {
+  const randomIndex = Math.floor(Math.random() * sourceImages.length);
+  return sourceImages[randomIndex];
+};
+
 // 添加一个时间格式化函数
 const formatRelativeTime = (dateString?: string | number): string => {
   if (!dateString) return "";
@@ -292,7 +313,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                           rel="noopener noreferrer"
                           className="hover:opacity-80"
                         >
-                          <ExternalLink className="transparent h-3 w-3 text-white" />
+                          <img
+                            src={getRandomImage()}
+                            alt="Source"
+                            className="h-4 w-4 rounded-full object-cover"
+                          />
                         </a>
                       ))
                     ) : (
@@ -350,7 +375,11 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                       rel="noopener noreferrer"
                       className="hover:opacity-80"
                     >
-                      <ExternalLink className="h-4 w-4 rounded-full bg-white text-blue-400" />
+                      <img
+                        src={getRandomImage()}
+                        alt="Source"
+                        className="h-4 w-4 rounded-full object-cover"
+                      />
                     </a>
                   ))
                 ) : (
@@ -365,7 +394,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                   </div>
                 )} */}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-[14px] font-light leading-4 text-[rgba(255,255,255,0.3)]">
                 {formatRelativeTime(data.time)}
               </div>
             </div>

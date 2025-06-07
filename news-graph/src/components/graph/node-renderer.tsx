@@ -448,13 +448,18 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     default:
       typeWidthStyle = {
         width: "auto",
-        height: "30px",
+        minHeight: "30px",
         padding: "10px",
         borderRadius: "10px",
       };
       innerContent = (
-        <div className="flex h-full items-center">
-          <span>{data.label}</span>
+        <div className="flex h-full items-center gap-2">
+          <img
+            src={getRandomImage()}
+            alt={data.label}
+            className="h-4 w-4 rounded-full object-cover"
+          />
+          <div>{data.label}</div>
         </div>
       );
       break;

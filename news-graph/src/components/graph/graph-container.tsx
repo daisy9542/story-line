@@ -129,9 +129,9 @@ export default function GraphContainer({ graphData }: GraphContainerProps) {
       const lvls = Array.from(levelGroups.keys());
       const maxLvl = lvls.length ? Math.max(...lvls) : 0;
 
-      // 增加基础半径，确保节点之间有足够距离
-      const baseRadius = Math.min(width, height) * 0.25; // 增加基础半径
-      const maxR = Math.min(width, height) * 0.4; // 增加最大半径
+      // 增加基础半径和最大半径，使节点分布更加分散
+      const baseRadius = Math.min(width, height) * 0.35; // 从0.25增加到0.35
+      const maxR = Math.min(width, height) * 0.5; // 从0.4增加到0.5
 
       // 修改半径计算函数，确保即使只有一层也有合理距离
       const getR = (lvl: number) => lvl === 0 ? 0 : baseRadius + (maxR - baseRadius) * (lvl / Math.max(1, maxLvl));
@@ -143,13 +143,14 @@ export default function GraphContainer({ graphData }: GraphContainerProps) {
         result.push({ id: nd.id, x: cx, y: cy });
       });
 
-      // 按节点类型分配不同的角度区间
+      // 按节点类型分配不同的角度区间，调整角度分配更加均匀
       const typeAngles: Record<NodeType, { start: number, span: number }> = {
-        [NodeType.EVENT]: { start: 0, span: 90 },
-        [NodeType.PERSON]: { start: 90, span: 90 },
-        [NodeType.GROUP]: { start: 180, span: 90 },
-        [NodeType.ASSETS]: { start: 270, span: 45 },
-        [NodeType.RELATED_EVENT]: { start: 315, span: 45 },
+        [NodeType.EVENT]: { start: 0, span: 60 },
+        [NodeType.PERSON]: { start: 60, span: 60 },
+        [NodeType.ENTITY]: { start: 120, span: 60 },
+        [NodeType.GROUP]: { start: 180, span: 60 },
+        [NodeType.ASSETS]: { start: 240, span: 60 },
+        [NodeType.RELATED_EVENT]: { start: 300, span: 60 },
       };
 
       // 放其它层级，按类型分区
@@ -173,17 +174,25 @@ export default function GraphContainer({ graphData }: GraphContainerProps) {
           // 在分配的角度范围内均匀分布节点
           nodes.forEach((node, i) => {
             const nodeCount = nodes.length;
+
+            // 增加节点间的间距系数
+            const spacing = 1.5; // 增加节点间距
+
             // 确保节点之间有足够间距
-            const angleDeg = startAngle + (spanAngle * (i + 0.5)) / Math.max(nodeCount, 1);
+            const angleDeg = startAngle + (spanAngle * (i + 0.5) * spacing) / Math.max(nodeCount, 1);
             const rad = (angleDeg * Math.PI) / 180;
 
-            // 添加一些随机性，避免完全对齐
-            const jitter = radius * 0.1; // 10% 的半径作为抖动范围
+            // 增加随机性范围，使节点分布更加自然
+            const jitter = radius * 0.15; // 从0.1增加到0.15
             const jitterX = (Math.random() - 0.5) * jitter;
             const jitterY = (Math.random() - 0.5) * jitter;
 
-            const px = cx + radius * Math.cos(rad) + jitterX;
-            const py = cy + radius * Math.sin(rad) + jitterY;
+            // 如果节点太多，可以适当增加半径
+            const nodeCountAdjustment = Math.max(0, nodeCount - 3) * 0.05;
+            const adjustedRadius = radius * (1 + nodeCountAdjustment);
+
+            const px = cx + adjustedRadius * Math.cos(rad) + jitterX;
+            const py = cy + adjustedRadius * Math.sin(rad) + jitterY;
 
             result.push({ id: node.id, x: px, y: py });
           });

@@ -9,8 +9,8 @@ export default function Header() {
           <Image
             src="/LOGO.png"
             alt="StoryLine Logo"
-            width={120}
-            height={40}
+            width={156}
+            height={36}
             className="object-contain"
           />
         </div>

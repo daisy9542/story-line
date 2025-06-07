@@ -1,6 +1,14 @@
 import React, { useRef } from "react";
 import { GraphNode, NodeType } from "@/types";
-import { BadgeDollarSign, Building2, User, Users } from "lucide-react";
+import {
+  BadgeDollarSign,
+  ExternalLink,
+  Link,
+  LinkIcon,
+  MoreHorizontal,
+  User,
+  Users,
+} from "lucide-react";
 import { Handle, NodeProps, Position } from "react-flow-renderer";
 
 import { getNodeDimensions } from "@/lib/node-dimensions";
@@ -11,13 +19,37 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+// 添加一个时间格式化函数
+const formatRelativeTime = (dateString?: string | number): string => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+
+  // 获取月份（需要+1因为月份从0开始）
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  // 获取日期
+  const day = String(date.getDate()).padStart(2, "0");
+
+  // 获取年份
+  const year = date.getFullYear();
+
+  // 返回格式化的日期字符串：MM/DD YYYY
+  return `${month}/${day} ${year}`;
+};
+
 export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
   const ref = useRef<HTMLDivElement>(null);
   const isMainEvent = id === "main-event";
 
-  // 因为改成“不使用 size”，这里用 CSS class 或者内联样式给节点固定一个宽高
+  // 因为改成"不使用 size"，这里用 CSS class 或者内联样式给节点固定一个宽高
   // 比如："新闻事件" 200×100，其他节点 120×40。你可以根据 data.type 做区分。
   const { width, height } = getNodeDimensions(data.type);
+
+  // 处理 citations 数组，最多显示3个
+  const citations = data.citations || [];
+  const displayCitations = citations.slice(0, 3);
+  const hasMoreCitations = citations.length > 3;
 
   // =========== 1. 强制在 四个 边缘中点 放置一个“无 id”的 Handle，用作 edge 默认的目标 or 源 =============
   //    - 因为我们会在 GraphContainer 中动态决定每条边到底挂上下左右哪一个，
@@ -250,15 +282,33 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                 <span>{data.label}</span>
                 <div className="flex justify-between">
                   <div className="flex space-x-1">
-                    {[1, 2, 3].map((_, idx) => (
-                      <Building2
-                        key={idx}
-                        className="h-4 w-4 rounded-full bg-white text-blue-400"
-                      />
-                    ))}
+                    {displayCitations.length > 0 ? (
+                      // 显示外部链接图标
+                      displayCitations.map((citation, idx) => (
+                        <a
+                          key={idx}
+                          href={citation}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:opacity-80"
+                        >
+                          <ExternalLink className="transparent h-3 w-3 text-white" />
+                        </a>
+                      ))
+                    ) : (
+                      // 如果没有引用，显示一个默认图标
+                      // <LinkIcon className="h-4 w-4 rounded-full text-white transparent" />
+                      <div></div>
+                    )}
+                    {/* 如果有更多引用，显示一个更多图标 */}
+                    {/* {hasMoreCitations && (
+                      <div className="flex items-center">
+                        <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                      </div>
+                    )} */}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {toRelativeShort(data.time!)}
+                    {formatRelativeTime(data.time)}
                   </div>
                 </div>
                 {data.tags && data.tags.length > 0 && (
@@ -290,15 +340,33 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
             <span className="font-light text-white">{data.label}</span>
             <div className="flex justify-between">
               <div className="flex space-x-1">
-                {[1, 2, 3].map((_, idx) => (
-                  <Building2
-                    key={idx}
-                    className="h-4 w-4 rounded-full bg-white text-blue-400"
-                  />
-                ))}
+                {displayCitations.length > 0 ? (
+                  // 显示外部链接图标
+                  displayCitations.map((citation, idx) => (
+                    <a
+                      key={idx}
+                      href={citation}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:opacity-80"
+                    >
+                      <ExternalLink className="h-4 w-4 rounded-full bg-white text-blue-400" />
+                    </a>
+                  ))
+                ) : (
+                  // 如果没有引用，显示一个默认图标
+                  // <LinkIcon className="h-4 w-4 rounded-full bg-white text-gray-400" />
+                  <div></div>
+                )}
+                {/* 如果有更多引用，显示一个更多图标 */}
+                {/* {hasMoreCitations && (
+                  <div className="flex items-center">
+                    <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                  </div>
+                )} */}
               </div>
               <div className="text-xs text-gray-500">
-                {toRelativeShort(data.time!)}
+                {formatRelativeTime(data.time)}
               </div>
             </div>
             {/* {data.tags && data.tags.length > 0 && (

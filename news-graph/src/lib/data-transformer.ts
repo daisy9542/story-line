@@ -16,10 +16,8 @@ export function transformDataToGraph(data: any) {
     id: mainEventId,
     type: NodeType.EVENT,
     label: data.event_title,
-    background: data.background_analysis,
-    viralPotential: data.viral_potential,
-    sentiment: data.sentiment_score,
-    time: Date.now(), // 使用当前时间作为默认时间
+    time: data.created_at,
+    citations: data.citations,
   };
   nodes.push(mainEvent);
 
@@ -77,7 +75,7 @@ export function transformDataToGraph(data: any) {
         id: histEventId,
         type: NodeType.EVENT, // 使用EVENT类型，因为这是事件而非实体
         label: event.event_title,
-        background: event.outcome, // 使用outcome作为背景描述
+        time: data.created_at,
         // 添加标签显示相似原因
         tags: event.similarity_reason
           ? [`相似原因: ${event.similarity_reason}`]
@@ -99,5 +97,6 @@ export function transformDataToGraph(data: any) {
       });
     });
   }
+
   return { nodes, edges };
 }

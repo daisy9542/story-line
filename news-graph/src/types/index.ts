@@ -16,16 +16,16 @@ export interface GraphNode {
   opacity?: number;
   parallelCount?: number;
   img?: string;
-  time?: number;
+  time?: string;
   tags?: string[];
   url?: string;
   sentiment?: number;
+  citations?: string[];
 }
 
 export interface EventNode extends GraphNode {
   type: NodeType.EVENT;
-  background?: string;
-  viralPotential?: string;
+  citations?: string[];
 }
 
 export interface RelatedEventNode extends GraphNode {

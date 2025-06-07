@@ -1,99 +1,68 @@
 "use client";
 
 import React from "react";
-
-import { Input } from "@/components/ui/input";
-
+import { useEventStore } from "@/stores/eventStore";
 import NewsItem from "./sidebar-list/news-item";
 
-interface NewsItem {
-  id: string;
-  title: string;
-  tags: string[];
-  time: string;
+interface Event {
+  id: number;
+  input_label?: string;
+  event_title: string;
+  created_at: string;
 }
 
 interface SidebarProps {
-  newsItems?: NewsItem[];
+  events: Event[];
 }
 
-export default function Sidebar({
-  newsItems = [
-    {
-      id: "1",
-      title:
-        "Hyperliquid Soars, Sui vs Solana & Internet Capital Markets Explained Road PRO",
-      tags: ["Hack", "Destroy", "DeFi"],
-      time: "06/07 2025",
-    },
-    {
-      id: "2",
-      title:
-        "SUI rebounds after $162 mln Cetus hack – Will lost funds make it home?",
-      tags: ["Hack", "Destroy", "DeFi"],
-      time: "06/07 2025",
-    },
-    {
-      id: "3",
-      title:
-        "Bitcoin Whale Doubles Down With $1.25 Billion Long Bet on Hyperliquid",
-      tags: ["Hack", "Destroy", "DeFi"],
-      time: "06/07 2025",
-    },
-    {
-      id: "4",
-      title:
-        "Crypto Investor Allegedly Tortured Tourist With a Chainsaw To Steal His Password",
-      tags: ["Hack", "Destroy", "DeFi"],
-      time: "06/07 2025",
-    },
-  ],
-}: SidebarProps) {
-  const tabList = [
-    { value: "news", label: "News" },
-    { value: "company", label: "Company" },
-    { value: "Assets", label: "Assets" },
-    { value: "Person", label: "Person" },
-  ];
-  const [activeTab, setActiveTab] = React.useState(tabList[0].value);
-  const [selectedItem, setSelectedItem] = React.useState<string | null>(null);
+export default function Sidebar({ events = [] }: SidebarProps) {
+  // 从状态存储中获取当前选中的事件ID和设置事件ID的方法
+  const { currentEventId, setCurrentEvent } = useEventStore();
 
-  const handleClick = (id: string) => {
-    setSelectedItem(id);
+  // 格式化日期
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+
+      // 获取月份（需要+1因为月份从0开始）
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+
+      // 获取日期
+      const day = String(date.getDate()).padStart(2, '0');
+
+      // 获取年份
+      const year = date.getFullYear();
+
+      // 返回格式化的日期字符串：MM/DD YYYY
+      return `${month}/${day} ${year}`;
+    } catch (e) {
+      return dateStr;
+    }
   };
 
   return (
     <aside className="h-full w-full overflow-hidden bg-[rgba(135,145,171,0.08)] pt-6">
       <div className="flex h-full flex-col border-r border-[#8791AB]/20">
-        {/* <div className="space-y-3 px-4 pt-4 backdrop-blur-[30px]">
-          <div className="flex gap-2">
-            {tabList.map((tab) => (
-              <button
-                key={tab.value}
-                disabled={tab.value !== "news"}
-                onClick={() => setActiveTab(tab.value)}
-                className={`flex-1 cursor-pointer rounded-sm py-1 text-center text-sm font-medium transition-colors disabled:cursor-not-allowed ${
-                  activeTab === tab.value
-                    ? "bg-[rgb(37,38,39)] text-white"
-                    : "text-[rgb(162,163,164)]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div> */}
-        <div className="h-6 px-4 text-[18px] leading-6 mb-1">🔥 Hot</div>
+        <div className="mb-1 h-6 px-4 text-[18px] leading-6">🔥 Hot</div>
         <div className="flex-1 overflow-scroll backdrop-blur-[30px]">
           <div className="flex cursor-pointer flex-col">
-            {newsItems.map((item) => (
-              <NewsItem
-                key={item.id}
-                item={item}
-                isSelected={item.id === selectedItem}
-                onClick={handleClick}
-              />
-            ))}
+            {events.length === 0 ? (
+              <div className="p-4 text-gray-400">No Events</div>
+            ) : (
+              events.map((event: Event) => (
+                <NewsItem
+                  key={event.id}
+                  item={{
+                    id: event.id.toString(),
+                    title: event.input_label || event.event_title,
+                    time: formatDate(event.created_at),
+                    tags: []
+                  }}
+                  isSelected={event.id === currentEventId}
+                  onClick={() => setCurrentEvent(event.id)}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>

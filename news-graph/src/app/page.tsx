@@ -47,7 +47,15 @@ export default function Home() {
         if (!Array.isArray(data) || data.length === 0) {
           console.warn("API返回的数据不是数组或为空，使用备用数据");
         } else {
-          setEvents(data);
+          // 根据 created_at 字段进行倒序排序
+          const sortedData = [...data].sort((a, b) => {
+            // 如果没有 created_at 字段，则使用当前时间
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA; // 倒序排序
+          });
+
+          setEvents(sortedData);
         }
 
         setError(null);

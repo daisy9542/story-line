@@ -1,23 +1,9 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { GraphNode, NodeType } from "@/types";
-import {
-  BadgeDollarSign,
-  ExternalLink,
-  Link,
-  LinkIcon,
-  MoreHorizontal,
-  User,
-  Users,
-} from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Handle, NodeProps, Position } from "react-flow-renderer";
 
 import { getNodeDimensions } from "@/lib/node-dimensions";
-import { toRelativeShort } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 // 定义本地图片数组
 const sourceImages = [
@@ -34,10 +20,27 @@ const sourceImages = [
   "/images/Frame 1597881953.png",
 ];
 
-// 随机选择一张图片的函数
+// 随机选择一张图片的函数，确保不重复
+const usedImages = new Set<string>();
+
 const getRandomImage = () => {
-  const randomIndex = Math.floor(Math.random() * sourceImages.length);
-  return sourceImages[randomIndex];
+  // 如果所有图片都已使用，重置集合
+  if (usedImages.size >= sourceImages.length) {
+    usedImages.clear();
+  }
+
+  // 找到一个未使用的图片
+  let randomIndex;
+  let selectedImage;
+
+  do {
+    randomIndex = Math.floor(Math.random() * sourceImages.length);
+    selectedImage = sourceImages[randomIndex];
+  } while (usedImages.has(selectedImage));
+
+  // 标记为已使用
+  usedImages.add(selectedImage);
+  return selectedImage;
 };
 
 // 添加一个时间格式化函数
@@ -60,7 +63,7 @@ const formatRelativeTime = (dateString?: string | number): string => {
 };
 
 export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
-  const ref = useRef<HTMLDivElement>(null);
+  const nodeRef = useRef<HTMLDivElement>(null);
   const isMainEvent = id === "main-event";
 
   // 因为改成"不使用 size"，这里用 CSS class 或者内联样式给节点固定一个宽高
@@ -71,6 +74,22 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
   const citations = data.citations || [];
   const displayCitations = citations.slice(0, 3);
   const hasMoreCitations = citations.length > 3;
+
+  // 使用 useEffect 动态调整节点高度
+  useEffect(() => {
+    if (nodeRef.current) {
+      // 获取节点内容的实际高度
+      const contentHeight = nodeRef.current.scrollHeight;
+
+      // 设置节点容器的高度
+      nodeRef.current.style.height = `${contentHeight}px`;
+
+      // 通知 React Flow 节点尺寸已更改
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+      }, 0);
+    }
+  }, [data.label]); // 当标签内容变化时重新计算
 
   // =========== 1. 强制在 四个 边缘中点 放置一个“无 id”的 Handle，用作 edge 默认的目标 or 源 =============
   //    - 因为我们会在 GraphContainer 中动态决定每条边到底挂上下左右哪一个，
@@ -313,11 +332,15 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                           rel="noopener noreferrer"
                           className="hover:opacity-80"
                         >
-                          <img
-                            src={getRandomImage()}
-                            alt="Source"
-                            className="h-4 w-4 rounded-full object-cover"
-                          />
+                          {idx === displayCitations.length - 1 ? (
+                            <ExternalLink className="h-4 w-4 text-white" />
+                          ) : (
+                            <img
+                              src={getRandomImage()}
+                              alt="Source"
+                              className="h-4 w-4 rounded-full object-cover"
+                            />
+                          )}
                         </a>
                       ))
                     ) : (
@@ -375,11 +398,15 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                       rel="noopener noreferrer"
                       className="hover:opacity-80"
                     >
-                      <img
-                        src={getRandomImage()}
-                        alt="Source"
-                        className="h-4 w-4 rounded-full object-cover"
-                      />
+                      {idx === displayCitations.length - 1 ? (
+                        <ExternalLink className="h-4 w-4 text-white" />
+                      ) : (
+                        <img
+                          src={getRandomImage()}
+                          alt="Source"
+                          className="h-4 w-4 rounded-full object-cover"
+                        />
+                      )}
                     </a>
                   ))
                 ) : (
@@ -394,7 +421,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
                   </div>
                 )} */}
               </div>
-              <div className="text-[14px] font-light leading-4 text-[rgba(255,255,255,0.3)]">
+              <div className="text-[14px] leading-4 font-light text-[rgba(255,255,255,0.3)]">
                 {formatRelativeTime(data.time)}
               </div>
             </div>
@@ -448,18 +475,23 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     default:
       typeWidthStyle = {
         width: "auto",
-        minHeight: "30px",
-        padding: "10px",
-        borderRadius: "10px",
+        minWidth: "30px", // 设置最小宽度
+        maxWidth: "200px",
+        height: "40px",
+        padding: "12px",
+        borderRadius: "12px",
+        display: "flex",
+        justifyContent: "start",
+        alignItems: "center",
       };
       innerContent = (
-        <div className="flex h-full items-center gap-2">
-          <img
+        <div className="flex items-start gap-2">
+          {/* <img
             src={getRandomImage()}
             alt={data.label}
-            className="h-4 w-4 rounded-full object-cover"
-          />
-          <div>{data.label}</div>
+            className="h-4 w-4 flex-shrink-0 rounded-full object-cover"
+          /> */}
+          <div className="flex-1 items-center">{data.label}</div>
         </div>
       );
       break;
@@ -469,50 +501,6 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     <div style={{ ...containerStyle, ...typeWidthStyle }}>
       {innerContent}
       {candidateHandles}
-
-      {/* Popover 逻辑（同你原来一样，鼠标 hover 弹出详细卡片） */}
-      {/* <Popover>
-        <PopoverTrigger asChild>
-          <div className="absolute inset-0" />
-        </PopoverTrigger>
-        <PopoverContent
-          side="right"
-          align="center"
-          className="z-50 max-w-xs rounded bg-white p-3 shadow-lg"
-        >
-          <h4 className="mb-1 text-sm font-semibold">{data.label}</h4>
-          {data.type === NodeType.PERSON && (
-            <div className="text-xs text-gray-600">
-              人物：{data.label} 的详细信息…
-            </div>
-          )}
-          {data.type === NodeType.GROUP && (
-            <div className="text-xs text-gray-600">
-              组织：{data.label}。成员数：{data.memberCount ?? "未知"}。
-            </div>
-          )}
-          {data.type === NodeType.EVENT && (
-            <div className="space-y-1 text-xs text-gray-600">
-              <p>时间：{data.time}</p>
-              <div className="flex flex-wrap gap-1">
-                {(data.tags || []).map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded bg-blue-100 px-1 py-0.5 text-[9px] text-blue-800"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          {data.type === NodeType.ASSETS && (
-            <div className="text-xs text-gray-600">
-              资产：{data.label}。涨跌：{data.changePercent}.
-            </div>
-          )}
-        </PopoverContent>
-      </Popover> */}
     </div>
   );
 };

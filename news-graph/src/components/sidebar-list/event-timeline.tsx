@@ -24,10 +24,18 @@ export default function EventTimeline({ events }: EventTimelineProps) {
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
-      return date.toLocaleDateString("zh-CN", {
-        month: "short",
-        day: "numeric",
-      });
+
+      // 获取月份（需要+1因为月份从0开始）
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+
+      // 获取日期
+      const day = String(date.getDate()).padStart(2, '0');
+
+      // 获取年份
+      const year = date.getFullYear();
+
+      // 返回格式化的日期字符串：MM/DD YYYY
+      return `${month}/${day} ${year}`;
     } catch (e) {
       return dateStr;
     }

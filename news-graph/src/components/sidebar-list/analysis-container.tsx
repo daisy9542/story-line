@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 interface AnalysisContainerProps {
@@ -32,13 +32,21 @@ export default function AnalysisContainer({
 
     const handleScroll = () => {
       // 计算滚动位置
-      const scrollPosition = contentElement.scrollTop + contentElement.clientHeight;
+      const scrollPosition =
+        contentElement.scrollTop + contentElement.clientHeight;
       const scrollHeight = contentElement.scrollHeight;
 
       // 如果滚动到底部附近（距离底部20px以内），隐藏 More 按钮
       const isNearBottom = scrollHeight - scrollPosition < 20;
 
-      console.log('Scroll position:', scrollPosition, 'Scroll height:', scrollHeight, 'Is near bottom:', isNearBottom);
+      console.log(
+        "Scroll position:",
+        scrollPosition,
+        "Scroll height:",
+        scrollHeight,
+        "Is near bottom:",
+        isNearBottom,
+      );
 
       setShowMore(!isNearBottom);
     };
@@ -58,15 +66,15 @@ export default function AnalysisContainer({
     checkInitialOverflow();
 
     // 添加滚动事件监听
-    contentElement.addEventListener('scroll', handleScroll);
+    contentElement.addEventListener("scroll", handleScroll);
 
     // 添加窗口大小变化监听，因为这可能会影响滚动高度
-    window.addEventListener('resize', handleScroll);
+    window.addEventListener("resize", handleScroll);
 
     // 清理函数
     return () => {
-      contentElement.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      contentElement.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, []);
 
@@ -76,13 +84,13 @@ export default function AnalysisContainer({
       // 滚动到底部
       contentRef.current.scrollTo({
         top: contentRef.current.scrollHeight,
-        behavior: 'smooth' // 平滑滚动
+        behavior: "smooth", // 平滑滚动
       });
     }
   };
 
   return (
-    <div className="flex h-full w-full flex-col border rounded-xl bg-[#1A1B1E] border-[rgba(255,255,255,0.1)] text-white">
+    <div className="flex h-full w-full flex-col rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#1A1B1E] text-white">
       {/* 标题部分 */}
       <div className="p-3">
         <h1 className="leading-6">{eventTitle}</h1>
@@ -92,28 +100,28 @@ export default function AnalysisContainer({
       {/* 分析数据部分 - 添加 ref */}
       <div
         ref={contentRef}
-        className="flex flex-1 flex-col space-y-6 overflow-y-auto p-3 relative"
+        className="relative flex flex-1 flex-col space-y-6 overflow-y-auto p-3"
       >
-        {analysisData.map((item, index) => (
-          <div key={index} className="flex flex-col space-y-2">
-            <h2 className="text-[12px] leading-4 font-medium">{item.title}</h2>
-            <p className="text-sm text-white/60 font-light">{item.content}</p>
-          </div>
-        ))}
-
         {/* 时间线部分 */}
         <div className="flex flex-col space-y-2">
-          <h2 className="text-[12px] leading-4 font-medium">Timeline</h2>
+          <h2 className="text-[14px] leading-4 font-medium">Timeline</h2>
           <div className="flex flex-col space-y-3">
             {eventLines.map((event, index) => (
-              <p key={index} className="text-sm text-white/60 font-light">
+              <p key={index} className="text-sm font-light text-white/60">
                 {event.date.includes("-")
                   ? `${event.date.split("-")[1]}月${event.date.split("-")[2]}日，`
-                  : ""}{event.event}
+                  : ""}
+                {event.event}
               </p>
             ))}
           </div>
         </div>
+        {analysisData.map((item, index) => (
+          <div key={index} className="flex flex-col space-y-2">
+            <h2 className="text-[14px] leading-4 font-medium">{item.title}</h2>
+            <p className="text-sm font-light text-white/60">{item.content}</p>
+          </div>
+        ))}
 
         {/* 底部留白，确保内容不会被 More 按钮遮挡 */}
         <div className="h-8"></div>
@@ -121,10 +129,10 @@ export default function AnalysisContainer({
 
       {/* More 按钮，根据 showMore 状态显示或隐藏 */}
       {showMore && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+        <div className="absolute right-0 bottom-4 left-0 flex justify-center">
           <button
             onClick={scrollToNextSection}
-            className="flex items-center gap-1 rounded-full bg-[#2A2B30] px-5 py-2 text-gray-300 hover:bg-[#3A3B42] hover:text-white transition-all shadow-lg border border-gray-700 !cursor-pointer"
+            className="flex !cursor-pointer items-center gap-1 rounded-full border border-gray-700 bg-[#2A2B30] px-5 py-2 text-gray-300 shadow-lg transition-all hover:bg-[#3A3B42] hover:text-white"
           >
             <span className="text-sm font-medium">More</span>
             <ChevronDown size={16} className="animate-bounce-slow" />

@@ -70,6 +70,7 @@ export default function GraphContainer() {
     if (!rawData) return;
     
     const { nodes: rawNodes, edges: rawEdges } = rawData;
+    console.log(nodes)
 
     // —— 3.1 BFS 计算每个节点的 "层级 level" —— //
     function assignLevels(
@@ -291,10 +292,14 @@ export default function GraphContainer() {
     ): "top" | "right" | "bottom" | "left" {
       const dx = tx - sx;
       const dy = ty - sy;
-      if (Math.abs(dx) >= Math.abs(dy)) {
-        return dx > 0 ? "right" : "left";
-      }
-      return dy > 0 ? "bottom" : "top";
+      // 使用更精确的角度计算，而不是简单的象限判断
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+      // 将角度划分为四个区域
+      if (angle > -45 && angle <= 45) return "right";
+      if (angle > 45 && angle <= 135) return "bottom";
+      if (angle > 135 || angle <= -135) return "left";
+      return "top"; // angle > -135 && angle <= -45
     }
 
     const rfEdges: Edge[] = rawEdges
@@ -337,6 +342,9 @@ export default function GraphContainer() {
         const parallelIndex = e.properties?.parallelIndex ?? 0;
         const parallelTotal = e.properties?.parallelTotal ?? 1;
 
+        // 获取源节点类型
+        const sourceType = (srcNode.data as GraphNode).type;
+
         return {
           id: e.id,
           source: e.source,
@@ -348,6 +356,7 @@ export default function GraphContainer() {
             parallelIndex,
             parallelTotal,
             role: e.relationType, // 使用 relationType 替代 role
+            sourceType, // 添加源节点类型
           },
         } as Edge;
       })

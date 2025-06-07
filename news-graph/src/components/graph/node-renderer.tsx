@@ -39,13 +39,12 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         id={`${id}-h-top`}
         style={{
           left: "50%",
-          top: 0,
-          transform: "translate(-50%, -50%)",
-          background: "transparent", // 改为透明
+          transform: "translate(-50%, 50%)",
+          background: "transparent",
           width: 8,
           height: 8,
-          opacity: 0, // 添加完全透明
-          border: "none", // 移除边框
+          opacity: 0,
+          border: "none",
         }}
       />
       <Handle
@@ -53,14 +52,14 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Top}
         id={`${id}-h-top`}
         style={{
+          top: "-1px",
           left: "50%",
-          top: 0,
           transform: "translate(-50%, -50%)",
-          background: "transparent", // 改为透明
+          background: "transparent",
           width: 8,
           height: 8,
-          opacity: 0, // 添加完全透明
-          border: "none", // 移除边框
+          opacity: 0,
+          border: "none",
         }}
       />
 
@@ -70,7 +69,6 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Right}
         id={`${id}-h-right`}
         style={{
-          left: "100%",
           top: "50%",
           transform: "translate(-50%, -50%)",
           background: "transparent",
@@ -85,9 +83,9 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Right}
         id={`${id}-h-right`}
         style={{
-          left: "100%",
+          right: "-1px",
           top: "50%",
-          transform: "translate(-50%, -50%)",
+          transform: "translate(50%, -50%)",
           background: "transparent",
           width: 8,
           height: 8,
@@ -103,7 +101,6 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         id={`${id}-h-bottom`}
         style={{
           left: "50%",
-          top: "100%",
           transform: "translate(-50%, -50%)",
           background: "transparent",
           width: 8,
@@ -117,9 +114,9 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Bottom}
         id={`${id}-h-bottom`}
         style={{
+          bottom: "-1px",
           left: "50%",
-          top: "100%",
-          transform: "translate(-50%, -50%)",
+          transform: "translate(-50%, 50%)",
           background: "transparent",
           width: 8,
           height: 8,
@@ -134,9 +131,8 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Left}
         id={`${id}-h-left`}
         style={{
-          left: 0,
           top: "50%",
-          transform: "translate(-50%, -50%)",
+          transform: "translate(50%, -50%)",
           background: "transparent",
           width: 8,
           height: 8,
@@ -149,7 +145,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
         position={Position.Left}
         id={`${id}-h-left`}
         style={{
-          left: 0,
+          left: "-1px",
           top: "50%",
           transform: "translate(-50%, -50%)",
           background: "transparent",
@@ -173,50 +169,51 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
     fontSize: "12px",
     fontWeight: 300,
     overflow: "visible", // 允许 Handle 挂在边缘之外
-    opacity: data.opacity,
+    // opacity: data.opacity,
     lineHeight: "16px",
     letterSpacing: 0,
   };
-  
+
   let typeWidthStyle: React.CSSProperties = {};
   let innerContent: React.ReactNode = null;
   switch (data.type) {
-    case NodeType.PERSON:
-      typeWidthStyle = {
-        width: "auto",
-        height: "30px",
-        padding: "10px",
-        borderRadius: "10px",
-      };
-      innerContent = (
-        <div className="flex h-full items-center">
-          <span className="text-red">{data.label}</span>
-        </div>
-      );
-      break;
+    // case NodeType.PERSON:
+    // typeWidthStyle = {
+    //   width: "auto",
+    //   height: "30px",
+    //   padding: "10px",
+    //   borderRadius: "10px",
+    //   color: "white",
+    // };
+    // innerContent = (
+    //   <div className="flex h-full items-center">
+    //     <span>{data.label}</span>
+    //   </div>
+    // );
+    // break;
 
-    case NodeType.GROUP:
-      typeWidthStyle = {
-        borderRadius: "10px",
-        padding: "10px",
-      };
-      innerContent = (
-        <div className="flex h-full w-full flex-col items-center justify-center gap-2">
-          {data.img ? (
-            <img
-              src={data.img}
-              alt={data.label}
-              className="h-6 w-6 object-contain"
-            />
-          ) : (
-            <div className="flex items-center justify-center">
-              <Users className="h-6 w-6 rounded-full bg-white text-blue-400" />
-            </div>
-          )}
-          <span className="truncate text-center">{data.label}</span>
-        </div>
-      );
-      break;
+    // case NodeType.GROUP:
+    //   typeWidthStyle = {
+    //     borderRadius: "10px",
+    //     padding: "10px",
+    //   };
+    //   innerContent = (
+    //     <div className="flex h-full w-full flex-col items-center justify-center gap-2">
+    //       {data.img ? (
+    //         <img
+    //           src={data.img}
+    //           alt={data.label}
+    //           className="h-6 w-6 object-contain"
+    //         />
+    //       ) : (
+    //         <div className="flex items-center justify-center">
+    //           <Users className="h-6 w-6 rounded-full bg-white text-blue-400" />
+    //         </div>
+    //       )}
+    //       <span className="truncate text-center">{data.label}</span>
+    //     </div>
+    //   );
+    //   break;
 
     case NodeType.EVENT:
       if (isMainEvent) {
@@ -234,7 +231,8 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
               position: "relative",
               padding: "1.5px", // 为渐变边框留出空间
               borderRadius: "12px",
-              background: "linear-gradient(84.79deg, #4423FE -28.13%, #5B3EFF 46.23%, #A190FF 127.01%)",
+              background:
+                "linear-gradient(84.79deg, #4423FE -28.13%, #5B3EFF 46.23%, #A190FF 127.01%)",
               width: "100%",
               height: "100%",
             }}
@@ -289,7 +287,7 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
 
         innerContent = (
           <div className="flex flex-col gap-2">
-            <span>{data.label}</span>
+            <span className="font-light text-white">{data.label}</span>
             <div className="flex justify-between">
               <div className="flex space-x-1">
                 {[1, 2, 3].map((_, idx) => (
@@ -320,47 +318,49 @@ export const NodeRenderer = ({ id, data }: NodeProps<GraphNode>) => {
       }
       break;
 
-    case NodeType.ASSETS:
+    // case NodeType.ASSETS:
+    //   typeWidthStyle = {
+    //     width: "auto",
+    //     height: "30px",
+    //     padding: "6px",
+    //     paddingRight: "12px",
+    //     borderRadius: "100px",
+    //   };
+    //   innerContent = (
+    //     <div className="flex h-full items-center gap-1.5">
+    //       {data.img ? (
+    //         <img
+    //           src={data.img}
+    //           alt={data.label}
+    //           className="rounded-full object-cover"
+    //         />
+    //       ) : (
+    //         <BadgeDollarSign className="h-6 w-6 rounded-full bg-white text-blue-400" />
+    //       )}
+    //       <span className="text-[14px]">{data.label}</span>
+    //       {/* <span
+    //         className={`text-sm ${data.changePercent < 0 ? "text-[#FF3838]" : "text-[#0FE871]"}`}
+    //       >
+    //         {data.changePercent >= 0 ? "+" : ""}
+    //         {data.changePercent}%
+    //       </span> */}
+    //     </div>
+    //   );
+    //   break;
+
+    default:
       typeWidthStyle = {
         width: "auto",
         height: "30px",
-        padding: "6px",
-        paddingRight: "12px",
-        borderRadius: "100px",
+        padding: "10px",
+        borderRadius: "10px",
       };
       innerContent = (
-        <div className="flex h-full items-center gap-1.5">
-          {data.img ? (
-            <img
-              src={data.img}
-              alt={data.label}
-              className="rounded-full object-cover"
-            />
-          ) : (
-            <BadgeDollarSign className="h-6 w-6 rounded-full bg-white text-blue-400" />
-          )}
-          <span className="text-[14px]">{data.label}</span>
-          {/* <span
-            className={`text-sm ${data.changePercent < 0 ? "text-[#FF3838]" : "text-[#0FE871]"}`}
-          >
-            {data.changePercent >= 0 ? "+" : ""}
-            {data.changePercent}%
-          </span> */}
+        <div className="flex h-full items-center">
+          <span>{data.label}</span>
         </div>
       );
       break;
-
-    default:
-      // ------------- 兜底 -------------
-      typeWidthStyle = {
-        // borderRadius: 4,
-      };
-      innerContent = (
-        // <div className="flex h-full w-full items-center justify-center">
-        // <span className="text-xs text-white">{data.label}</span>
-        // </div>
-        <div></div>
-      );
   }
 
   return (

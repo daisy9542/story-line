@@ -43,12 +43,12 @@ export interface KeyEntity {
 
 // 历史比较
 export interface HistoricalComparison {
+  event_date: string; // 事件日期
   event_summary: string; // 事件总结
   outcome_and_lessons: string; // 结局与教训
   similarity_label: string; // 相似标签
-  event_date?: string; // 事件日期
-  id?: string; // 可选：ID
-  market_indicator?: Record<string, string>; // 市场指标，从market_data中提取
+  market_indicator: Record<string, string>; // 市场指标，从market_data中提取
+  sentiment_score: number, // 情绪分，-1~1
 }
 
 // 因果推断

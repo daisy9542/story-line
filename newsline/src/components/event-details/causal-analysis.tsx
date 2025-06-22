@@ -4,7 +4,7 @@ import { AnimatedArrow } from "@/components/ui/animated-arrow";
 import { CausalInference } from "@/types/report";
 import { getSentimentColor, getSentimentLabel } from "@/lib/utils";
 
-interface RecursiveCausalProps {
+interface CausalAnalysisProps {
   analysis: CausalInference;
   isRoot?: boolean;
 }
@@ -16,7 +16,7 @@ const getConfidenceStyle = (confidence: number) => {
   return { color: "text-red-600", bg: "bg-red-50", text: "低" };
 };
 
-export const RecursiveCausal = ({ analysis, isRoot = false }: RecursiveCausalProps) => {
+export const CausalAnalysis = ({ analysis, isRoot = false }: CausalAnalysisProps) => {
   const confidenceStyle = getConfidenceStyle(analysis.confidence || 0);
   const sentimentColor = getSentimentColor(analysis.sentiment_score || 0);
 

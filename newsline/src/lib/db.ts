@@ -9,7 +9,12 @@ const db = mysql({
   },
 });
 
-export async function executeQuery({ query, values = [] }) {
+interface QueryParams {
+  query: string;
+  values: any[];
+}
+
+export async function executeQuery({ query, values = [] }: QueryParams): Promise<any[]> {
   try {
     const results = await db.query(query, values);
     await db.end();

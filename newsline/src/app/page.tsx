@@ -5,7 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import TokenSelector from "@/components/token-selector";
 import NewsEvents from "@/components/news-events";
 import Danmaku from "@/components/danmaku";
-import { NewsEvent } from "@/types/news";
+import { NewsEvent } from "@/types/report";
 import { useEffect, useState } from "react";
 import { useNewslineStore } from "@/stores/newsline-store";
 import { http } from "@/lib/axios";
@@ -29,7 +29,22 @@ export default function HomePage() {
           to,
           symbol: selectedTokenSymbol,
         })) as NewsEvent[];
-        setEventsData(events);
+
+        // 调试输出
+        console.log("API返回的事件数据:", events);
+
+        // 验证时间戳
+        const validEvents = events.filter(event => {
+          const isValid = event.event_timestamp && !isNaN(event.event_timestamp);
+          if (!isValid) {
+            console.warn("发现无效时间戳的事件:", event);
+          }
+          return isValid;
+        });
+
+        console.log(`共${events.length}个事件，有效事件${validEvents.length}个`);
+
+        setEventsData(validEvents);
       } catch (err) {
         console.error("加载事件数据失败:", err);
       }

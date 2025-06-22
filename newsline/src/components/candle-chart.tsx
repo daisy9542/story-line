@@ -20,7 +20,7 @@ import {
   ICircleMarkersPluginApi,
 } from "@/components/lwc-plugin-circle-marker/wrapper";
 import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
-import { NewsEvent } from "@/types/news";
+import { NewsEvent } from "@/types/report";
 
 export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -50,15 +50,21 @@ export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] })
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
     newsEvents.forEach((event) => {
-      markers.push({
-        id: event.event_id,
-        time: event.event_timestamp as UTCTimestamp,
-        text: event.event_title,
-        position: "aboveBar",
-        hovered: hoveredEventId === event.event_id,
-      });
+      // 确保时间戳存在且有效
+      if (event.event_timestamp && !isNaN(event.event_timestamp)) {
+        markers.push({
+          id: String(event.id),
+          time: event.event_timestamp as UTCTimestamp,
+          text: event.report_title,
+          position: "aboveBar",
+          hovered: hoveredEventId === String(event.id),
+        });
+      }
     });
-    circleMarkerRef.current?.setMarkers(markers);
+
+    if (markers.length > 0 && circleMarkerRef.current) {
+      circleMarkerRef.current.setMarkers(markers);
+    }
   }
 
   const chartOptions = {

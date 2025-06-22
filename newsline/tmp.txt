@@ -1,0 +1,40 @@
+CREATE TABLE btc_kline_deep_analysis (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    report_title VARCHAR(255) NOT NULL COMMENT '报告标题，具体描述引发市场变化的事件及原因，如："Circle交易所技术故障引发市场恐慌"（禁止笼统标题或包含时间）',
+    executive_summary TEXT NOT NULL COMMENT '报告摘要：概括事件的起因、发展和后果，需明确具体事件，无需包含时间信息',
+    overall_sentiment_score FLOAT NOT NULL COMMENT '对整个事件的宏观情绪评估分数，范围为-1.0（极度负面）至1.0（极度正面）',
+    analysis_date VARCHAR(50) NOT NULL COMMENT '报告分析的日期，格式为YYYY-MM-DD',
+    start_date VARCHAR(20) NULL COMMENT '事件起始日期（可选），格式为YYYY-MM-DD',
+    market_data JSON NULL COMMENT '市场数据相关的JSON结构，包含事件对市场影响的具体数据指标',
+    token VARCHAR(50) NOT NULL COMMENT '涉及的加密货币代币符号（如BTC、ETH）',
+    key_entities JSON NULL COMMENT '事件中关键参与方的JSON数组，每个实体包含name（名称）、type（类型）、role（角色），不超过8个',
+    historical_comparisons JSON NULL COMMENT '与历史相似事件对比分析的JSON数组，每个对象包含event_summary（事件总结）、outcome_and_lessons（结局与教训）、similarity_label（相似标签）等字段',
+    causal_inferences JSON NULL COMMENT '事件因果链分析的JSON数组，每个对象包含cause（原因）、effect（结果）、evidence（证据）等字段，揭示事件核心驱动力',
+    event_timeline JSON NULL COMMENT '事件发展时间线的JSON数组，每个对象包含title（事件标题）、event_date（日期）等字段，需具体描述事件（如"美联储主席发表鹰派讲话"）',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT '记录创建时间，自动生成',
+    citations JSON NULL COMMENT '引用来源的JSON数组，包含事件相关的新闻或公告URL链接'
+);
+
+btc_kline_deep_analysis表是k线上的泡泡
+
+create table btc_daily_hotspot
+(
+    id                             int auto_increment
+        primary key,
+    event_title                    text                                null,
+    background_analysis            text                                null,
+    viral_potential                text                                null,
+    negative_events_identification text                                null,
+    causal_inference               json                                null,
+    entities                       json                                null,
+    historical_similar_events      json                                null,
+    sentiment_score                float                               null,
+    event_lines                    json                                null,
+    created_at                     timestamp default CURRENT_TIMESTAMP not null,
+    input_lable                    text                                null,
+    origin_result                  text                                null,
+    citations                      json                                null
+);
+
+btc_daily_hotspot 表 是弹幕，只用event_title字段就行了
+

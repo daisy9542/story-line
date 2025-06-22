@@ -86,6 +86,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.1.0(react@19.1.0)
+      serverless-mysql:
+        specifier: ^2.1.0
+        version: 2.1.0
       tailwind-merge:
         specifier: ^3.2.0
         version: 3.2.0
@@ -2434,6 +2437,9 @@ packages:
   serve-static@2.2.0:
     resolution: {integrity: sha1-nAJWTuJZvdIlG4LWWaLn4ZONZvk=, tarball: http://r.npm.sankuai.com/serve-static/download/serve-static-2.2.0.tgz}
     engines: {node: '>= 18'}
+
+  serverless-mysql@2.1.0:
+    resolution: {integrity: sha1-v74ia0eyA3cEPOEphgSMvHJjxEU=, tarball: http://r.npm.sankuai.com/serverless-mysql/download/serverless-mysql-2.1.0.tgz}
 
   set-function-length@1.2.2:
     resolution: {integrity: sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==}
@@ -5057,6 +5063,10 @@ snapshots:
       send: 1.2.0
     transitivePeerDependencies:
       - supports-color
+
+  serverless-mysql@2.1.0:
+    dependencies:
+      mysql2: 3.14.1
 
   set-function-length@1.2.2:
     dependencies:

@@ -1,20 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
-
-/**
- * 生成一个随机整数，范围 [min, max]
- */
-function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/**
- * 生成一个随机浮点数，范围 [min, max]
- */
-function randFloat(min: number, max: number, decimals = 2): number {
-  const p = Math.pow(10, decimals);
-  return Math.round((Math.random() * (max - min) + min) * p) / p;
-}
+import { executeQuery } from "@/lib/db";
+import { NewsEvent, CausalInference, EventTimelineItem, Citation } from "@/types/report";
 
 /**
  * 根据 sentiment_score 生成标签
@@ -29,72 +15,71 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const from = searchParams.get("from") ? parseInt(searchParams.get("from")!) : 0;
-    const to = searchParams.get("to") ? parseInt(searchParams.get("to")!) : 100;
-    // const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 300);
-    const symbol = searchParams.get("symbol");
+    const to = searchParams.get("to") ? parseInt(searchParams.get("to")!) : 0;
+    const symbol = searchParams.get("symbol") || "BTC";
 
-    const count = randInt(5, 15);
-    const events = Array.from({ length: count }).map(() => {
-      const reportId = randomUUID();
-      const eventId = randomUUID();
-      const timestamp = randInt(from, to);
-      const score = randFloat(-1, 1, 2);
+    // 构建SQL查询
+    let query = `
+      SELECT * FROM btc_kline_deep_analysis
+      WHERE token = ?
+    `;
+
+    const values: any[] = [symbol];
+
+    // 如果提供了时间范围，添加时间过滤条件
+    if (from > 0 && to > 0) {
+      query += ` AND (
+        (STR_TO_DATE(analysis_date, '%Y-%m-%d') BETWEEN FROM_UNIXTIME(?) AND FROM_UNIXTIME(?))
+        OR
+        (STR_TO_DATE(start_date, '%Y-%m-%d') BETWEEN FROM_UNIXTIME(?) AND FROM_UNIXTIME(?))
+      )`;
+      values.push(String(from), String(to), String(from), String(to));
+    }
+
+    // 执行查询
+    const results = await executeQuery({
+      query,
+      values,
+    }) as NewsEvent[];
+
+    // 处理结果
+    const events = results.map(dbEvent => {
+      // 处理市场指标
+      if (dbEvent.historical_comparisons) {
+        dbEvent.historical_comparisons = dbEvent.historical_comparisons.map(comparison => {
+          // 从market_data中提取市场指标
+          const marketIndicator: Record<string, string> = {};
+          if (dbEvent.market_data?.indicators) {
+            Object.entries(dbEvent.market_data.indicators).forEach(([key, data]) => {
+              marketIndicator[key] = data.daily_change_pct;
+            });
+          }
+
+          return {
+            ...comparison,
+            market_indicator: marketIndicator
+          };
+        });
+      }
+
+      // 构建事件分类
+      const eventCategories = [{
+        category_name: "市场分析",
+        category_code: "MARKET_ANALYSIS"
+      }];
+
+      // 转换时间戳
+      const timestamp = new Date(dbEvent.analysis_date).getTime() / 1000;
 
       return {
-        report_id: reportId,
-        // ---- 核心事件信息 ----
-        event_id: eventId,
-        event_title: `${symbol} 协议出现重大动态`,
-        event_influence: randInt(1, 100),
+        ...dbEvent,
         event_timestamp: timestamp,
-        summary: `${symbol} 相关文章或报告在该时间段内描述了一些背景、影响及潜在后市走向。`,
-        sentiment_score: score,
-        sentiment_label: sentimentLabel(score),
-
-        // ---- 事件相关要素 ----
-        key_entities: [
-          {
-            name: symbol,
-            type: "Cryptocurrency",
-            entity_id: `ID-${randInt(10000, 99999)}`,
-          },
-        ],
-        event_categories: [
-          {
-            category_name: "市场动态",
-            category_code: "MARKET_NEWS",
-          },
-        ],
-
-        // ---- 因果关系分析 ----
-        causal_analysis: [
-          {
-            cause: "市场预期变化",
-            trigger: "大型基金建仓",
-            effect: {
-              cause: "资金流入加速",
-              trigger: "价格短期飙升",
-              effect: "更多散户跟进",
-            },
-          },
-        ],
-
-        // ---- 历史相似事件 + 宏观和微观指数----
-        historical_analogues: [
-          {
-            historical_case_summary: `${symbol} 早期空投`,
-            historical_event_date: "2021-08-01",
-            similarity_description: "社区驱动分发机制",
-            related_report_id: randomUUID(),
-            market_indicator: {
-              crypto: `${randFloat(-5, 5)}%`,
-              djia: `${randFloat(-3, 3)}%`,
-              ndx: `${randFloat(-4, 4)}%`,
-            },
-          },
-        ],
+        sentiment_label: sentimentLabel(dbEvent.overall_sentiment_score),
+        event_categories: eventCategories,
+        event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50
       };
     });
+
     return NextResponse.json({ code: 0, data: events });
   } catch (error) {
     console.error("[API_EVENTS_ERROR]", error);

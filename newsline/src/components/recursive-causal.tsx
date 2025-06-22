@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Puzzle, TrendingUpDown, Layers2, ExternalLink, AlertTriangle } from "lucide-react";
 import { AnimatedArrow } from "@/components/ui/animated-arrow";
 import { CausalInference } from "@/types/report";
+import { getSentimentColor, getSentimentLabel } from "@/lib/utils";
 
 interface RecursiveCausalProps {
   analysis: CausalInference;
@@ -13,13 +14,6 @@ const getConfidenceStyle = (confidence: number) => {
   if (confidence >= 0.8) return { color: "text-green-600", bg: "bg-green-50", text: "高" };
   if (confidence >= 0.6) return { color: "text-yellow-600", bg: "bg-yellow-50", text: "中" };
   return { color: "text-red-600", bg: "bg-red-50", text: "低" };
-};
-
-// 获取情感分数的颜色
-const getSentimentColor = (score: number) => {
-  if (score > 0.3) return "text-green-500";
-  if (score < -0.3) return "text-red-500";
-  return "text-gray-500";
 };
 
 export const RecursiveCausal = ({ analysis, isRoot = false }: RecursiveCausalProps) => {
@@ -94,35 +88,7 @@ export const RecursiveCausal = ({ analysis, isRoot = false }: RecursiveCausalPro
               >
                 {analysis.evidence}
               </p>
-
-              {/* 悬停时显示完整内容的提示框 */}
-              {/* {isTextTruncated && (
-                <div className="absolute left-0 top-full mt-2 z-10 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
-                  <div className="bg-gray-900 text-white text-sm p-3 rounded-lg shadow-lg max-w-md">
-                    <p className="leading-relaxed">{analysis.evidence}</p>
-                    <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 rotate-45"></div>
-                  </div>
-                </div>
-              )} */}
-
-              {/* 渐变遮罩，当文本被截断时显示 */}
-              {/* {isTextTruncated && (
-                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent dark:from-gray-800 pointer-events-none"></div>
-              )} */}
             </div>
-
-            {/* 情感分数指示器 */}
-            {/* {analysis.sentiment_score !== undefined && (
-              <div className="ml-2 flex items-center flex-shrink-0">
-                <div
-                  className={`h-2 w-2 rounded-full ${sentimentColor.replace("text-", "bg-")}`}
-                ></div>
-                <span className={`ml-1 text-xs ${sentimentColor}`}>
-                  {analysis.sentiment_score > 0 ? "+" : ""}
-                  {(analysis.sentiment_score * 100).toFixed(0)}%
-                </span>
-              </div>
-            )} */}
           </div>
         </div>
       </div>

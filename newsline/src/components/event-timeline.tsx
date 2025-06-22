@@ -1,6 +1,6 @@
 import React from "react";
 import { EventTimelineItem } from "@/types/report";
-import { CalendarDays, Clock, ArrowUp, ArrowDown } from "lucide-react";
+import { CalendarDays, Clock, ArrowUp, ArrowDown, ExternalLink, TrendingUp, TrendingDown } from "lucide-react";
 
 interface EventTimelineProps {
   timeline: EventTimelineItem[];
@@ -13,61 +13,99 @@ export function EventTimeline({ timeline }: EventTimelineProps) {
   });
 
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-6">
       {sortedTimeline.map((item, index) => (
         <div key={`timeline-${index}`} className="relative">
           {/* 连接线 */}
           {index < sortedTimeline.length - 1 && (
-            <div className="absolute left-3.5 top-6 h-full w-0.5 bg-gray-300 dark:bg-gray-700" />
+            <div className="absolute left-4 top-8 h-full w-0.5 bg-gradient-to-b from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700" />
           )}
 
-          <div className="flex items-start gap-3">
-            {/* 时间点标记 */}
-            <div className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${getImportanceColor(item.importance)}`}>
-              <Clock className="h-3.5 w-3.5 text-white" />
+          <div className="flex items-start gap-4">
+            {/* 时间点标记 - 根据情感分数调整颜色 */}
+            <div className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full shadow-sm ${getSentimentColor(item.sentiment_score)}`}>
+              <Clock className="h-4 w-4 text-white" />
+              {/* 重要性环形指示器 */}
+              {item.importance && item.importance > 7 && (
+                <div className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-white dark:border-gray-900"></div>
+              )}
             </div>
 
-            {/* 内容 */}
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium">{item.title}</h3>
-                {item.importance && item.importance > 7 && (
-                  <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
-                    重要
-                  </span>
+            {/* 内容卡片 */}
+            <div className="flex-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              {/* 标题行 */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-tight">
+                    {item.title}
+                  </h3>
+
+                  {/* 日期 */}
+                  <div className="mt-1 flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    <span>{formatDate(item.event_date)}</span>
+                  </div>
+                </div>
+
+                {/* 情感分数指示器 */}
+                {item.sentiment_score !== undefined && (
+                  <div className="flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 dark:bg-gray-700">
+                    {item.sentiment_score > 0 ? (
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-red-500" />
+                    )}
+                    <span className={`text-xs font-medium ${getSentimentTextColor(item.sentiment_score)}`}>
+                      {item.sentiment_score > 0 ? '+' : ''}{(item.sentiment_score * 100).toFixed(0)}%
+                    </span>
+                  </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                <CalendarDays className="h-3.5 w-3.5" />
-                <span>{formatDate(item.event_date)}</span>
-              </div>
-
+              {/* 描述 */}
               {item.description && (
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                <p className="mt-3 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                   {item.description}
                 </p>
               )}
 
-              {/* 重要性指标 */}
-              {item.importance && (
-                <div className="mt-1 flex items-center gap-1 text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">影响力:</span>
-                  <div className="flex items-center">
-                    {Array.from({ length: Math.min(Math.round(item.importance / 2), 5) }).map((_, i) => (
-                      <div
-                        key={`impact-${i}`}
-                        className={`h-1.5 w-1.5 rounded-full ${getImportanceColor(item.importance)} mr-0.5`}
-                      />
-                    ))}
+              {/* 底部信息栏 */}
+              <div className="mt-3 flex items-center justify-between">
+                {/* 重要性指标 */}
+                {item.importance && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">影响力</span>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div
+                          key={`impact-${i}`}
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            i < Math.round(item.importance! / 2)
+                              ? getImportanceColor(item.importance!)
+                              : 'bg-gray-200 dark:bg-gray-600'
+                          }`}
+                        />
+                      ))}
+                      <span className="ml-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+                        {item.importance}/10
+                      </span>
+                    </div>
                   </div>
-                  {item.importance > 5 ? (
-                    <ArrowUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <ArrowDown className="h-3 w-3 text-gray-400" />
-                  )}
-                </div>
-              )}
+                )}
+
+                {/* 来源链接 */}
+                {item.source_url && (
+                  <a
+                    href={item.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    <span>查看来源</span>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -86,10 +124,24 @@ function formatDate(dateStr: string): string {
   });
 }
 
-// 根据重要性返回颜色
-function getImportanceColor(importance?: number): string {
-  if (!importance) return "bg-gray-400 dark:bg-gray-600";
+// 根据情感分数返回颜色
+function getSentimentColor(sentimentScore?: number): string {
+  if (!sentimentScore) return "bg-gray-500 dark:bg-gray-600";
 
+  if (sentimentScore > 0.3) return "bg-green-500 dark:bg-green-600";
+  if (sentimentScore < -0.3) return "bg-red-500 dark:bg-red-600";
+  return "bg-yellow-500 dark:bg-yellow-600";
+}
+
+// 根据情感分数返回文本颜色
+function getSentimentTextColor(sentimentScore: number): string {
+  if (sentimentScore > 0.3) return "text-green-600 dark:text-green-400";
+  if (sentimentScore < -0.3) return "text-red-600 dark:text-red-400";
+  return "text-yellow-600 dark:text-yellow-400";
+}
+
+// 根据重要性返回颜色
+function getImportanceColor(importance: number): string {
   if (importance >= 8) return "bg-red-500 dark:bg-red-600";
   if (importance >= 6) return "bg-orange-500 dark:bg-orange-600";
   if (importance >= 4) return "bg-blue-500 dark:bg-blue-600";

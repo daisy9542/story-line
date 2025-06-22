@@ -56,7 +56,7 @@ export interface CausalInference {
   cause: string; // 原因
   effect: string | CausalInference; // 结果或递归的因果链
   evidence: string; // 证据（在前端显示为trigger）
-  confidence: number; // 可选：置信度
+  confidence: number;
   source_url: string | null;
   sentiment_score: number;
 }
@@ -65,8 +65,8 @@ export interface CausalInference {
 export interface EventTimelineItem {
   title: string; // 事件标题
   event_date: string; // 事件日期
-  description?: string; // 可选：事件描述
-  importance?: number; // 可选：重要性
+  source_url: string | null;
+  sentiment_score: number;
 }
 
 // 引用来源

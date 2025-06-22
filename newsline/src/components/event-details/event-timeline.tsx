@@ -19,7 +19,7 @@ export function EventTimeline({ timeline }: EventTimelineProps) {
         <div key={`timeline-${index}`} className="relative">
           {/* 连接线 */}
           {index < sortedTimeline.length - 1 && (
-            <div className="absolute top-6 left-2 h-full w-px bg-gray-300 dark:bg-gray-600" />
+            <div className="absolute left-2 top-6 h-full w-px bg-gray-300 dark:bg-gray-600" />
           )}
 
           <div className="flex gap-3">
@@ -33,7 +33,9 @@ export function EventTimeline({ timeline }: EventTimelineProps) {
             {/* 内容卡片 */}
             <div className="flex-1 rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
               {/* 标题 */}
-              <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">{item.title}</h3>
+              <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">
+                {item.title}
+              </h3>
 
               {/* 底部信息 */}
               <div className="flex items-center justify-between">

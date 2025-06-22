@@ -4,6 +4,7 @@ import CandleChart from "@/components/candle-chart";
 import { ThemeToggle } from "@/components/theme-toggle";
 import TokenSelector from "@/components/token-selector";
 import NewsEvents from "@/components/news-events";
+import Danmaku from "@/components/danmaku";
 import { NewsEvent } from "@/types/news";
 import { useEffect, useState } from "react";
 import { useNewslineStore } from "@/stores/newsline-store";
@@ -13,6 +14,7 @@ export default function HomePage() {
   const { selectedTokenSymbol, currentTimeRange } = useNewslineStore();
   const [eventsData, setEventsData] = useState<NewsEvent[]>([]);
   const [flag, setFlag] = useState(false);
+  const testData = Array.from({ length: 100 }, (_, i) => i + 1);
 
   useEffect(() => {
     if (flag) return;
@@ -46,8 +48,11 @@ export default function HomePage() {
       </header>
 
       <div className="flex h-full flex-1 flex-col gap-3 overflow-hidden p-4 md:flex-row">
-        <section className="flex min-h-[500px] min-w-0 flex-1 overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-[#171D24] dark:bg-[#111111]">
-          <CandleChart newsEvents={eventsData} />
+        <section className="relative flex min-h-[500px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-[#171D24] dark:bg-[#111111]">
+          <Danmaku data={testData} />
+          <div className="flex-1">
+            <CandleChart newsEvents={eventsData} />
+          </div>
         </section>
         <aside className="h-64 w-full flex-shrink-0 rounded-xl border border-gray-200 md:h-full md:max-h-screen md:w-[350px] dark:border-[#171D24]">
           <NewsEvents newsEvents={eventsData} />

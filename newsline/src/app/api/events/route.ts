@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import crypto from 'crypto';
 import { executeQuery } from "@/lib/db";
 import { NewsEvent, CausalInference, EventTimelineItem, Citation } from "@/types/report";
 
@@ -6,8 +7,8 @@ import { NewsEvent, CausalInference, EventTimelineItem, Citation } from "@/types
  * 根据 sentiment_score 生成标签
  */
 function sentimentLabel(score: number): "Positive" | "Negative" | "Neutral" {
-  if (score > 0.2) return "Positive";
-  if (score < -0.2) return "Negative";
+  if (score > 0) return "Positive";
+  if (score < 0) return "Negative";
   return "Neutral";
 }
 
@@ -80,7 +81,27 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ code: 0, data: events });
+    // 生成ETag
+    const dataHash = crypto
+      .createHash('md5')
+      .update(JSON.stringify(events))
+      .digest('hex');
+
+    const etag = `"${dataHash}"`;
+
+    // 检查客户端ETag
+    const clientETag = req.headers.get('if-none-match');
+    if (clientETag === etag) {
+      return new NextResponse(null, { status: 304 });
+    }
+
+    const response = NextResponse.json({ code: 0, data: events });
+
+    // 设置缓存头
+    response.headers.set('Cache-Control', 'public, max-age=300');
+    response.headers.set('ETag', etag);
+
+    return response;
   } catch (error) {
     console.error("[API_EVENTS_ERROR]", error);
     return NextResponse.json({ code: 1, message: "读取事件数据失败" }, { status: 500 });

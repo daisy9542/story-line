@@ -14,6 +14,7 @@ export interface NewsEvent {
   event_timeline: EventTimelineItem[] | null; // 事件时间线
   created_at: string; // 记录创建时间
   citations: Citation[] | null; // 引用来源
+  viewpoint: Viewpoint[] | null; // 观点
 
   event_timestamp: number; // 转换后的时间戳，用于图表显示
   sentiment_label: "Positive" | "Negative" | "Neutral"; // 情绪标签
@@ -92,6 +93,13 @@ export interface Citation {
 export interface EventCategory {
   category_name: string; // 分类名称
   category_code?: string; // 分类代码
+}
+
+// 观点
+export interface Viewpoint {
+  entity: string; // 发表观点的实体
+  viewpoint: string; // 观点内容
+  source_url: string | null; // 来源URL
 }
 
 // 因果分析链

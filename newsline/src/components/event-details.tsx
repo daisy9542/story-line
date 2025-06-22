@@ -1,8 +1,24 @@
 import React from "react";
-import { CausalInference, EventTimelineItem, Citation, KeyEntity, HistoricalComparison } from "@/types/report";
-import { Puzzle, TrendingUpDown, Layers2, CalendarDays, Clock, ArrowUp, ArrowDown, ExternalLink, Calendar, FileText } from "lucide-react";
+import {
+  CausalInference,
+  EventTimelineItem,
+  Citation,
+  KeyEntity,
+  HistoricalComparison,
+  Viewpoint,
+} from "@/types/report";
+import {
+  Puzzle,
+  TrendingUpDown,
+  Layers2,
+  CalendarDays,
+  Clock,
+  ExternalLink,
+  Calendar,
+  FileText,
+} from "lucide-react";
 import { AnimatedArrow } from "@/components/ui/animated-arrow";
-import { motion } from "motion/react";
+import { ViewpointCarousel } from "./event-details/index";
 
 // 因果分析组件
 interface CausalAnalysisProps {
@@ -13,35 +29,35 @@ interface CausalAnalysisProps {
 export const CausalAnalysis = ({ analysis, isRoot = false }: CausalAnalysisProps) => {
   return (
     <div>
-      <div className="flex items-center mb-3">
+      <div className="mb-3 flex items-center">
         {isRoot ? (
-          <div className="inline-flex items-center bg-blue-200 dark:bg-blue-100 text-sm text-blue-700 px-2 py-1 rounded-xl mr-1 w-[90px]">
-            <Puzzle className="h-4 w-4 mr-1" />
+          <div className="mr-1 inline-flex w-[90px] items-center rounded-xl bg-blue-200 px-2 py-1 text-sm text-blue-700 dark:bg-blue-100">
+            <Puzzle className="mr-1 h-4 w-4" />
             CAUSE
           </div>
         ) : (
-          <div className="inline-flex items-center bg-purple-200 dark:bg-purple-100 text-sm text-blue-700 px-2 py-1 rounded-xl mr-1 w-[90px]">
-            <Layers2 className="h-4 w-4 mr-1" />
+          <div className="mr-1 inline-flex w-[90px] items-center rounded-xl bg-purple-200 px-2 py-1 text-sm text-blue-700 dark:bg-purple-100">
+            <Layers2 className="mr-1 h-4 w-4" />
             FACTOR
           </div>
         )}
-        <p className="text-neutral-900/90 dark:text-neutral-100/90 font-medium">{analysis.cause}</p>
+        <p className="font-medium text-neutral-900/90 dark:text-neutral-100/90">{analysis.cause}</p>
       </div>
-      <div className="flex items-center justify-center mb-3 pl-6">
+      <div className="mb-3 flex items-center justify-center pl-6">
         <AnimatedArrow height={60} width={30} />
-        <div className="flex-1 ml-3">
-          <p className="line-clamp-2 overflow-hidden text-ellipsis text-neutral-700 dark:text-neutral-300 text-sm">
+        <div className="ml-3 flex-1">
+          <p className="line-clamp-2 overflow-hidden text-sm text-ellipsis text-neutral-700 dark:text-neutral-300">
             {analysis.evidence}
           </p>
         </div>
       </div>
       {typeof analysis.effect === "string" ? (
         <div className="flex items-center">
-          <div className="inline-flex items-center bg-green-200 dark:bg-green-100 text-sm text-green-700 px-2 py-1 rounded-xl mr-1 w-[90px]">
-            <TrendingUpDown className="h-4 w-4 mr-1" />
+          <div className="mr-1 inline-flex w-[90px] items-center rounded-xl bg-green-200 px-2 py-1 text-sm text-green-700 dark:bg-green-100">
+            <TrendingUpDown className="mr-1 h-4 w-4" />
             EFFECT
           </div>
-          <p className="text-neutral-900/90 dark:text-neutral-100/90 font-medium">
+          <p className="font-medium text-neutral-900/90 dark:text-neutral-100/90">
             {analysis.effect}
           </p>
         </div>
@@ -69,12 +85,14 @@ export function EventTimeline({ timeline }: EventTimelineProps) {
         <div key={`timeline-${index}`} className="relative">
           {/* 连接线 */}
           {index < sortedTimeline.length - 1 && (
-            <div className="absolute left-3.5 top-6 h-full w-0.5 bg-gray-300 dark:bg-gray-700" />
+            <div className="absolute top-6 left-3.5 h-full w-0.5 bg-gray-300 dark:bg-gray-700" />
           )}
 
           <div className="flex items-start gap-3">
             {/* 时间点标记 */}
-            <div className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${getImportanceColor(item.sentiment_score)}`}>
+            <div
+              className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${getImportanceColor(item.sentiment_score)}`}
+            >
               <Clock className="h-3.5 w-3.5 text-white" />
             </div>
 
@@ -134,9 +152,7 @@ export function CitationList({ citations }: CitationListProps) {
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-medium">
-                {citation.title || "未命名来源"}
-              </h3>
+              <h3 className="font-medium">{citation.title || "未命名来源"}</h3>
 
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
                 {citation.source && (
@@ -199,7 +215,9 @@ export function HistoricalComparisons({ comparisons, eventId }: HistoricalCompar
           {comparison.outcome_and_lessons && (
             <div className="mt-1 rounded-md bg-gray-50 p-2 text-sm dark:bg-gray-800/50">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400">结果与教训:</p>
-              <p className="mt-1 text-gray-700 dark:text-gray-300">{comparison.outcome_and_lessons}</p>
+              <p className="mt-1 text-gray-700 dark:text-gray-300">
+                {comparison.outcome_and_lessons}
+              </p>
             </div>
           )}
 
@@ -239,15 +257,33 @@ export function KeyEntities({ entities }: KeyEntitiesProps) {
   );
 }
 
+// 观点组件
+interface ViewpointsProps {
+  viewpoints: Viewpoint[];
+}
+
+export function Viewpoints({ viewpoints }: ViewpointsProps) {
+  return (
+    <div className="flex flex-col gap-4">
+      <ViewpointCarousel viewpoints={viewpoints} />
+    </div>
+  );
+}
+
 // 辅助组件和函数
 const EntityTag = ({ name, type, role }: { name: string; type: string; role: string }) => {
   const getTypeColor = () => {
     switch (type.toLowerCase()) {
-      case 'person': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'organization': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'cryptocurrency': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'project': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+      case "person":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300";
+      case "organization":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+      case "cryptocurrency":
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
+      case "project":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
     }
   };
 
@@ -255,24 +291,14 @@ const EntityTag = ({ name, type, role }: { name: string; type: string; role: str
     <div className="flex flex-col rounded-md border border-gray-200 p-2 dark:border-gray-800">
       <div className="font-medium">{name}</div>
       <div className="mt-1 flex items-center gap-1">
-        <span className={`rounded px-1.5 py-0.5 text-xs ${getTypeColor()}`}>
-          {type}
-        </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          {role}
-        </span>
+        <span className={`rounded px-1.5 py-0.5 text-xs ${getTypeColor()}`}>{type}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{role}</span>
       </div>
     </div>
   );
 };
 
-const MarketTag = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) => {
+const MarketTag = ({ label, value }: { label: string; value: string }) => {
   const color = value.includes("-") ? "bg-red-600" : "bg-green-600";
 
   return (
@@ -286,10 +312,10 @@ const MarketTag = ({
 // 格式化日期
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
+  return date.toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
   });
 }
 

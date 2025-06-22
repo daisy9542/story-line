@@ -3,16 +3,32 @@ import { AnimatePresence, motion } from "motion/react";
 import { NewsEvent } from "@/types/report";
 import { Separator } from "@/components/ui/separator";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { ArrowLeft, Share2, History, FileText, Clock, Users, BarChart2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Share2,
+  History,
+  FileText,
+  Clock,
+  Users,
+  BarChart2,
+  MessageSquareQuote,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNewslineStore } from "@/stores/newsline-store";
-import { CausalAnalysis, EventTimeline, CitationList, HistoricalComparisons, KeyEntities } from "./event-details";
+import {
+  CausalAnalysis,
+  EventTimeline,
+  CitationList,
+  HistoricalComparisons,
+  KeyEntities,
+  Viewpoints,
+} from "./event-details";
 import { MarketDataView } from "./market-data";
 
 export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {
   const { focusedEventId, setFocusedEventId } = useNewslineStore();
   const [activeTab, setActiveTab] = useState<
-    "causal" | "timeline" | "historical" | "citations" | "entities" | "market"
+    "causal" | "timeline" | "historical" | "citations" | "entities" | "market" | "viewpoints"
   >("causal");
 
   const selectedEvent = newsEvents.find((event) => String(event.id) === focusedEventId);
@@ -46,12 +62,7 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
     <div className="relative h-full w-full">
       <AnimatePresence>
         {/* 新闻列表 - 只在没有选中事件时可滚动 */}
-        <div
-          className={cn(
-            "h-full w-full overflow-y-auto",
-            focusedEventId ? "invisible" : ""
-          )}
-        >
+        <div className={cn("h-full w-full overflow-y-auto", focusedEventId ? "invisible" : "")}>
           <BentoGrid className="flex flex-col gap-3 p-4">
             {newsEvents.map((event) => (
               <BentoGridItem
@@ -149,6 +160,14 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                         active={activeTab === "market"}
                       />
                     )}
+                    {selectedEvent.viewpoint && selectedEvent.viewpoint.length > 0 && (
+                      <TabButton
+                        id="viewpoints"
+                        label="专家观点"
+                        icon={<MessageSquareQuote className="h-4 w-4" />}
+                        active={activeTab === "viewpoints"}
+                      />
+                    )}
                     {selectedEvent.citations && selectedEvent.citations.length > 0 && (
                       <TabButton
                         id="citations"
@@ -198,6 +217,13 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                     {activeTab === "market" && selectedEvent.market_data && (
                       <div className="mt-4">
                         <MarketDataView marketData={selectedEvent.market_data} />
+                      </div>
+                    )}
+
+                    {/* 专家观点 */}
+                    {activeTab === "viewpoints" && selectedEvent.viewpoint && (
+                      <div className="mt-4">
+                        <Viewpoints viewpoints={selectedEvent.viewpoint} />
                       </div>
                     )}
 

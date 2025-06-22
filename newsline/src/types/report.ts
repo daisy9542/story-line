@@ -23,13 +23,24 @@ export interface NewsEvent {
 
 // 市场数据
 export interface MarketData {
-  indicators: {
+  meta?: {
+    target_date: string;
+  };
+  indicators?: {
     [key: string]: {
       date: string;
       volatility: string;
       daily_change_pct: string;
       daily_change_value: string;
-    };
+    }
+  };
+  market_daily_change?: {
+    [key: string]: {
+      date: string;
+      volatility: string;
+      daily_change_pct: string;
+      daily_change_value: string;
+    }
   };
 }
 

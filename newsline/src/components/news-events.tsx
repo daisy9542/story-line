@@ -3,21 +3,16 @@ import { AnimatePresence, motion } from "motion/react";
 import { NewsEvent } from "@/types/report";
 import { Separator } from "@/components/ui/separator";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
-import { ArrowLeft, Share2, History, FileText, Clock, Users } from "lucide-react";
+import { ArrowLeft, Share2, History, FileText, Clock, Users, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNewslineStore } from "@/stores/newsline-store";
-import {
-  CausalAnalysis,
-  EventTimeline,
-  CitationList,
-  HistoricalComparisons,
-  KeyEntities
-} from "./event-details";
+import { CausalAnalysis, EventTimeline, CitationList, HistoricalComparisons, KeyEntities } from "./event-details";
+import { MarketDataView } from "./market-data";
 
 export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {
   const { focusedEventId, setFocusedEventId } = useNewslineStore();
   const [activeTab, setActiveTab] = useState<
-    "causal" | "timeline" | "historical" | "citations" | "entities"
+    "causal" | "timeline" | "historical" | "citations" | "entities" | "market"
   >("causal");
 
   const selectedEvent = newsEvents.find((event) => String(event.id) === focusedEventId);
@@ -146,6 +141,14 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                       icon={<History className="h-4 w-4" />}
                       active={activeTab === "historical"}
                     />
+                    {selectedEvent.market_data && (
+                      <TabButton
+                        id="market"
+                        label="市场数据"
+                        icon={<BarChart2 className="h-4 w-4" />}
+                        active={activeTab === "market"}
+                      />
+                    )}
                     {selectedEvent.citations && selectedEvent.citations.length > 0 && (
                       <TabButton
                         id="citations"
@@ -189,6 +192,13 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                         comparisons={selectedEvent.historical_comparisons}
                         eventId={focusedEventId}
                       />
+                    )}
+
+                    {/* 市场数据 */}
+                    {activeTab === "market" && selectedEvent.market_data && (
+                      <div className="mt-4">
+                        <MarketDataView marketData={selectedEvent.market_data} />
+                      </div>
                     )}
 
                     {/* 引用来源 */}

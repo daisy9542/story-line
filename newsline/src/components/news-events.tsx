@@ -21,8 +21,8 @@ import {
   CitationList,
   HistoricalComparisons,
   KeyEntities,
-  Viewpoints,
-} from "./event-details";
+  ViewpointCarousel as Viewpoints,
+} from "@/components/event-details/index";
 import { MarketDataView } from "./market-data";
 
 export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {

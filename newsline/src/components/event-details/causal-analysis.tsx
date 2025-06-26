@@ -102,7 +102,7 @@ export const CausalAnalysis = ({ analysis, isRoot = false }: CausalAnalysisProps
           <p className="text-neutral-900/90 dark:text-neutral-100/90">{analysis.effect}</p>
         </div>
       ) : (
-        <RecursiveCausal analysis={analysis.effect} />
+        <CausalAnalysis analysis={analysis.effect} />
       )}
     </div>
   );

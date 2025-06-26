@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { NewsEvent } from "@/types/report";
+import { INewsEvent } from "@/types/report";
 import { Separator } from "@/components/ui/separator";
 import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
 import {
@@ -18,14 +18,13 @@ import { useNewslineStore } from "@/stores/newsline-store";
 import {
   CausalAnalysis,
   EventTimeline,
-  CitationList,
+  MarketDataView,
   HistoricalComparisons,
   KeyEntities,
-  ViewpointCarousel as Viewpoints,
+  Viewpoint as Viewpoints,
 } from "@/components/event-details/index";
-import { MarketDataView } from "./market-data";
 
-export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) {
+export default function NewsEvents({ newsEvents }: { newsEvents: INewsEvent[] }) {
   const { focusedEventId, setFocusedEventId } = useNewslineStore();
   const [activeTab, setActiveTab] = useState<
     "causal" | "timeline" | "historical" | "citations" | "entities" | "market" | "viewpoints"
@@ -224,13 +223,6 @@ export default function NewsEvents({ newsEvents }: { newsEvents: NewsEvent[] }) 
                     {activeTab === "viewpoints" && selectedEvent.viewpoint && (
                       <div className="mt-4">
                         <Viewpoints viewpoints={selectedEvent.viewpoint} />
-                      </div>
-                    )}
-
-                    {/* 引用来源 */}
-                    {activeTab === "citations" && selectedEvent.citations && (
-                      <div className="mt-4">
-                        <CitationList citations={selectedEvent.citations} />
                       </div>
                     )}
 

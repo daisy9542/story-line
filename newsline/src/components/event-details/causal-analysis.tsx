@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Puzzle, TrendingUpDown, Layers2, ExternalLink, AlertTriangle } from "lucide-react";
 import { AnimatedArrow } from "@/components/ui/animated-arrow";
-import { CausalInference } from "@/types/report";
+import { ICausalInference } from "@/types/report";
 import { getSentimentColor, getSentimentLabel } from "@/lib/utils";
 
 interface CausalAnalysisProps {
-  analysis: CausalInference;
+  analysis: ICausalInference;
   isRoot?: boolean;
 }
 

@@ -20,9 +20,9 @@ import {
   ICircleMarkersPluginApi,
 } from "@/components/lwc-plugin-circle-marker/wrapper";
 import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
-import { NewsEvent } from "@/types/report";
+import { INewsEvent } from "@/types/report";
 
-export default function CandleChart({ newsEvents }: { newsEvents: NewsEvent[] }) {
+export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);

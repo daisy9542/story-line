@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { HistoricalComparison } from "@/types/report";
+import { IHistoricalComparison } from "@/types/report";
 import { formatDate, getSentimentColor } from "@/lib/utils";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 interface HistoricalComparisonsProps {
-  comparisons: HistoricalComparison[];
+  comparisons: IHistoricalComparison[];
   eventId: string;
 }
 

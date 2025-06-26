@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from 'crypto';
 import { executeQuery } from "@/lib/db";
-import { NewsEvent, CausalInference, EventTimelineItem, Citation } from "@/types/report";
+import { INewsEvent, ICausalInference, IEventTimelineItem, ICitation } from "@/types/report";
 
 /**
  * 根据 sentiment_score 生成标签
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     const results = await executeQuery({
       query,
       values,
-    }) as NewsEvent[];
+    }) as INewsEvent[];
 
     // 处理结果
     const events = results.map(dbEvent => {

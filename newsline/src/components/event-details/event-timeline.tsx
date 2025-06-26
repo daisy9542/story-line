@@ -1,10 +1,10 @@
 import React from "react";
-import { EventTimelineItem } from "@/types/report";
+import { IEventTimelineItem } from "@/types/report";
 import { CalendarDays, ExternalLink } from "lucide-react";
 import { formatDate, getSentimentColor } from "@/lib/utils";
 
 interface EventTimelineProps {
-  timeline: EventTimelineItem[];
+  timeline: IEventTimelineItem[];
 }
 
 export function EventTimeline({ timeline }: EventTimelineProps) {

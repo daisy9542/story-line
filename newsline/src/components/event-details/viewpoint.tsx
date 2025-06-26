@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Viewpoint } from "@/types/report";
+import { IViewpoint } from "@/types/report";
 import { motion, AnimatePresence } from "motion/react";
 import { Quote, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ViewpointCarouselProps {
-  viewpoints: Viewpoint[];
+interface ViewpointProps {
+  viewpoints: IViewpoint[];
 }
 
-export function ViewpointCarousel({ viewpoints }: ViewpointCarouselProps) {
+export function Viewpoint({ viewpoints }: ViewpointProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0); // -1: 左, 1: 右, 0: 初始
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);

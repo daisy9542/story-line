@@ -1,9 +1,9 @@
 import React from "react";
-import { MarketData } from "@/types/report";
+import { IMarketData } from "@/types/report";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface MarketDataProps {
-  marketData: MarketData;
+  marketData: IMarketData;
 }
 
 export function MarketDataView({ marketData }: MarketDataProps) {

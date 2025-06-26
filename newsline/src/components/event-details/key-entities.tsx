@@ -1,8 +1,8 @@
 import React from "react";
-import { KeyEntity } from "@/types/report";
+import { IKeyEntity } from "@/types/report";
 
 interface KeyEntitiesProps {
-  entities: KeyEntity[];
+  entities: IKeyEntity[];
 }
 
 const EntityTag = ({ name, type, role }: { name: string; type: string; role: string }) => {

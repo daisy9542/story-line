@@ -5,14 +5,14 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import TokenSelector from "@/components/token-selector";
 import NewsEvents from "@/components/news-events";
 import Danmaku from "@/components/danmaku";
-import { NewsEvent } from "@/types/report";
+import { INewsEvent } from "@/types/report";
 import { useEffect, useState } from "react";
 import { useNewslineStore } from "@/stores/newsline-store";
 import { http } from "@/lib/axios";
 
 export default function HomePage() {
   const { selectedTokenSymbol, currentTimeRange } = useNewslineStore();
-  const [eventsData, setEventsData] = useState<NewsEvent[]>([]);
+  const [eventsData, setEventsData] = useState<INewsEvent[]>([]);
   const [flag, setFlag] = useState(false);
   const testData = Array.from({ length: 100 }, (_, i) => i + 1);
 
@@ -28,7 +28,7 @@ export default function HomePage() {
           from,
           to,
           symbol: selectedTokenSymbol,
-        })) as NewsEvent[];
+        })) as INewsEvent[];
 
         // 调试输出
         console.log("API返回的事件数据:", events);

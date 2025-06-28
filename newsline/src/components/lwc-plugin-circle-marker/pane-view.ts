@@ -25,6 +25,22 @@ interface Offsets {
   belowBar: number;
 }
 
+// 聚合标记接口
+interface AggregatedMarker {
+  markers: InternalCircleMarker<TimePointIndex>[];
+  centerTime: TimePointIndex;
+  centerX: Coordinate;
+  count: number;
+  position: "aboveBar" | "belowBar";
+}
+
+// 聚合配置
+interface AggregationConfig {
+  minPixelDistance: number; // 最小像素距离，小于此距离的标记会被聚合
+  maxZoomLevel: number; // 最大缩放级别，超过此级别不再聚合
+  animationDuration: number; // 动画持续时间（毫秒）
+}
+
 function isOhlcData<HorzScaleItem>(
   data: SeriesDataItemTypeMap<HorzScaleItem>[SeriesType],
 ): data is CandlestickData<HorzScaleItem> {
@@ -43,6 +59,115 @@ function getPrice(
     }
   }
   return;
+}
+
+/**
+ * 计算两个标记之间的像素距离
+ */
+function calculatePixelDistance(
+  marker1: InternalCircleMarker<TimePointIndex>,
+  marker2: InternalCircleMarker<TimePointIndex>,
+  timeScale: any,
+): number {
+  const x1 = timeScale.logicalToCoordinate(marker1.time as unknown as Logical);
+  const x2 = timeScale.logicalToCoordinate(marker2.time as unknown as Logical);
+  return Math.abs(x1 - x2);
+}
+
+/**
+ * 根据当前缩放级别和配置，对标记进行聚合
+ */
+function aggregateMarkers(
+  markers: InternalCircleMarker<TimePointIndex>[],
+  timeScale: any,
+  config: AggregationConfig,
+): AggregatedMarker[] {
+  if (markers.length === 0) return [];
+
+  // 计算当前缩放级别（基于 barSpacing）
+  const barSpacing = timeScale.options().barSpacing;
+  const zoomLevel = Math.max(1, Math.log2(barSpacing / 6)); // 调整缩放级别计算
+
+  console.log('聚合调试:', { 
+    barSpacing, 
+    zoomLevel, 
+    maxZoomLevel: config.maxZoomLevel,
+    minPixelDistance: config.minPixelDistance,
+    markersCount: markers.length 
+  });
+
+  // 如果缩放级别超过最大值，不进行聚合
+  if (zoomLevel > config.maxZoomLevel) {
+    console.log('缩放级别过高，不聚合');
+    return markers.map(marker => ({
+      markers: [marker],
+      centerTime: marker.time,
+      centerX: timeScale.logicalToCoordinate(marker.time as unknown as Logical),
+      count: 1,
+      position: marker.position,
+    }));
+  }
+
+  const aggregated: AggregatedMarker[] = [];
+  const processed = new Set<number>();
+
+  // 按位置分组处理
+  const aboveBarMarkers = markers.filter(m => m.position === "aboveBar");
+  const belowBarMarkers = markers.filter(m => m.position === "belowBar");
+
+  console.log('标记分组:', { aboveBar: aboveBarMarkers.length, belowBar: belowBarMarkers.length });
+
+  [aboveBarMarkers, belowBarMarkers].forEach(positionMarkers => {
+    if (positionMarkers.length === 0) return;
+
+    // 按时间排序
+    positionMarkers.sort((a, b) => a.time - b.time);
+
+    for (let i = 0; i < positionMarkers.length; i++) {
+      if (processed.has(positionMarkers[i].internalId)) continue;
+
+      const cluster: InternalCircleMarker<TimePointIndex>[] = [positionMarkers[i]];
+      processed.add(positionMarkers[i].internalId);
+
+      // 查找相邻的可聚合标记
+      for (let j = i + 1; j < positionMarkers.length; j++) {
+        if (processed.has(positionMarkers[j].internalId)) continue;
+
+        const distance = calculatePixelDistance(
+          positionMarkers[i],
+          positionMarkers[j],
+          timeScale
+        );
+
+        console.log(`标记距离: ${i}-${j} = ${distance}px, 阈值: ${config.minPixelDistance}px`);
+
+        if (distance <= config.minPixelDistance) {
+          cluster.push(positionMarkers[j]);
+          processed.add(positionMarkers[j].internalId);
+          console.log(`聚合标记 ${j} 到集群 ${i}`);
+        } else {
+          break; // 由于已排序，后续标记距离只会更远
+        }
+      }
+
+      // 计算聚合中心
+      const centerTime = cluster[Math.floor(cluster.length / 2)].time;
+      const centerX = timeScale.logicalToCoordinate(centerTime as unknown as Logical);
+
+      console.log(`创建聚合: 包含 ${cluster.length} 个标记`);
+
+      aggregated.push({
+        markers: cluster,
+        centerTime,
+        centerX,
+        count: cluster.length,
+        position: positionMarkers[i].position,
+      });
+    }
+  });
+
+  console.log(`聚合完成: ${markers.length} -> ${aggregated.length}`);
+  return aggregated;
 }
 
 /**
@@ -107,6 +232,15 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
   private _invalidated: boolean = true;
   private _dataInvalidated: boolean = true;
   private _renderer: CircleMarkerRenderer = new CircleMarkerRenderer();
+  
+  // 聚合相关属性
+  private _aggregationConfig: AggregationConfig = {
+    minPixelDistance: 50, // 50像素内的标记会被聚合
+    maxZoomLevel: 15, // 缩放级别超过15时不再聚合
+    animationDuration: 300, // 300ms动画时间
+  };
+  private _aggregatedMarkers: AggregatedMarker[] = [];
+  private _lastBarSpacing: number = -1;
 
   constructor(series: ISeriesApi<SeriesType, HorzScaleItem>, chart: IChartApiBase<HorzScaleItem>) {
     this._series = series;
@@ -142,72 +276,137 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     }
   }
 
+  /**
+   * 配置聚合参数
+   */
+  public setAggregationConfig(config: Partial<AggregationConfig>): void {
+    this._aggregationConfig = { ...this._aggregationConfig, ...config };
+    this._lastBarSpacing = -1; // 强制重新聚合
+    this.update("data");
+  }
+
+  /**
+   * 获取当前聚合配置
+   */
+  public getAggregationConfig(): AggregationConfig {
+    return { ...this._aggregationConfig };
+  }
+
   protected _makeValid(): void {
     const timeScale = this._chart.timeScale();
-    const circleMarkers = this._markers;
-    if (this._dataInvalidated) {
-      // 数据被标记为失效，先做一次完整的初始化
-      this._data.items = circleMarkers.map<RenderItem>(
-        (marker: InternalCircleMarker<TimePointIndex>) => ({
-          time: marker.time,
+    const currentBarSpacing = timeScale.options().barSpacing;
+    
+    // 检查是否需要重新聚合（缩放级别变化或数据变化）
+    const needsReaggregation = this._lastBarSpacing !== currentBarSpacing || this._dataInvalidated;
+    
+    if (needsReaggregation) {
+      this._lastBarSpacing = currentBarSpacing;
+      
+      // 获取可视区域
+      const visibleBars = timeScale.getVisibleLogicalRange();
+      if (visibleBars === null) {
+        this._data.items = [];
+        this._data.visibleRange = null;
+        this._invalidated = false;
+        return;
+      }
+      
+      const visibleBarsRange = new RangeImpl(
+        Math.floor(visibleBars.from) as TimePointIndex,
+        Math.ceil(visibleBars.to) as TimePointIndex,
+      );
+      
+      // 过滤出可视区域内的标记
+      const visibleMarkers = this._markers.filter(marker => 
+        marker.time >= visibleBarsRange.left() && marker.time <= visibleBarsRange.right()
+      );
+      
+      // 对可视标记进行聚合
+      this._aggregatedMarkers = aggregateMarkers(visibleMarkers, timeScale, this._aggregationConfig);
+      
+      // 根据聚合结果创建渲染项
+      this._data.items = this._aggregatedMarkers.map<RenderItem>(
+        (aggregated: AggregatedMarker, index: number) => ({
+          time: aggregated.centerTime,
           x: 0 as Coordinate, // 占位，稍后计算
           y: 0 as Coordinate, // 同上
           size: 0, // 同上
-          externalId: marker.id,
-          internalId: marker.internalId,
-          text: marker.text,
+          externalId: aggregated.count > 1 ? `aggregated-${index}` : aggregated.markers[0].id,
+          internalId: index,
+          text: aggregated.count > 1 ? aggregated.count.toString() : (aggregated.markers[0].text || ""),
           imgUrl: undefined,
-          hovered: marker.hovered,
+          hovered: aggregated.markers.some(m => m.hovered),
+          // 添加聚合信息
+          isAggregated: aggregated.count > 1,
+          aggregatedCount: aggregated.count,
         }),
       );
+      
       this._dataInvalidated = false;
     }
 
-    this._data.visibleRange = null;
+    // 检查基本条件
     const visibleBars = timeScale.getVisibleLogicalRange();
     if (visibleBars === null) {
-      // 时间轴还没任何可视 bar
+      this._data.visibleRange = null;
+      this._invalidated = false;
       return;
     }
-    const visibleBarsRange = new RangeImpl(
-      Math.floor(visibleBars.from) as TimePointIndex,
-      Math.ceil(visibleBars.to) as TimePointIndex,
-    );
+    
     const firstValue = this._series.data()[0];
-    if (firstValue === null) {
+    if (firstValue === null || this._data.items.length === 0) {
+      this._data.visibleRange = null;
+      this._invalidated = false;
       return;
     }
-    if (this._data.items.length === 0) {
-      // 没有数据
-      return;
-    }
+
+    // 计算每个聚合标记的坐标和尺寸
     let prevTimeIndex = NaN;
     const shapeMargin = calcShapeMargin(timeScale.options().barSpacing);
     const offsets: Offsets = {
       aboveBar: shapeMargin,
       belowBar: shapeMargin,
     };
-    this._data.visibleRange = visibleTimedValues(this._data.items, visibleBarsRange, true);
-    for (let index = this._data.visibleRange.from; index < this._data.visibleRange.to; index++) {
-      const marker = circleMarkers[index];
-      if (marker.time !== prevTimeIndex) {
-        // 新的 bar，重置偏移
+
+    // 设置可视范围（基于聚合后的数据）
+    this._data.visibleRange = { from: 0, to: this._data.items.length };
+
+    for (let index = 0; index < this._data.items.length; index++) {
+      const aggregated = this._aggregatedMarkers[index];
+      const rendererItem = this._data.items[index];
+      
+      if (aggregated.centerTime !== prevTimeIndex) {
+        // 新的时间点，重置偏移
         offsets.aboveBar = shapeMargin;
         offsets.belowBar = shapeMargin;
-        prevTimeIndex = marker.time;
+        prevTimeIndex = aggregated.centerTime;
       }
-      const rendererItem = this._data.items[index];
+
+      // 设置X坐标
       rendererItem.x = ensureNotNull(
-        timeScale.logicalToCoordinate(marker.time as unknown as Logical),
+        timeScale.logicalToCoordinate(aggregated.centerTime as unknown as Logical),
       );
 
-      const dataAt = this._series.dataByIndex(marker.time, MismatchDirection.None);
+      // 获取对应的系列数据来计算Y坐标
+      const dataAt = this._series.dataByIndex(aggregated.centerTime, MismatchDirection.None);
       if (dataAt === null) {
         continue;
       }
+
+      // 创建一个临时标记来计算位置
+      const tempMarker: InternalCircleMarker<TimePointIndex> = {
+        time: aggregated.centerTime,
+        position: aggregated.position,
+        internalId: index,
+        originalTime: aggregated.centerTime,
+        size: aggregated.count > 1 ? Math.min(aggregated.count * 0.3 + 1, 2) : 1, // 聚合标记稍大
+        text: rendererItem.text,
+        hovered: rendererItem.hovered,
+      };
+
       fillSizeAndY<HorzScaleItem>(
         rendererItem,
-        marker,
+        tempMarker,
         dataAt,
         offsets,
         shapeMargin,

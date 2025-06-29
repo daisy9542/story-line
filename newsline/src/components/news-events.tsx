@@ -99,14 +99,6 @@ export default function NewsEvents({ newsEvents }: { newsEvents: INewsEvent[] })
                 <div className="flex flex-col gap-2 p-4 pt-0">
                   <h2 className="text-xl font-bold">{selectedEvent.report_title}</h2>
                   <div className="flex flex-wrap gap-2">
-                    {selectedEvent.event_categories.map((category, idx) => (
-                      <span
-                        key={`category-${idx}`}
-                        className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
-                      >
-                        {category.category_name}
-                      </span>
-                    ))}
                     <span
                       className={cn(
                         "rounded-full px-2 py-0.5 text-xs font-medium",

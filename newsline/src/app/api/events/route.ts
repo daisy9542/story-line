@@ -63,12 +63,6 @@ export async function GET(req: NextRequest) {
         });
       }
 
-      // 构建事件分类
-      const eventCategories = [{
-        category_name: "市场分析",
-        category_code: "MARKET_ANALYSIS"
-      }];
-
       // 转换时间戳
       const timestamp = new Date(dbEvent.analysis_date).getTime() / 1000;
 
@@ -76,7 +70,6 @@ export async function GET(req: NextRequest) {
         ...dbEvent,
         event_timestamp: timestamp,
         sentiment_label: sentimentLabel(dbEvent.overall_sentiment_score),
-        event_categories: eventCategories,
         event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50
       };
     });

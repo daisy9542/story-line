@@ -18,7 +18,6 @@ export interface INewsEvent {
 
   event_timestamp: number; // 转换后的时间戳，用于图表显示
   sentiment_label: "Positive" | "Negative" | "Neutral"; // 情绪标签
-  event_categories: IEventCategory[]; // 事件分类标签
   event_influence: number; // 事件影响力 (0~100)
 }
 
@@ -87,12 +86,6 @@ export interface ICitation {
   title?: string; // 可选：标题
   source?: string; // 可选：来源
   date?: string; // 可选：日期
-}
-
-// 分类标签
-export interface IEventCategory {
-  category_name: string; // 分类名称
-  category_code?: string; // 分类代码
 }
 
 // 观点

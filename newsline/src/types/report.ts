@@ -5,16 +5,16 @@ export interface INewsEvent {
   executive_summary: string; // 报告摘要
   overall_sentiment_score: number; // 情绪评分
   analysis_date: string; // 分析日期
-  start_date: string | null; // 事件起始日期
-  market_data: IMarketData | null; // 市场数据
+  start_date: string; // 事件起始日期
+  market_data: IMarketData; // 市场数据
   token: string; // 代币符号
-  key_entities: IKeyEntity[] | null; // 关键实体
-  historical_comparisons: IHistoricalComparison[] | null; // 历史比较
-  causal_inferences: ICausalInference[] | null; // 因果推断
-  event_timeline: IEventTimelineItem[] | null; // 事件时间线
+  key_entities: IKeyEntity[]; // 关键实体
+  historical_comparisons: IHistoricalComparison[]; // 历史比较
+  causal_inferences: ICausalInference[]; // 因果推断
+  event_timeline: IEventTimelineItem[]; // 事件时间线
   created_at: string; // 记录创建时间
-  citations: ICitation[] | null; // 引用来源
-  viewpoint: IViewpoint[] | null; // 观点
+  citations: ICitation[]; // 引用来源
+  viewpoint: IViewpoint[]; // 观点
 
   event_timestamp: number; // 转换后的时间戳，用于图表显示
   sentiment_label: "Positive" | "Negative" | "Neutral"; // 情绪标签

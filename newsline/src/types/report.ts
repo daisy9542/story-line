@@ -19,6 +19,7 @@ export interface INewsEvent {
   event_timestamp: number; // 转换后的时间戳，用于图表显示
   sentiment_label: "Positive" | "Negative" | "Neutral"; // 情绪标签
   event_influence: number; // 事件影响力 (0~100)
+  icon?: string; // 事件图标URL
 }
 
 // 市场数据

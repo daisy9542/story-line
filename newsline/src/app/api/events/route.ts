@@ -12,6 +12,19 @@ function sentimentLabel(score: number): "Positive" | "Negative" | "Neutral" {
   return "Neutral";
 }
 
+/**
+ * 根据事件属性生成图标URL
+ */
+function generateEventIcon(event: any): string {
+  // 根据事件类型、情绪或其他属性生成图标URL
+  // 使用更可靠的图标源
+  
+  const sentiment = sentimentLabel(event.overall_sentiment_score);
+  
+  // 使用简单的测试图标
+  return "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiM0Qjk2RkYiLz4KPHN2Zz4K";
+}
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -70,7 +83,9 @@ export async function GET(req: NextRequest) {
         ...dbEvent,
         event_timestamp: timestamp,
         sentiment_label: sentimentLabel(dbEvent.overall_sentiment_score),
-        event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50
+        event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50,
+        // 添加图标字段，这里可以根据事件类型或其他逻辑来设置不同的图标
+        icon: generateEventIcon(dbEvent)
       };
     });
 

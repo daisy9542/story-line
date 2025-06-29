@@ -30,19 +30,14 @@ export default function HomePage() {
           symbol: selectedTokenSymbol,
         })) as INewsEvent[];
 
-        // 调试输出
-        console.log("API返回的事件数据:", events);
-
         // 验证时间戳
-        const validEvents = events.filter(event => {
+        const validEvents = events.filter((event) => {
           const isValid = event.event_timestamp && !isNaN(event.event_timestamp);
           if (!isValid) {
             console.warn("发现无效时间戳的事件:", event);
           }
           return isValid;
         });
-
-        console.log(`共${events.length}个事件，有效事件${validEvents.length}个`);
 
         setEventsData(validEvents);
       } catch (err) {

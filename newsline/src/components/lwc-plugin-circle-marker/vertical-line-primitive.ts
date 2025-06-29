@@ -15,7 +15,7 @@ interface VerticalLineData {
   time: UTCTimestamp;
   color: string;
   lineWidth: number;
-  lineStyle: 'solid' | 'dashed';
+  lineStyle: "solid" | "dashed";
 }
 
 class VerticalLineRenderer implements IPrimitivePaneRenderer {
@@ -37,22 +37,22 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
     target.useBitmapCoordinateSpace((scope) => {
       const { context: ctx, horizontalPixelRatio: hpr, verticalPixelRatio: vpr } = scope;
       const x = Math.round(this._x! * hpr); // 使用非空断言，因为上面已经检查过了
-      
+
       ctx.save();
       ctx.strokeStyle = this._data!.color;
       ctx.lineWidth = this._data!.lineWidth * hpr;
-      
-      if (this._data!.lineStyle === 'dashed') {
+
+      if (this._data!.lineStyle === "dashed") {
         ctx.setLineDash([5 * hpr, 3 * hpr]);
       } else {
         ctx.setLineDash([]); // 确保实线时清除虚线设置
       }
-      
+
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, scope.bitmapSize.height);
       ctx.stroke();
-      
+
       ctx.restore();
     });
   }
@@ -76,13 +76,11 @@ class VerticalLinePaneView implements IPrimitivePaneView {
 
     const timeScale = this._chart.timeScale();
     const x = timeScale.timeToCoordinate(this._data.time);
-    
+
     if (x === null) {
-      console.log('垂直线坐标计算失败:', this._data.time);
       return null;
     }
 
-    console.log('垂直线渲染:', { time: this._data.time, x, color: this._data.color });
     this._renderer.setData(this._data, x);
     return this._renderer;
   }
@@ -96,11 +94,9 @@ export class VerticalLinePrimitive implements ISeriesPrimitive<Time> {
   public attached(param: SeriesAttachedParameter<Time>): void {
     this._paneView = new VerticalLinePaneView(param.chart);
     this._requestUpdate = param.requestUpdate;
-    console.log('垂直线原语已附加');
   }
 
   public detached(): void {
-    console.log('垂直线原语已分离');
     this._paneView = null;
     this._requestUpdate = undefined;
   }
@@ -112,7 +108,6 @@ export class VerticalLinePrimitive implements ISeriesPrimitive<Time> {
   public updateAllViews(): void {
     if (this._paneView && this._data) {
       this._paneView.setData(this._data);
-      console.log('垂直线数据已更新:', this._data);
     }
     if (this._requestUpdate) {
       this._requestUpdate();
@@ -120,7 +115,6 @@ export class VerticalLinePrimitive implements ISeriesPrimitive<Time> {
   }
 
   public setData(data: VerticalLineData | null): void {
-    console.log('设置垂直线数据:', data);
     this._data = data;
     this.updateAllViews();
   }

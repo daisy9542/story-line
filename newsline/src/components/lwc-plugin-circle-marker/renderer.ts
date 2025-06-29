@@ -19,6 +19,8 @@ export interface RenderItem extends TimedValue {
   focused?: boolean; // 是否为点击聚焦状态
   isAggregated?: boolean; // 是否为聚合标记
   aggregatedCount?: number; // 聚合的标记数量
+  icon?: string; // 图标URL
+  influence?: number; // 影响力值，用于调整大小
 }
 
 export interface RenderData {
@@ -31,9 +33,52 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _fontSize: number = -1;
   private _fontFamily: string = "";
   private _font: string = "";
+  private _iconCache: Map<string, HTMLImageElement> = new Map(); // 图标缓存
+  private _updateCallback?: () => void; // 更新回调
 
   public setData(data: RenderData): void {
     this._data = data;
+    // 预加载图标
+    this._preloadIcons();
+  }
+
+  public setUpdateCallback(callback: () => void): void {
+    this._updateCallback = callback;
+  }
+
+  /**
+   * 预加载图标
+   */
+  private _preloadIcons(): void {
+    if (!this._data) return;
+    
+    this._data.items.forEach((item) => {
+      if (item.icon && !this._iconCache.has(item.icon)) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous'; // 处理跨域问题
+        img.onload = () => {
+          this._iconCache.set(item.icon!, img);
+          // 图标加载完成后，触发重新渲染
+          if (this._updateCallback) {
+            this._updateCallback();
+          }
+        };
+        img.onerror = (error) => {
+          console.warn('图标加载失败:', item.icon, error);
+        };
+        img.src = item.icon;
+      }
+    });
+  }
+
+  /**
+   * 根据影响力计算大小倍数
+   */
+  private _calculateInfluenceMultiplier(influence?: number): number {
+    if (!influence) return 1;
+    // 将0-100的影响力映射到0.5-2.0的大小倍数
+    const normalizedInfluence = Math.max(0, Math.min(100, influence)) / 100;
+    return 0.5 + normalizedInfluence * 1.5; // 0.5x 到 2.0x
   }
 
   public setParams(fontSize: number, fontFamily: string): void {
@@ -65,11 +110,16 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         }
         const cx = Math.round(item.x * hpr) + correction;
         const cy = Math.round(item.y * vpr);
-        const radius = ((shapeSize(item.size) - 1) / 2) * hpr;
+        
+        // 根据影响力调整大小
+        const influenceMultiplier = this._calculateInfluenceMultiplier(item.influence);
+        const baseRadius = ((shapeSize(item.size) - 1) / 2) * hpr;
+        const radius = baseRadius * influenceMultiplier;
 
         // 所有标记使用相同的样式
         const isAggregated = item.isAggregated || false;
         const textColor = "black";
+        const hasIcon = item.icon && this._iconCache.has(item.icon);
 
         // 绘制主圆形 - 统一使用白色
         ctx.beginPath();
@@ -116,12 +166,56 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.restore();
         }
 
-        // 聚合标记现在使用与普通标记相同的样式，不需要特殊装饰
+        // 绘制图标或文本
+        if (item.icon) {
+          // 优先显示图标
+          const iconImg = this._iconCache.get(item.icon);
+          
+          if (iconImg && iconImg.complete) {
+            const iconSize = radius * 1.4; // 图标大小为圆形直径的70%，确保不超出边界
+            const iconX = cx - iconSize / 2;
+            const iconY = cy - iconSize / 2;
+            
+            ctx.save();
+            // 创建圆形裁剪区域
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius - 2, 0, 2 * Math.PI); // 稍微缩小裁剪区域，避免边缘问题
+            ctx.clip();
+            
+            // 绘制图标
+            ctx.drawImage(iconImg, iconX, iconY, iconSize, iconSize);
+            ctx.restore();
+          } else {
+            // 图标未加载完成时，显示文本作为降级
+            if (item.text) {
+              const maxTextWidth = radius * Math.SQRT2 * 0.9;
+              let fontSize = Math.floor(radius * 0.8);
+              let textWidth: number;
+              
+              do {
+                ctx.font = `${fontSize}px ${this._fontFamily}`;
+                textWidth = ctx.measureText(item.text).width;
+                if (textWidth <= maxTextWidth) {
+                  break;
+                }
+                fontSize--;
+              } while (fontSize > 8);
 
-        // 绘制文本
-        if (item.text) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+              ctx.clip();
+
+              ctx.fillStyle = textColor;
+              ctx.font = `${fontSize}px ${this._fontFamily}`;
+              ctx.fillText(item.text, cx, cy);
+              ctx.restore();
+            }
+          }
+        } else if (item.text) {
+          // 没有图标时显示文本
           const maxTextWidth = radius * Math.SQRT2 * 0.9;
-          let fontSize = Math.floor(radius * 0.8); // 所有标记使用相同的文字大小
+          let fontSize = Math.floor(radius * 0.8);
           let textWidth: number;
           
           do {
@@ -139,7 +233,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.clip();
 
           ctx.fillStyle = textColor;
-          ctx.font = `${fontSize}px ${this._fontFamily}`; // 所有标记使用相同的字体样式
+          ctx.font = `${fontSize}px ${this._fontFamily}`;
           ctx.fillText(item.text, cx, cy);
           ctx.restore();
         }
@@ -186,8 +280,14 @@ function hitTestShape(item: RenderItem, x: Coordinate, y: Coordinate): boolean {
   if (item.size === 0) {
     return false;
   }
-  const circleSize = shapeSize(item.size);
-  const tolerance = 2 + circleSize / 2;
+  
+  // 考虑影响力调整后的大小
+  const influenceMultiplier = item.influence ? 
+    (0.5 + (Math.max(0, Math.min(100, item.influence)) / 100) * 1.5) : 1;
+  const baseCircleSize = shapeSize(item.size);
+  const actualCircleSize = baseCircleSize * influenceMultiplier;
+  
+  const tolerance = 2 + actualCircleSize / 2;
   const xOffset = item.x - x;
   const yOffset = item.y - y;
   const dist = Math.sqrt(xOffset * xOffset + yOffset * yOffset);

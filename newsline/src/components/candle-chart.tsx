@@ -63,6 +63,8 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
           hovered: hoveredEventId === String(event.id),
           // 传递权重信息用于聚合时选择代表性事件
           influence: event.event_influence || 50,
+          // 传递图标信息
+          icon: event.icon,
         });
       }
     });
@@ -107,7 +109,6 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     try {
       verticalLineRef.current = new VerticalLinePrimitive();
       seriesRef.current.attachPrimitive(verticalLineRef.current);
-      console.log('垂直线原语创建成功');
     } catch (error) {
       console.error('垂直线原语创建失败:', error);
     }
@@ -154,7 +155,6 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
         if (event && verticalLineRef.current) {
           // 使用 event_timestamp 而不是 start_date
           const eventTime = event.event_timestamp;
-          console.log('设置hover垂直线:', { eventId: hoveredId, eventTime });
           verticalLineRef.current.setData({
             time: eventTime as UTCTimestamp,
             color: "rgba(30, 144, 255, 0.6)",
@@ -195,7 +195,6 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
           const eventTime = event.event_timestamp;
           setFocusedEventTime(eventTime as UTCTimestamp);
           
-          console.log('设置点击垂直线:', { eventId: clickedId, eventTime });
           if (verticalLineRef.current) {
             verticalLineRef.current.setData({
               time: eventTime as UTCTimestamp,

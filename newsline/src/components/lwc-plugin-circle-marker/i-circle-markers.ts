@@ -16,6 +16,7 @@ interface CircleMarkerBase<TimeType> {
   text?: string;
   hovered: boolean;
   influence?: number; // 事件影响力权重，用于聚合时选择代表性事件
+  icon?: string; // 图标URL
 }
 
 export interface CircleMarker<TimeType> extends CircleMarkerBase<TimeType> {

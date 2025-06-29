@@ -89,17 +89,8 @@ function aggregateMarkers(
   const barSpacing = timeScale.options().barSpacing;
   const zoomLevel = Math.max(1, Math.log2(barSpacing / 6)); // 调整缩放级别计算
 
-  console.log('聚合调试:', { 
-    barSpacing, 
-    zoomLevel, 
-    maxZoomLevel: config.maxZoomLevel,
-    minPixelDistance: config.minPixelDistance,
-    markersCount: markers.length 
-  });
-
   // 如果缩放级别超过最大值，不进行聚合
   if (zoomLevel > config.maxZoomLevel) {
-    console.log('缩放级别过高，不聚合');
     return markers.map(marker => ({
       markers: [marker],
       centerTime: marker.time,
@@ -117,7 +108,6 @@ function aggregateMarkers(
   const aboveBarMarkers = markers.filter(m => m.position === "aboveBar");
   const belowBarMarkers = markers.filter(m => m.position === "belowBar");
 
-  console.log('标记分组:', { aboveBar: aboveBarMarkers.length, belowBar: belowBarMarkers.length });
 
   [aboveBarMarkers, belowBarMarkers].forEach(positionMarkers => {
     if (positionMarkers.length === 0) return;
@@ -141,12 +131,10 @@ function aggregateMarkers(
           timeScale
         );
 
-        console.log(`标记距离: ${i}-${j} = ${distance}px, 阈值: ${config.minPixelDistance}px`);
 
         if (distance <= config.minPixelDistance) {
           cluster.push(positionMarkers[j]);
           processed.add(positionMarkers[j].internalId);
-          console.log(`聚合标记 ${j} 到集群 ${i}`);
         } else {
           break; // 由于已排序，后续标记距离只会更远
         }
@@ -162,7 +150,6 @@ function aggregateMarkers(
       const centerTime = representativeMarker.time;
       const centerX = timeScale.logicalToCoordinate(centerTime as unknown as Logical);
 
-      console.log(`聚合 ${cluster.length} 个标记，选择权重最大的: ${(representativeMarker as any).influence || 0}`);
 
       aggregated.push({
         markers: cluster,
@@ -175,7 +162,6 @@ function aggregateMarkers(
     }
   });
 
-  console.log(`聚合完成: ${markers.length} -> ${aggregated.length}`);
   return aggregated;
 }
 
@@ -271,6 +257,12 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     const layout = this._chart.options()["layout"];
     this._renderer.setParams(layout.fontSize, layout.fontFamily);
     this._renderer.setData(this._data);
+    
+    // 设置更新回调，当图标加载完成时重新渲染
+    this._renderer.setUpdateCallback(() => {
+      this.update();
+    });
+    
     return this._renderer;
   }
 
@@ -358,6 +350,9 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
           // 添加聚合信息
           isAggregated: aggregated.count > 1,
           aggregatedCount: aggregated.count,
+          // 添加图标和影响力信息
+          icon: (aggregated.representativeMarker as any).icon,
+          influence: (aggregated.representativeMarker as any).influence,
         }),
       );
       

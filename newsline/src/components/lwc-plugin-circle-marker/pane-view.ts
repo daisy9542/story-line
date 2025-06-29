@@ -32,6 +32,7 @@ interface AggregatedMarker {
   centerX: Coordinate;
   count: number;
   position: "aboveBar" | "belowBar";
+  representativeMarker: InternalCircleMarker<TimePointIndex>; // 权重最大的代表性标记
 }
 
 // 聚合配置
@@ -105,6 +106,7 @@ function aggregateMarkers(
       centerX: timeScale.logicalToCoordinate(marker.time as unknown as Logical),
       count: 1,
       position: marker.position,
+      representativeMarker: marker, // 单个标记就是代表
     }));
   }
 
@@ -150,18 +152,25 @@ function aggregateMarkers(
         }
       }
 
-      // 计算聚合中心
-      const centerTime = cluster[Math.floor(cluster.length / 2)].time;
+      // 选择权重最大的标记作为代表
+      const representativeMarker = cluster.reduce((max, current) => {
+        const maxInfluence = (max as any).influence || 0;
+        const currentInfluence = (current as any).influence || 0;
+        return currentInfluence > maxInfluence ? current : max;
+      });
+
+      const centerTime = representativeMarker.time;
       const centerX = timeScale.logicalToCoordinate(centerTime as unknown as Logical);
 
-      console.log(`创建聚合: 包含 ${cluster.length} 个标记`);
+      console.log(`聚合 ${cluster.length} 个标记，选择权重最大的: ${(representativeMarker as any).influence || 0}`);
 
       aggregated.push({
         markers: cluster,
         centerTime,
         centerX,
         count: cluster.length,
-        position: positionMarkers[i].position,
+        position: representativeMarker.position,
+        representativeMarker, // 权重最大的标记
       });
     }
   });
@@ -241,6 +250,7 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
   };
   private _aggregatedMarkers: AggregatedMarker[] = [];
   private _lastBarSpacing: number = -1;
+  private _focusedMarkerId: string | null = null;
 
   constructor(series: ISeriesApi<SeriesType, HorzScaleItem>, chart: IChartApiBase<HorzScaleItem>) {
     this._series = series;
@@ -292,6 +302,14 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
     return { ...this._aggregationConfig };
   }
 
+  /**
+   * 设置聚焦的标记ID
+   */
+  public setFocusedMarkerId(markerId: string | null): void {
+    this._focusedMarkerId = markerId;
+    this.update();
+  }
+
   protected _makeValid(): void {
     const timeScale = this._chart.timeScale();
     const currentBarSpacing = timeScale.options().barSpacing;
@@ -324,18 +342,19 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
       // 对可视标记进行聚合
       this._aggregatedMarkers = aggregateMarkers(visibleMarkers, timeScale, this._aggregationConfig);
       
-      // 根据聚合结果创建渲染项
+      // 根据聚合结果创建渲染项，使用代表性标记的信息
       this._data.items = this._aggregatedMarkers.map<RenderItem>(
         (aggregated: AggregatedMarker, index: number) => ({
           time: aggregated.centerTime,
           x: 0 as Coordinate, // 占位，稍后计算
           y: 0 as Coordinate, // 同上
           size: 0, // 同上
-          externalId: aggregated.count > 1 ? `aggregated-${index}` : aggregated.markers[0].id,
+          externalId: aggregated.representativeMarker.id,
           internalId: index,
-          text: aggregated.count > 1 ? aggregated.count.toString() : (aggregated.markers[0].text || ""),
+          text: aggregated.representativeMarker.text || "",
           imgUrl: undefined,
-          hovered: aggregated.markers.some(m => m.hovered),
+          hovered: aggregated.representativeMarker.hovered,
+          focused: this._focusedMarkerId === aggregated.representativeMarker.id,
           // 添加聚合信息
           isAggregated: aggregated.count > 1,
           aggregatedCount: aggregated.count,

@@ -18,6 +18,10 @@ export interface ICircleMarkersPluginApi<HorzScaleItem>
    */
   markers: () => readonly CircleMarker<HorzScaleItem>[];
   /**
+   * Get the underlying primitive instance for advanced functionality.
+   */
+  getPrimitive: () => CircleMarkerPrimitive<HorzScaleItem>;
+  /**
    * Detaches the plugin from the series.
    */
   detach: () => void;
@@ -43,6 +47,13 @@ class CircleMarkersPrimitiveWrapper<HorzScaleItem>
 
   public markers(): readonly CircleMarker<HorzScaleItem>[] {
     return this._primitive.markers();
+  }
+
+  /**
+   * 获取底层的 primitive 实例，用于访问高级功能
+   */
+  public getPrimitive(): CircleMarkerPrimitive<HorzScaleItem> {
+    return this._primitive;
   }
 }
 

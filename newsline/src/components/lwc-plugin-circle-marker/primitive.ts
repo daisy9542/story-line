@@ -105,6 +105,13 @@ export class CircleMarkerPrimitive<HorzScaleItem> implements ISeriesPrimitive<Ho
   }
 
   /**
+   * 获取 pane view 实例，用于外部访问展开功能
+   */
+  public getPaneView(): CircleMarkerPaneView<HorzScaleItem> | null {
+    return this._paneView;
+  }
+
+  /**
    * 强制更新所有视图
    */
   public updateAllViews(): void {

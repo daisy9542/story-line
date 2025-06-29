@@ -16,6 +16,7 @@ export interface RenderItem extends TimedValue {
   internalId: number;
   externalId?: string;
   hovered: boolean;
+  focused?: boolean; // 是否为点击聚焦状态
   isAggregated?: boolean; // 是否为聚合标记
   aggregatedCount?: number; // 聚合的标记数量
 }
@@ -66,58 +67,61 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         const cy = Math.round(item.y * vpr);
         const radius = ((shapeSize(item.size) - 1) / 2) * hpr;
 
-        // 根据是否为聚合标记选择不同的样式
+        // 所有标记使用相同的样式
         const isAggregated = item.isAggregated || false;
-        const fillColor = isAggregated ? "#4A90E2" : "white"; // 聚合标记使用蓝色
-        const strokeColor = isAggregated ? "#2E5C8A" : "#E0E0E0"; // 聚合标记使用深蓝色边框
-        const textColor = isAggregated ? "white" : "black";
+        const textColor = "black";
 
-        // 绘制主圆形
+        // 绘制主圆形 - 统一使用白色
         ctx.beginPath();
-        ctx.fillStyle = fillColor;
+        ctx.fillStyle = "white";
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.fill();
 
-        // 绘制边框
+        // 绘制边框 - 统一使用灰色
         ctx.beginPath();
-        ctx.strokeStyle = strokeColor;
+        ctx.strokeStyle = "#E0E0E0";
         ctx.lineWidth = 1 * hpr;
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.stroke();
 
-        // 悬停效果
-        if (item.hovered) {
+        // 悬停和聚焦效果
+        if (item.hovered || item.focused) {
           ctx.save();
-          ctx.lineWidth = 2 * hpr;
-          ctx.strokeStyle = "rgba(30,144,255,0.9)";
+          
+          // 外层光晕效果
+          const glowRadius = radius + 8;
+          const gradient = ctx.createRadialGradient(cx, cy, radius, cx, cy, glowRadius);
+          gradient.addColorStop(0, "rgba(30,144,255,0.3)");
+          gradient.addColorStop(1, "rgba(30,144,255,0)");
+          
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(cx, cy, glowRadius, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // 强化边框 - 聚焦状态使用更强的效果
+          ctx.lineWidth = item.focused ? 4 * hpr : 3 * hpr;
+          ctx.strokeStyle = item.focused ? "rgba(30,144,255,1)" : "rgba(30,144,255,0.8)";
           ctx.beginPath();
           ctx.arc(cx, cy, radius + 2, 0, 2 * Math.PI);
           ctx.stroke();
+          
+          // 内层高亮
+          ctx.lineWidth = 1 * hpr;
+          ctx.strokeStyle = "rgba(255,255,255,0.8)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius - 2, 0, 2 * Math.PI);
+          ctx.stroke();
+          
           ctx.restore();
         }
 
-        // 聚合标记的特殊效果：添加小圆点装饰
-        if (isAggregated && item.aggregatedCount && item.aggregatedCount > 1) {
-          const dotRadius = Math.max(1, radius * 0.15);
-          const dotDistance = radius * 0.7;
-          
-          // 在聚合标记周围绘制小圆点表示聚合
-          for (let i = 0; i < Math.min(item.aggregatedCount - 1, 3); i++) {
-            const angle = (i * Math.PI * 2) / 3 - Math.PI / 2; // 从顶部开始
-            const dotX = cx + Math.cos(angle) * dotDistance;
-            const dotY = cy + Math.sin(angle) * dotDistance;
-            
-            ctx.beginPath();
-            ctx.fillStyle = "rgba(255,255,255,0.8)";
-            ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI, false);
-            ctx.fill();
-          }
-        }
+        // 聚合标记现在使用与普通标记相同的样式，不需要特殊装饰
 
         // 绘制文本
         if (item.text) {
           const maxTextWidth = radius * Math.SQRT2 * 0.9;
-          let fontSize = Math.floor(radius * (isAggregated ? 0.6 : 0.8)); // 聚合标记的文字稍小
+          let fontSize = Math.floor(radius * 0.8); // 所有标记使用相同的文字大小
           let textWidth: number;
           
           do {
@@ -135,7 +139,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.clip();
 
           ctx.fillStyle = textColor;
-          ctx.font = `bold ${fontSize}px ${this._fontFamily}`; // 聚合数字使用粗体
+          ctx.font = `${fontSize}px ${this._fontFamily}`; // 所有标记使用相同的字体样式
           ctx.fillText(item.text, cx, cy);
           ctx.restore();
         }

@@ -35,6 +35,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _font: string = "";
   private _iconCache: Map<string, HTMLImageElement> = new Map(); // 图标缓存
   private _updateCallback?: () => void; // 更新回调
+  private _debugLogged: boolean = false; // 调试标志
 
   public setData(data: RenderData): void {
     this._data = data;
@@ -55,7 +56,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
     this._data.items.forEach((item) => {
       if (item.icon && !this._iconCache.has(item.icon)) {
         const img = new Image();
-        img.crossOrigin = 'anonymous'; // 处理跨域问题
+        
         img.onload = () => {
           this._iconCache.set(item.icon!, img);
           // 图标加载完成后，触发重新渲染
@@ -63,9 +64,11 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
             this._updateCallback();
           }
         };
+        
         img.onerror = (error) => {
-          console.warn('图标加载失败:', item.icon, error);
+          console.warn('SVG图标加载失败:', item.icon, error);
         };
+        
         img.src = item.icon;
       }
     });
@@ -76,9 +79,9 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
    */
   private _calculateInfluenceMultiplier(influence?: number): number {
     if (!influence) return 1;
-    // 将0-100的影响力映射到0.5-2.0的大小倍数
+    // 将0-100的影响力映射到0.8-1.4的大小倍数，减少差异
     const normalizedInfluence = Math.max(0, Math.min(100, influence)) / 100;
-    return 0.5 + normalizedInfluence * 1.5; // 0.5x 到 2.0x
+    return 0.8 + normalizedInfluence * 0.6; // 0.8x 到 1.4x
   }
 
   public setParams(fontSize: number, fontFamily: string): void {
@@ -170,6 +173,8 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         if (item.icon) {
           // 优先显示图标
           const iconImg = this._iconCache.get(item.icon);
+          
+
           
           if (iconImg && iconImg.complete) {
             const iconSize = radius * 1.4; // 图标大小为圆形直径的70%，确保不超出边界
@@ -283,7 +288,7 @@ function hitTestShape(item: RenderItem, x: Coordinate, y: Coordinate): boolean {
   
   // 考虑影响力调整后的大小
   const influenceMultiplier = item.influence ? 
-    (0.5 + (Math.max(0, Math.min(100, item.influence)) / 100) * 1.5) : 1;
+    (0.8 + (Math.max(0, Math.min(100, item.influence)) / 100) * 0.6) : 1;
   const baseCircleSize = shapeSize(item.size);
   const actualCircleSize = baseCircleSize * influenceMultiplier;
   

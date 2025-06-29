@@ -52,7 +52,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   function drawMarkers(): void {
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
-    newsEvents.forEach((event) => {
+    newsEvents.forEach((event, index) => {
       // 确保时间戳存在且有效
       if (event.event_timestamp && !isNaN(event.event_timestamp)) {
         markers.push({
@@ -104,13 +104,13 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     chartRef.current = chart;
     seriesRef.current = chart.addSeries(CandlestickSeries);
     circleMarkerRef.current = createCircleMarkers(seriesRef.current, []);
-    
+
     // 创建垂直线原语
     try {
       verticalLineRef.current = new VerticalLinePrimitive();
       seriesRef.current.attachPrimitive(verticalLineRef.current);
     } catch (error) {
-      console.error('垂直线原语创建失败:', error);
+      console.error("垂直线原语创建失败:", error);
     }
 
     // 监听鼠标移动（十字光标）来动态更新 OHLC
@@ -145,13 +145,13 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
         }
         return;
       }
-      
+
       const hoveredId = param.hoveredObjectId as string;
       setHoveredEventId(hoveredId);
-      
+
       // 显示对应事件的垂直线
       if (hoveredId) {
-        const event = newsEvents.find(e => String(e.id) === hoveredId);
+        const event = newsEvents.find((e) => String(e.id) === hoveredId);
         if (event && verticalLineRef.current) {
           // 使用 event_timestamp 而不是 start_date
           const eventTime = event.event_timestamp;
@@ -159,7 +159,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
             time: eventTime as UTCTimestamp,
             color: "rgba(30, 144, 255, 0.6)",
             lineWidth: 1,
-            lineStyle: 'dashed'
+            lineStyle: "dashed",
           });
         }
       }
@@ -170,12 +170,12 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
       if (!param.point) {
         return;
       }
-      
+
       const clickedId = param.hoveredObjectId as string;
       setFocusedEventId(clickedId);
-      
+
       // 设置标记的聚焦状态
-      if (circleMarkerRef.current && typeof circleMarkerRef.current.getPrimitive === 'function') {
+      if (circleMarkerRef.current && typeof circleMarkerRef.current.getPrimitive === "function") {
         try {
           const primitive = circleMarkerRef.current.getPrimitive();
           const paneView = primitive?.getPaneView();
@@ -183,24 +183,24 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
             paneView.setFocusedMarkerId(clickedId);
           }
         } catch (error) {
-          console.error('设置聚焦状态失败:', error);
+          console.error("设置聚焦状态失败:", error);
         }
       }
-      
+
       // 设置聚焦事件的垂直线
       if (clickedId) {
-        const event = newsEvents.find(e => String(e.id) === clickedId);
+        const event = newsEvents.find((e) => String(e.id) === clickedId);
         if (event) {
           // 使用 event_timestamp 而不是 start_date
           const eventTime = event.event_timestamp;
           setFocusedEventTime(eventTime as UTCTimestamp);
-          
+
           if (verticalLineRef.current) {
             verticalLineRef.current.setData({
               time: eventTime as UTCTimestamp,
               color: "rgba(30, 144, 255, 0.8)",
               lineWidth: 2,
-              lineStyle: 'solid'
+              lineStyle: "solid",
             });
           }
         }

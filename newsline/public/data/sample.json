@@ -1,71 +1,203 @@
 {
-    // 文章/报告的唯一标识符
-    "report_id": "21124-323546-525",
-    // ---- 核心事件信息 ----
-    // 事件的唯一标识符 (如果一个报告可能涉及多个核心事件，这个字段很重要)
-    "event_id": "EVT-RUNES-X-BTC-TRACTION-001",
-    // 事件核心标题 (新增字段，比summary更精炼，比EventLabels.event更易读)
-    "event_title": "RUNES·X·BITCOIN 协议获得市场关注",
-    // 事件影响力 (0~100)，数值越高越重要
-    "event_influence": 90 ,
-    // 事件发生时间或报告时间 (新增字段，对于时间线展示很重要)
-    "event_timestamp": "2023-10-27T10:30:00Z", // 使用标准时间格式 ISO 8601
-    // 事件摘要 (保留，提供详细背景)
-    "summary": "文章详细介绍了RUNES·X·BITCOIN协议，特别是其社区驱动方法和空投策略如何帮助其获得市场关注。",
-    // 情绪评分 (-1 到 1)
-    "sentiment_score": 0.6,
-    // 情绪标签 (新增字段，基于分数生成，便于直接显示)
-    "sentiment_label": "Positive", // (例如: Positive, Neutral, Negative)
-  
-    // ---- 事件相关要素 ----
-    // 关键实体 (结构优化，增加类型和可选的规范名称/ID)
-    "key_entities": [
-      {
-        "name": "AICoins", // 实体名称
-        "type": "CryptocurrencyCategory", // 实体类型 (使用清晰的分类)
-        "entity_id": "Q12345" // 可选：链接到知识库或数据库的ID
+  "id": 24,
+  "report_title": "Cointelegraph发布关于DoubleQ数字货币交易所存在欺诈行为的调查报告引发BTC价格大幅波动",
+  "executive_summary": "Cointelegraph发布了一篇调查报告，详细揭露了DoubleQ数字货币交易所涉嫌欺诈行为，包括虚假交易量、操纵市场和挪用用户资金。该报告迅速在加密货币社区传播，引发了投资者对交易所安全性和合规性的担忧，导致大量用户抛售BTC，引发价格大幅下跌。同时，其他交易所也面临审查压力，加剧了市场恐慌情绪。",
+  "overall_sentiment_score": -0.8,
+  "analysis_date": "2023-01-14",
+  "start_date": "2023-01-14",
+  "market_data": {
+    "meta": {
+      "target_date": "2023-01-14"
+    },
+    "market_daily_change": {
+      "DAX": {
+        "date": "2023-01-13",
+        "volatility": "0.61%",
+        "daily_change_pct": "0.19%",
+        "daily_change_value": "28.22$"
+      },
+      "DJIA": {
+        "date": "2023-01-13",
+        "volatility": "1.25%",
+        "daily_change_pct": "0.33%",
+        "daily_change_value": "112.64$"
+      },
+      "BTC_USD": {
+        "date": "2023-01-14",
+        "volatility": "5.86%",
+        "daily_change_pct": "5.36%",
+        "daily_change_value": "1066.72$"
+      },
+      "ETH_USD": {
+        "date": "2023-01-14",
+        "volatility": "7.77%",
+        "daily_change_pct": "6.83%",
+        "daily_change_value": "99.09$"
+      },
+      "S&P_500": {
+        "date": "2023-01-13",
+        "volatility": "1.42%",
+        "daily_change_pct": "0.4%",
+        "daily_change_value": "15.92$"
+      },
+      "SOL_USD": {
+        "date": "2023-01-14",
+        "volatility": "34.44%",
+        "daily_change_pct": "32.59%",
+        "daily_change_value": "5.96$"
+      },
+      "FTSE_100": {
+        "date": "2023-01-13",
+        "volatility": "0.92%",
+        "daily_change_pct": "0.64%",
+        "daily_change_value": "50.1$"
+      },
+      "Nikkei_225": {
+        "date": "2023-01-13",
+        "volatility": "1.21%",
+        "daily_change_pct": "-1.25%",
+        "daily_change_value": "-330.3$"
       }
-    ],
-    // 事件分类标签 (结构优化)
-    "event_categories": [
-      {
-        "category_name": "Cryptocurrency Innovation", // 使用更易读的分类名称
-        "category_code": "CRYPTO_INNOV" // 可选：内部使用的代码
-      }
-    ],
-  
-    // ---- 因果关系分析 ----  
-    "causal_analysis": [
-      {
-        // 主要原因/背景
-        "cause": "创新的项目特性", // Human-readable cause
-        // 触发该因果链的具体动作/子事件
-        "trigger": "RUNES·X·BITCOIN 的社区驱动方法和空投", // Human-readable trigger
-        // 直接导致的后果/影响
-        "effect": "市场关注度增加" // Human-readable effect
-      }
-    ],
-  
-    // ---- 历史相似事件 + 宏观和微观指数---- 
-    "historical_analogues": [
-      {
-        // 相似历史事件的描述
-        "historical_case_summary": "比特币空投 (例如 Bitcoin Cash)",
-        // 历史事件发生的大致日期/年份
-        "historical_event_date": "2017-03-25", // 统一日期格式
-        // 与当前事件的相似之处
-        "similarity_description": "社区驱动的代币分发机制",
-        // 指向相关历史事件/报告的ID (如有)
-        "related_report_id": "243657033-31251-51"
-        // 市场波动指标
-        "market_indicator": {
-          // 加密货币指数
-          "crypto": "-1%", 
-          // 道琼斯工业平均指数
-          "djia": "-3%",
-          // 纳斯达克 100 指数
-          "ndx": "-1%"
-        }
-      }
-    ]
-  }
+    }
+  },
+  "token": "BTC",
+  "key_entities": [
+    {
+      "name": "Cointelegraph",
+      "role": "揭露者",
+      "type": "媒体"
+    },
+    {
+      "name": "DoubleQ",
+      "role": "肇事方",
+      "type": "交易所"
+    },
+    {
+      "name": "BTC",
+      "role": "受害者",
+      "type": "加密货币"
+    },
+    {
+      "name": "加密货币投资者",
+      "role": "受害者",
+      "type": "个人"
+    }
+  ],
+  "historical_comparisons": [
+    {
+      "event_date": "2014-02-28",
+      "event_summary": "2014年，Mt.Gox交易所因被黑客攻击导致大量比特币丢失，最终破产，引发市场恐慌性抛售。",
+      "sentiment_score": -0.9,
+      "similarity_label": "交易所安全漏洞引发的市场恐慌",
+      "outcome_and_lessons": "Mt.Gox事件暴露了中心化交易所的安全风险，强调了交易所安全措施的重要性，以及投资者分散投资的必要性。该事件长期影响了市场对中心化交易所的信任。",
+      "market_indicator": {}
+    },
+    {
+      "event_date": "2017-08-02",
+      "event_summary": "2017年，Bitfinex交易所被盗导致比特币价格暴跌。",
+      "sentiment_score": -0.8,
+      "similarity_label": "交易所被盗事件",
+      "outcome_and_lessons": "Bitfinex事件再次强调了交易所安全的重要性，并促使行业加强安全措施和监管合规。同时也提醒投资者注意交易所风险。",
+      "market_indicator": {}
+    },
+    {
+      "event_date": "2022-11-11",
+      "event_summary": "2022年，FTX交易所破产，引发加密货币市场信任危机和大规模抛售。",
+      "sentiment_score": -0.9,
+      "similarity_label": "交易所挪用用户资金和缺乏透明度",
+      "outcome_and_lessons": "FTX事件暴露了交易所挪用用户资金、缺乏透明度和风险管理的问题，导致市场对中心化交易所的信任度大幅下降，并加速了监管的推进。",
+      "market_indicator": {}
+    }
+  ],
+  "causal_inferences": [
+    {
+      "cause": "Cointelegraph发布关于DoubleQ交易所欺诈行为的调查报告",
+      "effect": "投资者对DoubleQ交易所的信任度崩溃",
+      "evidence": "报告中详细描述了DoubleQ交易所的虚假交易量和操纵市场行为",
+      "confidence": 0.9,
+      "source_url": null,
+      "sentiment_score": -0.9
+    },
+    {
+      "cause": "投资者对DoubleQ交易所的信任度崩溃",
+      "effect": "大量用户从DoubleQ交易所提现BTC",
+      "evidence": "交易所提现量激增的数据",
+      "confidence": 0.8,
+      "source_url": null,
+      "sentiment_score": -0.7
+    },
+    {
+      "cause": "大量用户从DoubleQ交易所提现BTC",
+      "effect": "BTC市场抛售压力增大",
+      "evidence": "交易所流出的BTC数量增加",
+      "confidence": 0.9,
+      "source_url": null,
+      "sentiment_score": -0.6
+    },
+    {
+      "cause": "BTC市场抛售压力增大",
+      "effect": "BTC价格大幅下跌",
+      "evidence": "BTC价格图表显示当日大幅下跌",
+      "confidence": 1,
+      "source_url": null,
+      "sentiment_score": -0.8
+    },
+    {
+      "cause": "对DoubleQ交易所的担忧蔓延",
+      "effect": "其他交易所面临审查压力，投资者普遍恐慌",
+      "evidence": "社交媒体上关于交易所安全性的讨论增加",
+      "confidence": 0.7,
+      "source_url": null,
+      "sentiment_score": -0.7
+    }
+  ],
+  "event_timeline": [
+    {
+      "title": "Cointelegraph发布关于DoubleQ交易所欺诈行为的调查报告",
+      "event_date": "2023-01-14",
+      "source_url": null,
+      "sentiment_score": -0.9
+    },
+    {
+      "title": "大量用户开始从DoubleQ交易所提现BTC",
+      "event_date": "2023-01-14",
+      "source_url": null,
+      "sentiment_score": -0.7
+    },
+    {
+      "title": "BTC价格开始出现明显下跌",
+      "event_date": "2023-01-14",
+      "source_url": null,
+      "sentiment_score": -0.6
+    },
+    {
+      "title": "市场恐慌情绪蔓延，其他交易所也受到波及",
+      "event_date": "2023-01-14",
+      "source_url": null,
+      "sentiment_score": -0.7
+    }
+  ],
+  "created_at": "2025-06-16T10:40:28.000Z",
+  "citations": [],
+  "viewpoint": [
+    {
+      "entity": "摩根士丹利分析师",
+      "viewpoint": "高利率环境将持续对风险资产构成压力，投资者应保持谨慎。",
+      "source_url": null
+    },
+    {
+      "entity": "ARK Invest CEO Cathie Wood",
+      "viewpoint": "比特币的长期价值依然存在，但短期内可能面临更多波动。",
+      "source_url": null
+    },
+    {
+      "entity": "美联储主席 Jerome Powell",
+      "viewpoint": "美联储将继续关注通胀数据，并根据实际情况调整货币政策。",
+      "source_url": null
+    }
+  ],
+  "icon": "data:image/svg+xml;base64,CiAgICAgIDxzdmcgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgICAgICAgPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iOCIgZmlsbD0iI0VGNDQ0NCIvPgogICAgICA8L3N2Zz4KICAgIA==",
+  "event_timestamp": 1673654400,
+  "sentiment_label": "Negative",
+  "event_influence": 80
+}

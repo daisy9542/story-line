@@ -336,24 +336,30 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
       
       // 根据聚合结果创建渲染项，使用代表性标记的信息
       this._data.items = this._aggregatedMarkers.map<RenderItem>(
-        (aggregated: AggregatedMarker, index: number) => ({
-          time: aggregated.centerTime,
-          x: 0 as Coordinate, // 占位，稍后计算
-          y: 0 as Coordinate, // 同上
-          size: 0, // 同上
-          externalId: aggregated.representativeMarker.id,
-          internalId: index,
-          text: aggregated.representativeMarker.text || "",
-          imgUrl: undefined,
-          hovered: aggregated.representativeMarker.hovered,
-          focused: this._focusedMarkerId === aggregated.representativeMarker.id,
-          // 添加聚合信息
-          isAggregated: aggregated.count > 1,
-          aggregatedCount: aggregated.count,
-          // 添加图标和影响力信息
-          icon: (aggregated.representativeMarker as any).icon,
-          influence: (aggregated.representativeMarker as any).influence,
-        }),
+        (aggregated: AggregatedMarker, index: number) => {
+          const renderItem = {
+            time: aggregated.centerTime,
+            x: 0 as Coordinate, // 占位，稍后计算
+            y: 0 as Coordinate, // 同上
+            size: 0, // 同上
+            externalId: aggregated.representativeMarker.id,
+            internalId: index,
+            text: aggregated.representativeMarker.text || "",
+            imgUrl: undefined,
+            hovered: aggregated.representativeMarker.hovered,
+            focused: this._focusedMarkerId === aggregated.representativeMarker.id,
+            // 添加聚合信息
+            isAggregated: aggregated.count > 1,
+            aggregatedCount: aggregated.count,
+            // 添加图标和影响力信息
+            icon: (aggregated.representativeMarker as any).icon,
+            influence: (aggregated.representativeMarker as any).influence,
+          };
+          
+
+          
+          return renderItem;
+        }
       );
       
       this._dataInvalidated = false;

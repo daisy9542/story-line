@@ -13,17 +13,37 @@ function sentimentLabel(score: number): "Positive" | "Negative" | "Neutral" {
 }
 
 /**
- * 根据事件属性生成图标URL
+ * 根据事件属性生成SVG图标
  */
 function generateEventIcon(event: any): string {
-  // 根据事件类型、情绪或其他属性生成图标URL
-  // 使用更可靠的图标源
-
   const sentiment = sentimentLabel(event.overall_sentiment_score);
-
-  // 使用简单的测试图标
-  return "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiM0Qjk2RkYiLz4KPHN2Zz4K";
+  
+  // 使用SVG数据URL，根据情绪返回不同颜色的圆点
+  if (sentiment === "Positive") {
+    // 绿色圆点
+    return "data:image/svg+xml;base64," + btoa(`
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" fill="#22C55E"/>
+      </svg>
+    `);
+  } else if (sentiment === "Negative") {
+    // 红色圆点
+    return "data:image/svg+xml;base64," + btoa(`
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" fill="#EF4444"/>
+      </svg>
+    `);
+  } else {
+    // 蓝色圆点（中性）
+    return "data:image/svg+xml;base64," + btoa(`
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" fill="#3B82F6"/>
+      </svg>
+    `);
+  }
 }
+
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -76,7 +96,7 @@ export async function GET(req: NextRequest) {
         });
       }
 
-      // 转换时间戳
+      // 转换时间戳 - 使用start_date作为事件时间
       const timestamp = new Date(dbEvent.start_date).getTime() / 1000;
 
       return {
@@ -84,7 +104,7 @@ export async function GET(req: NextRequest) {
         event_timestamp: timestamp,
         sentiment_label: sentimentLabel(dbEvent.overall_sentiment_score),
         event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50,
-        // 添加图标字段，这里可以根据事件类型或其他逻辑来设置不同的图标
+        // 使用生成的SVG图标覆盖数据库中的icon字段
         icon: generateEventIcon(dbEvent),
       };
     });

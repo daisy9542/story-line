@@ -41,14 +41,6 @@ export default function Danmaku({
       }
     } catch (error) {
       console.error('获取弹幕数据失败:', error);
-      // 使用默认数据作为后备
-      setDanmakuData([
-        'BTC价格突破新高！',
-        '市场情绪高涨',
-        '投资者信心增强',
-        '技术分析显示上涨趋势',
-        '交易量大幅增加'
-      ]);
     }
   }, [data]);
 

@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
       }
 
       // 转换时间戳 - 使用start_date作为事件时间，确保使用UTC时间
-      const timestamp = new Date(dbEvent.start_date + 'T00:00:00.000Z').getTime() / 1000;
+      const timestamp = dbEvent.start_date;
 
       return {
         ...dbEvent,

@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       (item) =>
         ({
           id: item.id,
-          time: item.timestamp / 1000,
+          time: (item.timestamp + 8 * 60 * 60 * 1000) / 1000, // 修正时区偏移，+8小时转换为UTC
           open: item.open,
           high: item.high,
           low: item.low,

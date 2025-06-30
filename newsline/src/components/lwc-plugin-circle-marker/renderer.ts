@@ -79,9 +79,9 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
    */
   private _calculateInfluenceMultiplier(influence?: number): number {
     if (!influence) return 1;
-    // 将0-100的影响力映射到0.8-1.4的大小倍数，减少差异
+    // 将0-100的影响力映射到0.8-1.2的大小倍数，减少差异
     const normalizedInfluence = Math.max(0, Math.min(100, influence)) / 100;
-    return 0.8 + normalizedInfluence * 0.6; // 0.8x 到 1.4x
+    return 0.8 + normalizedInfluence * 0.4; // 0.8x 到 1.2x
   }
 
   public setParams(fontSize: number, fontFamily: string): void {
@@ -288,7 +288,7 @@ function hitTestShape(item: RenderItem, x: Coordinate, y: Coordinate): boolean {
   
   // 考虑影响力调整后的大小
   const influenceMultiplier = item.influence ? 
-    (0.8 + (Math.max(0, Math.min(100, item.influence)) / 100) * 0.6) : 1;
+    (0.8 + (Math.max(0, Math.min(100, item.influence)) / 100) * 0.4) : 1;
   const baseCircleSize = shapeSize(item.size);
   const actualCircleSize = baseCircleSize * influenceMultiplier;
   

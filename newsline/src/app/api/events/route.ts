@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { executeQuery } from "@/lib/db";
-import { INewsEvent, ICausalInference, IEventTimelineItem, ICitation } from "@/types/report";
+import { INewsEvent } from "@/types/report";
 
 /**
  * 根据 sentiment_score 生成标签
@@ -15,7 +15,7 @@ function sentimentLabel(score: number): "Positive" | "Negative" | "Neutral" {
 /**
  * 根据事件属性生成SVG图标
  */
-function generateEventIcon(event: any): string {
+function generateEventIcon(event: { overall_sentiment_score: number }): string {
   const sentiment = sentimentLabel(event.overall_sentiment_score);
   
   // 使用SVG数据URL，根据情绪返回不同颜色的圆点
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
       WHERE token = ?
     `;
 
-    const values: any[] = [symbol];
+    const values: (string | number)[] = [symbol];
 
     // 如果提供了时间范围，添加时间过滤条件
     if (from > 0 && to > 0) {

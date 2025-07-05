@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Puzzle, TrendingUpDown, Layers2, ExternalLink, AlertTriangle } from "lucide-react";
+import { Puzzle, TrendingUpDown, Layers2, ExternalLink } from "lucide-react";
 import { AnimatedArrow } from "@/components/ui/animated-arrow";
 import { ICausalInference } from "@/types/report";
-import { getSentimentColor, getSentimentLabel } from "@/lib/utils";
+import { getSentimentColor } from "@/lib/utils";
 
 interface CausalAnalysisProps {
   analysis: ICausalInference;
@@ -18,12 +18,12 @@ const getConfidenceStyle = (confidence: number) => {
 
 export const CausalAnalysis = ({ analysis, isRoot = false }: CausalAnalysisProps) => {
   const confidenceStyle = getConfidenceStyle(analysis.confidence || 0);
-  const sentimentColor = getSentimentColor(analysis.sentiment_score || 0);
+  getSentimentColor(analysis.sentiment_score || 0);
 
   // 用于计算文本高度
   const [textHeight, setTextHeight] = useState(60);
   const textRef = useRef<HTMLParagraphElement>(null);
-  const [isTextTruncated, setIsTextTruncated] = useState(false);
+  const [, setIsTextTruncated] = useState(false);
 
   useEffect(() => {
     if (textRef.current) {

@@ -11,10 +11,10 @@ const db = mysql({
 
 interface QueryParams {
   query: string;
-  values: any[];
+  values: (string | number | boolean | null)[];
 }
 
-export async function executeQuery({ query, values = [] }: QueryParams): Promise<any[]> {
+export async function executeQuery({ query, values = [] }: QueryParams): Promise<Record<string, unknown>[]> {
   try {
     const results = await db.query(query, values);
     await db.end();

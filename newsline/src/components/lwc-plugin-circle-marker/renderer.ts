@@ -120,9 +120,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         const radius = baseRadius * influenceMultiplier;
 
         // 所有标记使用相同的样式
-        const isAggregated = item.isAggregated || false;
         const textColor = "black";
-        const hasIcon = item.icon && this._iconCache.has(item.icon);
 
         // 绘制主圆形 - 统一使用白色
         ctx.beginPath();

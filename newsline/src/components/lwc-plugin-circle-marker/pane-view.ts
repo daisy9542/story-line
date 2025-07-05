@@ -16,7 +16,7 @@ import {
 import { RenderItem, RenderData, CircleMarkerRenderer } from "./renderer";
 import { InternalCircleMarker, UpdateType } from "./i-circle-markers";
 import { RangeImpl } from "@/lib/utils";
-import { calcShapeHeight, calcShapeMargin, visibleTimedValues } from "./helper/utils";
+import { calcShapeHeight, calcShapeMargin } from "./helper/utils";
 import { ensureNotNull } from "./helper/assertions";
 import { isNumber } from "./helper/strict-type-checks";
 
@@ -68,7 +68,7 @@ function getPrice(
 function calculatePixelDistance(
   marker1: InternalCircleMarker<TimePointIndex>,
   marker2: InternalCircleMarker<TimePointIndex>,
-  timeScale: any,
+  timeScale: { logicalToCoordinate: (logical: Logical) => Coordinate },
 ): number {
   const x1 = timeScale.logicalToCoordinate(marker1.time as unknown as Logical);
   const x2 = timeScale.logicalToCoordinate(marker2.time as unknown as Logical);
@@ -80,7 +80,7 @@ function calculatePixelDistance(
  */
 function aggregateMarkers(
   markers: InternalCircleMarker<TimePointIndex>[],
-  timeScale: any,
+  timeScale: { options: () => { barSpacing: number }; logicalToCoordinate: (logical: Logical) => Coordinate },
   config: AggregationConfig,
 ): AggregatedMarker[] {
   if (markers.length === 0) return [];
@@ -142,8 +142,8 @@ function aggregateMarkers(
 
       // 选择权重最大的标记作为代表
       const representativeMarker = cluster.reduce((max, current) => {
-        const maxInfluence = (max as any).influence || 0;
-        const currentInfluence = (current as any).influence || 0;
+        const maxInfluence = (max as InternalCircleMarker<TimePointIndex> & { influence?: number }).influence || 0;
+        const currentInfluence = (current as InternalCircleMarker<TimePointIndex> & { influence?: number }).influence || 0;
         return currentInfluence > maxInfluence ? current : max;
       });
 
@@ -352,8 +352,8 @@ export class CircleMarkerPaneView<HorzScaleItem> implements IPrimitivePaneView {
             isAggregated: aggregated.count > 1,
             aggregatedCount: aggregated.count,
             // 添加图标和影响力信息
-            icon: (aggregated.representativeMarker as any).icon,
-            influence: (aggregated.representativeMarker as any).influence,
+            icon: (aggregated.representativeMarker as InternalCircleMarker<TimePointIndex> & { icon?: string }).icon,
+            influence: (aggregated.representativeMarker as InternalCircleMarker<TimePointIndex> & { influence?: number }).influence,
           };
           
 

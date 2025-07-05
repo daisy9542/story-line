@@ -143,7 +143,7 @@ export function Viewpoint({ viewpoints }: ViewpointProps) {
 
             {/* 观点文字 */}
             <p className="mb-4 text-base font-normal text-gray-800 italic leading-relaxed dark:text-gray-200">
-              "{currentViewpoint.viewpoint}"
+              &ldquo;{currentViewpoint.viewpoint}&rdquo;
             </p>
 
             {currentViewpoint.source_url && (

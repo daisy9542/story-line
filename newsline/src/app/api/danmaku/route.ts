@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     });
 
     // 提取event_title数组
-    const danmakuData = results.map((row: any) => row.event_title);
+    const danmakuData = results.map((row: { event_title: string }) => row.event_title);
 
     const response = NextResponse.json({ 
       code: 0, 

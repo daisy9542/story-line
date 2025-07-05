@@ -44,7 +44,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     low: 0,
     close: 0,
   });
-  const [focusedEventTime, setFocusedEventTime] = useState<UTCTimestamp | null>(null);
+  const [, setFocusedEventTime] = useState<UTCTimestamp | null>(null);
 
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
@@ -52,7 +52,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   function drawMarkers(): void {
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
-    newsEvents.forEach((event, index) => {
+    newsEvents.forEach((event) => {
       // 确保时间戳存在且有效
       if (event.event_timestamp && !isNaN(event.event_timestamp)) {
         markers.push({

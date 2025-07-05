@@ -23,6 +23,7 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
   private _x: Coordinate | null = null;
 
   public setData(data: VerticalLineData, x: Coordinate): void {
+    console.log("VerticalLineRenderer setData 被调用:", { data, x });
     this._data = data;
     this._x = x;
   }
@@ -32,20 +33,30 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
   }
 
   public draw(target: CanvasRenderingTarget2D): void {
-    if (!this._data || this._x === null) return;
+    if (!this._data || this._x === null) {
+      return;
+    }
+
+    console.log("绘制垂直线:", {
+      time: this._data.time,
+      x: this._x,
+      color: this._data.color,
+      lineWidth: this._data.lineWidth,
+      lineStyle: this._data.lineStyle
+    });
 
     target.useBitmapCoordinateSpace((scope) => {
       const { context: ctx, horizontalPixelRatio: hpr } = scope;
-      const x = Math.round(this._x! * hpr); // 使用非空断言，因为上面已经检查过了
+      const x = Math.round(this._x! * hpr);
 
       ctx.save();
       ctx.strokeStyle = this._data!.color;
-      ctx.lineWidth = this._data!.lineWidth * hpr;
+      ctx.lineWidth = Math.max(1, this._data!.lineWidth * hpr);
 
       if (this._data!.lineStyle === "dashed") {
         ctx.setLineDash([5 * hpr, 3 * hpr]);
       } else {
-        ctx.setLineDash([]); // 确保实线时清除虚线设置
+        ctx.setLineDash([]);
       }
 
       ctx.beginPath();
@@ -53,6 +64,7 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
       ctx.lineTo(x, scope.bitmapSize.height);
       ctx.stroke();
 
+      console.log("垂直线绘制完成");
       ctx.restore();
     });
   }
@@ -65,23 +77,38 @@ class VerticalLinePaneView implements IPrimitivePaneView {
 
   constructor(chart: unknown) {
     this._chart = chart;
+    console.log("VerticalLinePaneView 构造函数被调用");
   }
 
   public setData(data: VerticalLineData): void {
+    console.log("VerticalLinePaneView setData 被调用，data:", data);
     this._data = data;
   }
 
   public renderer(): VerticalLineRenderer | null {
-    if (!this._data) return null;
+    console.log("VerticalLinePaneView renderer 被调用，_data:", !!this._data);
+    
+    if (!this._data) {
+      console.log("VerticalLinePaneView renderer 返回 null，因为没有数据");
+      return null;
+    }
 
     const timeScale = this._chart.timeScale();
     const x = timeScale.timeToCoordinate(this._data.time);
 
+    console.log("时间坐标转换:", {
+      time: this._data.time,
+      x: x,
+      timeScaleExists: !!timeScale
+    });
+
     if (x === null) {
+      console.log("时间坐标转换失败，时间:", this._data.time);
       return null;
     }
 
     this._renderer.setData(this._data, x);
+    console.log("VerticalLinePaneView renderer 返回 renderer");
     return this._renderer;
   }
 }
@@ -102,13 +129,16 @@ export class VerticalLinePrimitive implements ISeriesPrimitive<Time> {
   }
 
   public paneViews(): readonly IPrimitivePaneView[] {
-    return this._paneView ? [this._paneView] : [];
+    const views = this._paneView ? [this._paneView] : [];
+    return views;
   }
 
   public updateAllViews(): void {
+    
     if (this._paneView && this._data) {
       this._paneView.setData(this._data);
     }
+    
     if (this._requestUpdate) {
       this._requestUpdate();
     }
@@ -123,7 +153,6 @@ export class VerticalLinePrimitive implements ISeriesPrimitive<Time> {
     return this._data;
   }
 
-  // 添加必需的方法
   public hitTest(): PrimitiveHoveredItem | null {
     return null;
   }

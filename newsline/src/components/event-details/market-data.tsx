@@ -29,7 +29,7 @@ export function MarketDataView({ marketData }: MarketDataProps) {
   const sortedStocks = sortMarkets(stockMarkets);
   const sortedCrypto = sortMarkets(cryptoMarkets);
 
-  const MarketCard = ({ marketKey, marketInfo }: { marketKey: string; marketInfo: any }) => {
+  const MarketCard = ({ marketKey, marketInfo }: { marketKey: string; marketInfo: { daily_change_pct: string; volatility: string; daily_change_value: string } }) => {
     const isPositive = !marketInfo.daily_change_pct.includes("-");
 
     return (

@@ -68,10 +68,10 @@ function getPrice(
 function calculatePixelDistance(
   marker1: InternalCircleMarker<TimePointIndex>,
   marker2: InternalCircleMarker<TimePointIndex>,
-  timeScale: { logicalToCoordinate: (logical: Logical) => Coordinate },
+  timeScale: { logicalToCoordinate: (logical: Logical) => Coordinate | null },
 ): number {
-  const x1 = timeScale.logicalToCoordinate(marker1.time as unknown as Logical);
-  const x2 = timeScale.logicalToCoordinate(marker2.time as unknown as Logical);
+  const x1 = timeScale.logicalToCoordinate(marker1.time as unknown as Logical) ?? 0;
+  const x2 = timeScale.logicalToCoordinate(marker2.time as unknown as Logical) ?? 0;
   return Math.abs(x1 - x2);
 }
 
@@ -80,7 +80,7 @@ function calculatePixelDistance(
  */
 function aggregateMarkers(
   markers: InternalCircleMarker<TimePointIndex>[],
-  timeScale: { options: () => { barSpacing: number }; logicalToCoordinate: (logical: Logical) => Coordinate },
+  timeScale: { options: () => { barSpacing: number }; logicalToCoordinate: (logical: Logical) => Coordinate | null },
   config: AggregationConfig,
 ): AggregatedMarker[] {
   if (markers.length === 0) return [];
@@ -94,7 +94,7 @@ function aggregateMarkers(
     return markers.map(marker => ({
       markers: [marker],
       centerTime: marker.time,
-      centerX: timeScale.logicalToCoordinate(marker.time as unknown as Logical),
+      centerX: timeScale.logicalToCoordinate(marker.time as unknown as Logical) ?? 0 as Coordinate,
       count: 1,
       position: marker.position,
       representativeMarker: marker, // 单个标记就是代表
@@ -148,7 +148,7 @@ function aggregateMarkers(
       });
 
       const centerTime = representativeMarker.time;
-      const centerX = timeScale.logicalToCoordinate(centerTime as unknown as Logical);
+      const centerX = timeScale.logicalToCoordinate(centerTime as unknown as Logical) ?? 0 as Coordinate;
 
 
       aggregated.push({

@@ -18,7 +18,7 @@ export async function executeQuery({ query, values = [] }: QueryParams): Promise
   try {
     const results = await db.query(query, values);
     await db.end();
-    return results;
+    return results as Record<string, unknown>[];
   } catch (error) {
     console.error('Database query error:', error);
     throw new Error('Database query failed');

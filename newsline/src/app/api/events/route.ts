@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     const results = (await executeQuery({
       query,
       values,
-    })) as INewsEvent[];
+    })) as unknown as INewsEvent[];
 
     // 处理结果
     const events = results.map((dbEvent) => {

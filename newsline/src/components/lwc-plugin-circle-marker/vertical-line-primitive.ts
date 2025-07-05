@@ -8,6 +8,7 @@ import {
   Coordinate,
   PrimitiveHoveredItem,
   AutoscaleInfo,
+  IChartApiBase,
 } from "lightweight-charts";
 import { CanvasRenderingTarget2D } from "fancy-canvas";
 
@@ -61,9 +62,9 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
 class VerticalLinePaneView implements IPrimitivePaneView {
   private _data: VerticalLineData | null = null;
   private _renderer: VerticalLineRenderer = new VerticalLineRenderer();
-  private _chart: unknown;
+  private _chart: IChartApiBase<Time>;
 
-  constructor(chart: unknown) {
+  constructor(chart: IChartApiBase<Time>) {
     this._chart = chart;
   }
 

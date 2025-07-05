@@ -17,7 +17,7 @@ function sentimentLabel(score: number): "Positive" | "Negative" | "Neutral" {
  */
 function generateEventIcon(event: { overall_sentiment_score: number }): string {
   const sentiment = sentimentLabel(event.overall_sentiment_score);
-  
+
   // 使用SVG数据URL，根据情绪返回不同颜色的圆点
   if (sentiment === "Positive") {
     // 绿色圆点

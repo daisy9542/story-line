@@ -96,16 +96,13 @@ export async function GET(req: NextRequest) {
         });
       }
 
-      // 转换时间戳 - 使用start_date作为事件时间，确保使用UTC时间
-      const timestamp = dbEvent.start_date;
-
       return {
         ...dbEvent,
-        event_timestamp: timestamp,
+        event_timestamp: dbEvent.start_date,
         sentiment_label: sentimentLabel(dbEvent.overall_sentiment_score),
         event_influence: Math.abs(dbEvent.overall_sentiment_score * 100) || 50,
-        // 使用生成的SVG图标覆盖数据库中的icon字段
-        icon: generateEventIcon(dbEvent),
+        // 优先使用数据库中的图标，如果没有则使用生成的SVG图标
+        icon: dbEvent.icon || generateEventIcon(dbEvent),
       };
     });
 

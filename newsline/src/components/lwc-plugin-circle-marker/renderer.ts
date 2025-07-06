@@ -46,6 +46,15 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
 
   public setData(data: RenderData): void {
     this._data = data;
+    console.log('设置渲染数据，项目数量:', data.items.length);
+    data.items.forEach((item, index) => {
+      console.log(`项目 [${index}]:`, {
+        id: item.externalId,
+        hasIcon: !!item.icon,
+        iconUrl: item.icon,
+        text: item.text
+      });
+    });
     // 预加载图标
     this._preloadIcons();
   }
@@ -60,11 +69,20 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _preloadIcons(): void {
     if (!this._data) return;
     
-    this._data.items.forEach((item) => {
+    this._data.items.forEach((item, index) => {
       if (item.icon && !this._iconCache.has(item.icon)) {
+        console.log(`开始加载图标 [${index}]:`, item.icon);
         const img = new Image();
         
+        // 设置超时时间
+        const timeout = setTimeout(() => {
+          console.warn(`图标加载超时 [${index}]:`, item.icon);
+          this._iconCache.set(item.icon!, null as any);
+        }, 10000); // 10秒超时
+        
         img.onload = () => {
+          clearTimeout(timeout);
+          console.log(`图标加载成功 [${index}]:`, item.icon, `尺寸: ${img.width}x${img.height}`);
           this._iconCache.set(item.icon!, img);
           // 图标加载完成后，触发重新渲染
           if (this._updateCallback) {
@@ -73,9 +91,38 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         };
         
         img.onerror = (error) => {
-          console.warn('SVG图标加载失败:', item.icon, error);
+          clearTimeout(timeout);
+          console.error(`图标加载失败 [${index}]:`, item.icon, error);
+          
+          // 尝试使用跨域属性重新加载
+          const img2 = new Image();
+          img2.crossOrigin = "anonymous";
+          
+          const timeout2 = setTimeout(() => {
+            console.warn(`图标重新加载超时 [${index}]:`, item.icon);
+            this._iconCache.set(item.icon!, null as any);
+          }, 5000);
+          
+          img2.onload = () => {
+            clearTimeout(timeout2);
+            console.log(`图标重新加载成功 [${index}]:`, item.icon);
+            this._iconCache.set(item.icon!, img2);
+            if (this._updateCallback) {
+              this._updateCallback();
+            }
+          };
+          
+          img2.onerror = (error2) => {
+            clearTimeout(timeout2);
+            console.error(`图标重新加载也失败 [${index}]:`, item.icon, error2);
+            // 加载失败时，在缓存中标记为null，避免重复尝试
+            this._iconCache.set(item.icon!, null as any);
+          };
+          
+          img2.src = item.icon!;
         };
         
+        // 先尝试不设置跨域属性
         img.src = item.icon;
       }
     });
@@ -144,11 +191,17 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         ctx.shadowBlur = 3 * hpr;
         ctx.shadowOffsetY = 1 * vpr;
 
-        // 绘制主圆形 - 统一使用白色
-        ctx.beginPath();
-        ctx.fillStyle = "white";
-        ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
-        ctx.fill();
+        // 只有在没有图标或图标加载失败时才绘制白色背景
+        const iconImg = item.icon ? this._iconCache.get(item.icon) : null;
+        const hasValidIcon = iconImg && iconImg.complete && iconImg !== null;
+        
+        if (!hasValidIcon) {
+          // 绘制主圆形 - 统一使用白色
+          ctx.beginPath();
+          ctx.fillStyle = "white";
+          ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
+          ctx.fill();
+        }
         ctx.restore();
 
         // 绘制边框 - 统一使用灰色
@@ -218,23 +271,39 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         if (item.icon) {
           // 优先显示图标
           const iconImg = this._iconCache.get(item.icon);
+          console.log('检查图标:', item.icon, '缓存状态:', !!iconImg, '完成状态:', iconImg?.complete, '非空:', iconImg !== null);
           
-
-          
-          if (iconImg && iconImg.complete) {
-            const iconSize = radius * 1.4; // 图标大小为圆形直径的70%，确保不超出边界
+          if (iconImg && iconImg.complete && iconImg !== null) {
+            ctx.save();
+            
+            // 创建圆形裁剪区域，让图标填充整个圆形
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius - 1, 0, 2 * Math.PI); // 稍微缩小1px避免边缘问题
+            ctx.clip();
+            
+            // 计算图标尺寸，让它完全填充圆形
+            const iconSize = radius * 2; // 图标大小为圆形直径
             const iconX = cx - iconSize / 2;
             const iconY = cy - iconSize / 2;
             
-            ctx.save();
-            // 创建圆形裁剪区域
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius - 2, 0, 2 * Math.PI); // 稍微缩小裁剪区域，避免边缘问题
-            ctx.clip();
-            
-            // 绘制图标
+            // 绘制图标，填充整个圆形区域
             ctx.drawImage(iconImg, iconX, iconY, iconSize, iconSize);
             ctx.restore();
+            
+            // 如果是聚合泡泡，在图标上方添加半透明遮罩以便数字更清晰
+            if (item.isAggregated && item.aggregatedCount && item.aggregatedCount > 1) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius - 1, 0, 2 * Math.PI);
+              ctx.clip();
+              
+              // 添加半透明白色遮罩
+              ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+              ctx.beginPath();
+              ctx.arc(cx, cy, radius - 1, 0, 2 * Math.PI);
+              ctx.fill();
+              ctx.restore();
+            }
           } else {
             // 图标未加载完成时，显示文本作为降级
             if (item.text) {

@@ -36,6 +36,13 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _iconCache: Map<string, HTMLImageElement> = new Map(); // 图标缓存
   private _updateCallback?: () => void; // 更新回调
   private _debugLogged: boolean = false; // 调试标志
+  
+  // 动画相关属性
+  private _animationStartTime: number = 0;
+  private _animationDuration: number = 200; // 200ms动画时长
+  private _animationFrame: number | null = null;
+  private _hoveredItems: Set<string> = new Set(); // 跟踪悬停状态的项目
+  private _focusedItems: Set<string> = new Set(); // 跟踪聚焦状态的项目
 
   public setData(data: RenderData): void {
     this._data = data;
@@ -117,32 +124,79 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         // 根据影响力调整大小
         const influenceMultiplier = this._calculateInfluenceMultiplier(item.influence);
         const baseRadius = ((shapeSize(item.size) - 1) / 2) * hpr;
-        const radius = baseRadius * influenceMultiplier;
+        
+        // 悬停时轻微放大，聚焦时保持放大
+        let scaleMultiplier = 1;
+        if (item.focused) {
+          scaleMultiplier = 1.15; // 聚焦时放大15%
+        } else if (item.hovered) {
+          scaleMultiplier = 1.08; // 悬停时放大8%
+        }
+        
+        const radius = baseRadius * influenceMultiplier * 0.5 * scaleMultiplier;
 
         // 所有标记使用相同的样式
         const textColor = "black";
+
+        // 添加微妙的阴影效果
+        ctx.save();
+        ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
+        ctx.shadowBlur = 3 * hpr;
+        ctx.shadowOffsetY = 1 * vpr;
 
         // 绘制主圆形 - 统一使用白色
         ctx.beginPath();
         ctx.fillStyle = "white";
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.fill();
+        ctx.restore();
 
         // 绘制边框 - 统一使用灰色
         ctx.beginPath();
         ctx.strokeStyle = "#E0E0E0";
-        ctx.lineWidth = 1 * hpr;
+        ctx.lineWidth = 0.5 * hpr;
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI, false);
         ctx.stroke();
 
-        // 悬停和聚焦效果
-        if (item.hovered || item.focused) {
+        // 悬停和聚焦效果 - 区分两种状态
+        if (item.focused) {
+          // 聚焦状态：金色边框 + 稳定光晕
           ctx.save();
           
-          // 外层光晕效果
-          const glowRadius = radius + 8;
+          // 金色光晕效果
+          const glowRadius = radius + 6;
           const gradient = ctx.createRadialGradient(cx, cy, radius, cx, cy, glowRadius);
-          gradient.addColorStop(0, "rgba(30,144,255,0.3)");
+          gradient.addColorStop(0, "rgba(255,193,7,0.4)");
+          gradient.addColorStop(1, "rgba(255,193,7,0)");
+          
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(cx, cy, glowRadius, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // 金色边框
+          ctx.lineWidth = 2 * hpr;
+          ctx.strokeStyle = "rgba(255,193,7,0.9)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius + 1, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          // 内层高亮
+          ctx.lineWidth = 1 * hpr;
+          ctx.strokeStyle = "rgba(255,255,255,0.9)";
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius - 1, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          ctx.restore();
+        } else if (item.hovered) {
+          // 悬停状态：蓝色边框 + 轻微光晕
+          ctx.save();
+          
+          // 蓝色光晕效果
+          const glowRadius = radius + 4;
+          const gradient = ctx.createRadialGradient(cx, cy, radius, cx, cy, glowRadius);
+          gradient.addColorStop(0, "rgba(30,144,255,0.2)");
           gradient.addColorStop(1, "rgba(30,144,255,0)");
           
           ctx.fillStyle = gradient;
@@ -150,18 +204,11 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.arc(cx, cy, glowRadius, 0, 2 * Math.PI);
           ctx.fill();
           
-          // 强化边框 - 聚焦状态使用更强的效果
-          ctx.lineWidth = item.focused ? 4 * hpr : 3 * hpr;
-          ctx.strokeStyle = item.focused ? "rgba(30,144,255,1)" : "rgba(30,144,255,0.8)";
+          // 蓝色边框
+          ctx.lineWidth = 1.5 * hpr;
+          ctx.strokeStyle = "rgba(30,144,255,0.7)";
           ctx.beginPath();
-          ctx.arc(cx, cy, radius + 2, 0, 2 * Math.PI);
-          ctx.stroke();
-          
-          // 内层高亮
-          ctx.lineWidth = 1 * hpr;
-          ctx.strokeStyle = "rgba(255,255,255,0.8)";
-          ctx.beginPath();
-          ctx.arc(cx, cy, radius - 2, 0, 2 * Math.PI);
+          ctx.arc(cx, cy, radius + 1, 0, 2 * Math.PI);
           ctx.stroke();
           
           ctx.restore();
@@ -240,6 +287,35 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           ctx.fillText(item.text, cx, cy);
           ctx.restore();
         }
+
+        // 绘制聚合数量标识
+        if (item.isAggregated && item.aggregatedCount && item.aggregatedCount > 1) {
+          const badgeRadius = Math.max(8, radius * 0.3);
+          const badgeX = cx + radius - badgeRadius * 0.7;
+          const badgeY = cy - radius + badgeRadius * 0.7;
+          
+          // 绘制小圆形背景
+          ctx.save();
+          ctx.fillStyle = "rgba(255, 87, 87, 0.9)"; // 红色背景
+          ctx.beginPath();
+          ctx.arc(badgeX, badgeY, badgeRadius, 0, 2 * Math.PI);
+          ctx.fill();
+          
+          // 绘制白色边框
+          ctx.strokeStyle = "white";
+          ctx.lineWidth = 1.5 * hpr;
+          ctx.stroke();
+          
+          // 绘制数字
+          const badgeFontSize = Math.max(8, badgeRadius * 1.2);
+          ctx.fillStyle = "white";
+          ctx.font = `bold ${badgeFontSize}px ${this._fontFamily}`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(item.aggregatedCount.toString(), badgeX, badgeY);
+          
+          ctx.restore();
+        }
       };
 
       let hoveredItemIdx = -1;
@@ -288,7 +364,16 @@ function hitTestShape(item: RenderItem, x: Coordinate, y: Coordinate): boolean {
   const influenceMultiplier = item.influence ? 
     (0.8 + (Math.max(0, Math.min(100, item.influence)) / 100) * 0.4) : 1;
   const baseCircleSize = shapeSize(item.size);
-  const actualCircleSize = baseCircleSize * influenceMultiplier;
+  
+  // 考虑悬停和聚焦状态的放大效果
+  let scaleMultiplier = 1;
+  if (item.focused) {
+    scaleMultiplier = 1.15; // 聚焦时放大15%
+  } else if (item.hovered) {
+    scaleMultiplier = 1.08; // 悬停时放大8%
+  }
+  
+  const actualCircleSize = baseCircleSize * influenceMultiplier * 0.5 * scaleMultiplier; // 与渲染大小保持一致
   
   const tolerance = 2 + actualCircleSize / 2;
   const xOffset = item.x - x;

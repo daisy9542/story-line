@@ -96,8 +96,8 @@ export function shapeSize(originalSize: number): number {
  * @returns 计算出的最小间距值
  */
 export function calcShapeMargin(barSpacing: number): number {
-  // 计算相对间距，并与最小间距比较取大
-  return Math.max(size(barSpacing, 0.1), Constants.MinShapeMargin);
+  // 计算相对间距，并与最小间距比较取大，减少间距让泡泡更靠近K柱
+  return Math.max(size(barSpacing, 0.05), Math.max(Constants.MinShapeMargin - 2, 2));
 }
 
 /**

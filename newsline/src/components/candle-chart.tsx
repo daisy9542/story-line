@@ -20,7 +20,7 @@ import {
   ICircleMarkersPluginApi,
 } from "@/components/lwc-plugin-circle-marker/wrapper";
 import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
-import { VerticalLinePrimitive } from "./lwc-plugin-circle-marker/vertical-line-primitive";
+
 import { INewsEvent } from "@/types/report";
 
 export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }) {
@@ -37,7 +37,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
   const circleMarkerRef = useRef<ICircleMarkersPluginApi<Time> | null>(null);
-  const verticalLineRef = useRef<VerticalLinePrimitive | null>(null);
+
   const [info, setInfo] = useState<{ open: number; high: number; low: number; close: number }>({
     open: 0,
     high: 0,
@@ -105,13 +105,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     seriesRef.current = chart.addSeries(CandlestickSeries);
     circleMarkerRef.current = createCircleMarkers(seriesRef.current, []);
 
-    // 创建垂直线原语
-    try {
-      verticalLineRef.current = new VerticalLinePrimitive();
-      seriesRef.current.attachPrimitive(verticalLineRef.current);
-    } catch (error) {
-      console.error("垂直线原语创建失败:", error);
-    }
+
 
     // 监听鼠标移动（十字光标）来动态更新 OHLC
     chart.subscribeCrosshairMove((param) => {
@@ -139,30 +133,11 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
       // 如果 point 不存在，说明移出了图表区域
       if (!param.point) {
         setHoveredEventId(null);
-        // 清除垂直线
-        if (verticalLineRef.current) {
-          verticalLineRef.current.setData(null);
-        }
         return;
       }
 
       const hoveredId = param.hoveredObjectId as string;
       setHoveredEventId(hoveredId);
-
-      // 显示对应事件的垂直线
-      if (hoveredId) {
-        const event = newsEvents.find((e) => String(e.id) === hoveredId);
-        if (event && verticalLineRef.current) {
-          // 使用 event_timestamp 而不是 start_date
-          const eventTime = event.event_timestamp;
-          verticalLineRef.current.setData({
-            time: eventTime as UTCTimestamp,
-            color: "rgba(30, 144, 255, 0.6)",
-            lineWidth: 1,
-            lineStyle: "dashed",
-          });
-        }
-      }
     });
 
     // 事件泡泡 click 逻辑
@@ -187,22 +162,13 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
         }
       }
 
-      // 设置聚焦事件的垂直线
+      // 设置聚焦事件时间
       if (clickedId) {
         const event = newsEvents.find((e) => String(e.id) === clickedId);
         if (event) {
           // 使用 event_timestamp 而不是 start_date
           const eventTime = event.event_timestamp;
           setFocusedEventTime(eventTime as UTCTimestamp);
-
-          if (verticalLineRef.current) {
-            verticalLineRef.current.setData({
-              time: eventTime as UTCTimestamp,
-              color: "rgba(30, 144, 255, 0.8)",
-              lineWidth: 2,
-              lineStyle: "solid",
-            });
-          }
         }
       }
     });

@@ -33,7 +33,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
   private _fontSize: number = -1;
   private _fontFamily: string = "";
   private _font: string = "";
-  private _iconCache: Map<string, HTMLImageElement> = new Map(); // 图标缓存
+  private _iconCache: Map<string, HTMLImageElement | null> = new Map(); // 图标缓存
   private _updateCallback?: () => void; // 更新回调
   private _debugLogged: boolean = false; // 调试标志
   
@@ -77,7 +77,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         // 设置超时时间
         const timeout = setTimeout(() => {
           console.warn(`图标加载超时 [${index}]:`, item.icon);
-          this._iconCache.set(item.icon!, null as any);
+          this._iconCache.set(item.icon!, null as HTMLImageElement | null);
         }, 10000); // 10秒超时
         
         img.onload = () => {
@@ -100,7 +100,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           
           const timeout2 = setTimeout(() => {
             console.warn(`图标重新加载超时 [${index}]:`, item.icon);
-            this._iconCache.set(item.icon!, null as any);
+            this._iconCache.set(item.icon!, null as HTMLImageElement | null);
           }, 5000);
           
           img2.onload = () => {
@@ -116,7 +116,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
             clearTimeout(timeout2);
             console.error(`图标重新加载也失败 [${index}]:`, item.icon, error2);
             // 加载失败时，在缓存中标记为null，避免重复尝试
-            this._iconCache.set(item.icon!, null as any);
+            this._iconCache.set(item.icon!, null as HTMLImageElement | null);
           };
           
           img2.src = item.icon!;

@@ -49,7 +49,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   const fetchCandles = (params: CandleRequestParams): Promise<CandleData[]> =>
     http.get("/candles", params) as Promise<CandleData[]>;
 
-  function drawMarkers(): void {
+  const drawMarkers = useCallback((): void => {
     const markers: CircleMarker<UTCTimestamp>[] = [];
 
     newsEvents.forEach((event) => {
@@ -72,9 +72,9 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     if (markers.length > 0 && circleMarkerRef.current) {
       circleMarkerRef.current.setMarkers(markers);
     }
-  }
+  }, [newsEvents, hoveredEventId]);
 
-  const chartOptions = {
+  const chartOptions = useMemo(() => ({
     layout: {
       background: { color: resolvedTheme === "dark" ? "#111" : "#fff" },
       textColor: resolvedTheme === "dark" ? "#DDD" : "#333",
@@ -92,7 +92,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
         return `${y}-${m}-${d}`;
       },
     },
-  };
+  }), [resolvedTheme]);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -239,18 +239,18 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
       chart.remove();
       ro.disconnect();
     };
-  }, []);
+  }, [chartOptions, newsEvents, setFocusedEventId]);
 
-  const handleTimeRangeChange = (range: IRange<Time> | null) => {
+  const handleTimeRangeChange = useCallback((range: IRange<Time> | null) => {
     if (!range) return;
     setTimeRange(range.from as UTCTimestamp, range.to as UTCTimestamp);
-  };
+  }, [setTimeRange]);
 
   // 监听主题变化，更新图表样式
   useEffect(() => {
     if (!chartRef.current) return;
     chartRef.current.applyOptions(chartOptions);
-  }, [resolvedTheme]);
+  }, [resolvedTheme, chartOptions]);
 
   const loadInitial = useCallback(async () => {
     setLoading(true);
@@ -271,7 +271,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     } finally {
       setLoading(false);
     }
-  }, [instId, bar, newsEvents]);
+  }, [instId, bar, handleTimeRangeChange]);
 
   const changePct = (((info.close - info.open) / info.open) * 100).toFixed(2);
 
@@ -282,7 +282,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
 
   useEffect(() => {
     drawMarkers();
-  }, [newsEvents, hoveredEventId]);
+  }, [newsEvents, hoveredEventId, drawMarkers]);
 
   return (
     <div className="relative flex h-full w-full items-center justify-center rounded-lg">

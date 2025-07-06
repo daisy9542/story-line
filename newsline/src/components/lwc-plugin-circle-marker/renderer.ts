@@ -46,15 +46,6 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
 
   public setData(data: RenderData): void {
     this._data = data;
-    console.log('设置渲染数据，项目数量:', data.items.length);
-    data.items.forEach((item, index) => {
-      console.log(`项目 [${index}]:`, {
-        id: item.externalId,
-        hasIcon: !!item.icon,
-        iconUrl: item.icon,
-        text: item.text
-      });
-    });
     // 预加载图标
     this._preloadIcons();
   }
@@ -71,18 +62,16 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
     
     this._data.items.forEach((item, index) => {
       if (item.icon && !this._iconCache.has(item.icon)) {
-        console.log(`开始加载图标 [${index}]:`, item.icon);
         const img = new Image();
         
         // 设置超时时间
         const timeout = setTimeout(() => {
           console.warn(`图标加载超时 [${index}]:`, item.icon);
-          this._iconCache.set(item.icon!, null as HTMLImageElement | null);
+          this._iconCache.set(item.icon!, null);
         }, 10000); // 10秒超时
         
         img.onload = () => {
           clearTimeout(timeout);
-          console.log(`图标加载成功 [${index}]:`, item.icon, `尺寸: ${img.width}x${img.height}`);
           this._iconCache.set(item.icon!, img);
           // 图标加载完成后，触发重新渲染
           if (this._updateCallback) {
@@ -100,12 +89,11 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
           
           const timeout2 = setTimeout(() => {
             console.warn(`图标重新加载超时 [${index}]:`, item.icon);
-            this._iconCache.set(item.icon!, null as HTMLImageElement | null);
+            this._iconCache.set(item.icon!, null);
           }, 5000);
           
           img2.onload = () => {
             clearTimeout(timeout2);
-            console.log(`图标重新加载成功 [${index}]:`, item.icon);
             this._iconCache.set(item.icon!, img2);
             if (this._updateCallback) {
               this._updateCallback();
@@ -116,7 +104,7 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
             clearTimeout(timeout2);
             console.error(`图标重新加载也失败 [${index}]:`, item.icon, error2);
             // 加载失败时，在缓存中标记为null，避免重复尝试
-            this._iconCache.set(item.icon!, null as HTMLImageElement | null);
+            this._iconCache.set(item.icon!, null);
           };
           
           img2.src = item.icon!;
@@ -271,7 +259,6 @@ export class CircleMarkerRenderer implements IPrimitivePaneRenderer {
         if (item.icon) {
           // 优先显示图标
           const iconImg = this._iconCache.get(item.icon);
-          console.log('检查图标:', item.icon, '缓存状态:', !!iconImg, '完成状态:', iconImg?.complete, '非空:', iconImg !== null);
           
           if (iconImg && iconImg.complete && iconImg !== null) {
             ctx.save();

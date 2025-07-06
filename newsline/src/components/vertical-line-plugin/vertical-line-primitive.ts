@@ -24,7 +24,6 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
   private _x: Coordinate | null = null;
 
   public setData(data: VerticalLineData, x: Coordinate): void {
-    console.log("VerticalLineRenderer setData 被调用:", { data, x });
     this._data = data;
     this._x = x;
   }
@@ -37,14 +36,6 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
     if (!this._data || this._x === null) {
       return;
     }
-
-    console.log("绘制垂直线:", {
-      time: this._data.time,
-      x: this._x,
-      color: this._data.color,
-      lineWidth: this._data.lineWidth,
-      lineStyle: this._data.lineStyle
-    });
 
     target.useBitmapCoordinateSpace((scope) => {
       const { context: ctx, horizontalPixelRatio: hpr } = scope;
@@ -65,7 +56,6 @@ class VerticalLineRenderer implements IPrimitivePaneRenderer {
       ctx.lineTo(x, scope.bitmapSize.height);
       ctx.stroke();
 
-      console.log("垂直线绘制完成");
       ctx.restore();
     });
   }
@@ -78,38 +68,26 @@ class VerticalLinePaneView implements IPrimitivePaneView {
 
   constructor(chart: IChartApiBase<Time>) {
     this._chart = chart;
-    console.log("VerticalLinePaneView 构造函数被调用");
   }
 
   public setData(data: VerticalLineData): void {
-    console.log("VerticalLinePaneView setData 被调用，data:", data);
     this._data = data;
   }
 
   public renderer(): VerticalLineRenderer | null {
-    console.log("VerticalLinePaneView renderer 被调用，_data:", !!this._data);
     
     if (!this._data) {
-      console.log("VerticalLinePaneView renderer 返回 null，因为没有数据");
       return null;
     }
 
     const timeScale = this._chart.timeScale();
     const x = timeScale.timeToCoordinate(this._data.time);
 
-    console.log("时间坐标转换:", {
-      time: this._data.time,
-      x: x,
-      timeScaleExists: !!timeScale
-    });
-
     if (x === null) {
-      console.log("时间坐标转换失败，时间:", this._data.time);
       return null;
     }
 
     this._renderer.setData(this._data, x);
-    console.log("VerticalLinePaneView renderer 返回 renderer");
     return this._renderer;
   }
 }

@@ -6,13 +6,14 @@ import TokenSelector from "@/components/token-selector";
 import NewsEvents from "@/components/news-events";
 import Danmaku from "@/components/danmaku";
 import TradingInfoHeader from "@/components/trading-info-header";
+import MarketTicker from "@/components/market-ticker";
 import { INewsEvent } from "@/types/report";
 import { useEffect, useState, useCallback } from "react";
 import { useNewslineStore } from "@/stores/newsline-store";
 import { http } from "@/lib/axios";
 
 export default function HomePage() {
-  const { selectedTokenSymbol, currentTimeRange } = useNewslineStore();
+  const { selectedTokenSymbol, currentTimeRange, focusedEventId } = useNewslineStore();
   const [eventsData, setEventsData] = useState<INewsEvent[]>([]);
   const [flag, setFlag] = useState(false);
   const [tradingData, setTradingData] = useState<{
@@ -28,6 +29,11 @@ export default function HomePage() {
     close: 0,
   });
   const [isLoadingTradingData, setIsLoadingTradingData] = useState(true);
+
+  // 获取选中的事件
+  const selectedEvent = focusedEventId
+    ? eventsData.find(event => String(event.id) === focusedEventId)
+    : null;
 
   const handleTradingDataUpdate = useCallback((data: {
     open: number;
@@ -83,6 +89,9 @@ export default function HomePage() {
         data={tradingData}
         loading={isLoadingTradingData}
       />
+
+      {/* 市场滚动公告 */}
+      <MarketTicker selectedEvent={selectedEvent} />
 
       <div className="flex h-full flex-1 flex-col gap-3 overflow-hidden p-4 md:flex-row">
         <section className="relative flex min-h-[500px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-[#171D24] dark:bg-[#111111]">

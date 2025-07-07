@@ -134,3 +134,17 @@
 .animate-danmaku {
   animation: danmaku linear forwards;
 }
+
+/* 市场滚动公告动画 */
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll linear infinite;
+}

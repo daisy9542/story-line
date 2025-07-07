@@ -8,7 +8,7 @@ interface MarketDataProps {
 
 export function MarketDataView({ marketData }: MarketDataProps) {
   if (!marketData.market_daily_change) {
-    return <div className="text-center text-gray-500">无市场数据</div>;
+    return <div className="text-center text-gray-500">No Marketing Data</div>;
   }
 
   const marketEntries = Object.entries(marketData.market_daily_change);

@@ -148,3 +148,8 @@
 .animate-scroll {
   animation: scroll linear infinite;
 }
+
+.animate-scroll-paused {
+  animation: scroll linear infinite;
+  animation-play-state: paused;
+}

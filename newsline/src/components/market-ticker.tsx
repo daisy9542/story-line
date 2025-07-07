@@ -141,7 +141,7 @@ export default function MarketTicker({ selectedEvent }: MarketTickerProps) {
           <div
             ref={contentRef}
             className={`flex items-center space-x-8 px-4 transition-opacity duration-300 ${
-              shouldScroll && !isPaused ? 'animate-scroll' : ''
+              shouldScroll ? (isPaused ? 'animate-scroll-paused' : 'animate-scroll') : ''
             } ${isTransitioning ? 'opacity-50' : 'opacity-100'}`}
             style={{
               animationDuration: shouldScroll ? '30s' : 'none',

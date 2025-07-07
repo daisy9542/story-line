@@ -23,7 +23,12 @@ import { CircleMarker } from "./lwc-plugin-circle-marker/i-circle-markers";
 
 import { INewsEvent } from "@/types/report";
 
-export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }) {
+interface CandleChartProps {
+  newsEvents: INewsEvent[];
+  onDataUpdate?: (data: { open: number; high: number; low: number; close: number; timestamp?: number }) => void;
+}
+
+export default function CandleChart({ newsEvents, onDataUpdate }: CandleChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -37,6 +42,12 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   const earliestRef = useRef<UTCTimestamp | null>(null);
   const candlesRef = useRef<CandleData[]>([]);
   const circleMarkerRef = useRef<ICircleMarkersPluginApi<Time> | null>(null);
+  const onDataUpdateRef = useRef(onDataUpdate);
+
+  // 更新回调函数引用
+  useEffect(() => {
+    onDataUpdateRef.current = onDataUpdate;
+  }, [onDataUpdate]);
 
   const [info, setInfo] = useState<{ open: number; high: number; low: number; close: number }>({
     open: 0,
@@ -74,7 +85,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
     }
   }, [newsEvents, hoveredEventId]);
 
-  const chartOptions = {
+  const chartOptions = useMemo(() => ({
     layout: {
       background: { color: resolvedTheme === "dark" ? "#111" : "#fff" },
       textColor: resolvedTheme === "dark" ? "#DDD" : "#333",
@@ -92,7 +103,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
         return `${y}-${m}-${d}`;
       },
     },
-  };
+  }), [resolvedTheme]);
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
@@ -250,7 +261,7 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
   useEffect(() => {
     if (!chartRef.current) return;
     chartRef.current.applyOptions(chartOptions);
-  }, [resolvedTheme]);
+  }, [chartOptions]);
 
   const loadInitial = useCallback(async () => {
     setLoading(true);
@@ -259,7 +270,16 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
       data.sort((a, b) => a.time - b.time);
       if (data.length) {
         const last = data[data.length - 1];
-        setInfo({ open: last.open, high: last.high, low: last.low, close: last.close });
+        const tradingData = {
+          open: last.open,
+          high: last.high,
+          low: last.low,
+          close: last.close,
+          timestamp: last.time
+        };
+        setInfo(tradingData);
+        // 向父组件传递最新交易数据
+        onDataUpdateRef.current?.(tradingData);
       }
       candlesRef.current = data;
       seriesRef.current!.setData(data);
@@ -291,19 +311,6 @@ export default function CandleChart({ newsEvents }: { newsEvents: INewsEvent[] }
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
         </div>
       )}
-      <div className="absolute top-0 left-0 z-10 text-sm">
-        {Object.entries(info).map(([key, value]) => (
-          <span key={key} className="mr-1.5">
-            {key.charAt(0).toUpperCase()}{" "}
-            <span className={+changePct >= 0 ? "text-green-400" : "text-red-400"}>
-              {value.toFixed(4)}
-            </span>
-          </span>
-        ))}
-        <span className={+changePct >= 0 ? "text-green-400" : "text-red-400"}>
-          {+changePct >= 0 ? `+${changePct}` : `${changePct}`}%
-        </span>
-      </div>
 
       <div ref={chartContainerRef} className={cn("h-full w-full", loading && "opacity-20")} />
     </div>

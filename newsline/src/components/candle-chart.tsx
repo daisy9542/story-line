@@ -154,6 +154,24 @@ export default function CandleChart({ newsEvents, onDataUpdate }: CandleChartPro
     // 事件泡泡 click 逻辑
     chart.subscribeClick((param) => {
       if (!param.point) {
+        // 点击空白区域，清空选中状态
+        setFocusedEventId(null);
+
+        // 清空标记的聚焦状态
+        if (circleMarkerRef.current && typeof circleMarkerRef.current.getPrimitive === "function") {
+          try {
+            const primitive = circleMarkerRef.current.getPrimitive();
+            const paneView = primitive?.getPaneView();
+            if (paneView) {
+              paneView.setFocusedMarkerId(null);
+            }
+          } catch (error) {
+            console.error("清空聚焦状态失败:", error);
+          }
+        }
+
+        // 清空聚焦事件时间
+        setFocusedEventTime(null);
         return;
       }
 

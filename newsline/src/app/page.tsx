@@ -95,7 +95,7 @@ export default function HomePage() {
 
       <div className="flex h-full flex-1 flex-col gap-3 overflow-hidden p-4 md:flex-row">
         <section className="relative flex min-h-[500px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 p-4 dark:border-[#171D24] dark:bg-[#111111]">
-          <Danmaku />
+          <Danmaku selectedEvent={selectedEvent} />
           <div className="flex-1">
             <CandleChart
               newsEvents={eventsData}
